@@ -12,16 +12,14 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Interview Templates
-    match /interview_templates/{templateId} {
-      // Temporarily permissive for debugging server-side evaluation
-      allow read, write: if true;
-    }
- 
     // Scheduled Interview Sessions
     match /interview_sessions/{sessionId} {
-      // Temporarily permissive for debugging server-side evaluation
-      allow read, write: if true;
+      allow get, list, write: if request.auth != null;
+    }
+
+    // Candidate Reports
+    match /candidate_reports/{reportId} {
+      allow get, list, write: if request.auth != null;
     }
   }
 }
