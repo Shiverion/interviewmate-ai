@@ -11,18 +11,15 @@ import {
     hasAllKeys,
     getStoredKeys,
     clearAllKeys,
-    saveFirebaseConfig,
     saveOpenAIKey,
-    type FirebaseConfig,
     type StoredKeys,
 } from "@/lib/keys/store";
-import { initializeFirebase, resetFirebase } from "@/lib/firebase/config";
 
 interface KeyContextType {
     isConfigured: boolean;
     isLoading: boolean;
     keys: StoredKeys;
-    saveKeys: (firebase: FirebaseConfig, openai: string) => void;
+    saveKeys: (openai: string) => void;
     resetKeys: () => void;
     refreshStatus: () => void;
 }
@@ -30,7 +27,7 @@ interface KeyContextType {
 const KeyContext = createContext<KeyContextType>({
     isConfigured: false,
     isLoading: true,
-    keys: { firebase: null, openai: null },
+    keys: { openai: null },
     saveKeys: () => { },
     resetKeys: () => { },
     refreshStatus: () => { },
@@ -44,7 +41,6 @@ export function KeyProvider({ children }: { children: React.ReactNode }) {
     const [isConfigured, setIsConfigured] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [keys, setKeys] = useState<StoredKeys>({
-        firebase: null,
         openai: null,
     });
 
@@ -52,11 +48,6 @@ export function KeyProvider({ children }: { children: React.ReactNode }) {
         const configured = hasAllKeys();
         setIsConfigured(configured);
         setKeys(getStoredKeys());
-
-        // Initialize Firebase if keys are present
-        if (configured) {
-            initializeFirebase();
-        }
     }, []);
 
     useEffect(() => {
@@ -65,10 +56,8 @@ export function KeyProvider({ children }: { children: React.ReactNode }) {
     }, [refreshStatus]);
 
     const saveKeys = useCallback(
-        (firebase: FirebaseConfig, openai: string) => {
-            saveFirebaseConfig(firebase);
+        (openai: string) => {
             saveOpenAIKey(openai);
-            initializeFirebase(firebase);
             refreshStatus();
         },
         [refreshStatus]
@@ -76,9 +65,8 @@ export function KeyProvider({ children }: { children: React.ReactNode }) {
 
     const resetKeys = useCallback(() => {
         clearAllKeys();
-        resetFirebase();
         setIsConfigured(false);
-        setKeys({ firebase: null, openai: null });
+        setKeys({ openai: null });
     }, []);
 
     return (

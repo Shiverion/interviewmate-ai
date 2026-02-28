@@ -1,97 +1,43 @@
 /**
- * Firebase client — dynamically initialized from BYOK stored keys
+ * Firebase client — statically initialized via environment variables
  */
 
-import { initializeApp, getApps, getApp, deleteApp } from "firebase/app";
-import type { FirebaseApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import type { Firestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import type { Auth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import type { FirebaseStorage } from "firebase/storage";
-import { getFirebaseConfig, type FirebaseConfig } from "@/lib/keys/store";
 
-const APP_NAME = "interviewmate";
+const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+};
 
-let cachedApp: FirebaseApp | null = null;
-let cachedDb: Firestore | null = null;
-let cachedAuth: Auth | null = null;
-let cachedStorage: FirebaseStorage | null = null;
+// Initialize Firebase (singleton pattern)
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-/**
- * Initialize or reinitialize Firebase from stored config
- */
-export function initializeFirebase(config?: FirebaseConfig): FirebaseApp | null {
-    const firebaseConfig = config || getFirebaseConfig();
-    if (!firebaseConfig) return null;
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);
 
-    // If already initialized with same config, return cached
-    if (cachedApp) {
-        try {
-            return cachedApp;
-        } catch {
-            cachedApp = null;
-        }
-    }
-
-    // Clean up existing app
-    const existingApps = getApps();
-    const existing = existingApps.find((a) => a.name === APP_NAME);
-    if (existing) {
-        deleteApp(existing);
-    }
-
-    try {
-        cachedApp = initializeApp(firebaseConfig, APP_NAME);
-        cachedDb = getFirestore(cachedApp);
-        cachedAuth = getAuth(cachedApp);
-        cachedStorage = getStorage(cachedApp);
-        return cachedApp;
-    } catch {
-        cachedApp = null;
-        cachedDb = null;
-        cachedAuth = null;
-        cachedStorage = null;
-        return null;
-    }
+export function getFirebaseApp() {
+    return app;
 }
 
-export function getFirebaseApp(): FirebaseApp | null {
-    if (!cachedApp) {
-        return initializeFirebase();
-    }
-    return cachedApp;
+export function getDb() {
+    return db;
 }
 
-export function getDb(): Firestore | null {
-    if (!cachedDb) initializeFirebase();
-    return cachedDb;
+export function getFirebaseAuth() {
+    return auth;
 }
 
-export function getFirebaseAuth(): Auth | null {
-    if (!cachedAuth) initializeFirebase();
-    return cachedAuth;
+export function getFirebaseStorage() {
+    return storage;
 }
 
-export function getFirebaseStorage(): FirebaseStorage | null {
-    if (!cachedStorage) initializeFirebase();
-    return cachedStorage;
-}
-
-/**
- * Clear all cached Firebase instances (used when keys are reset)
- */
-export function resetFirebase(): void {
-    if (cachedApp) {
-        try {
-            deleteApp(cachedApp);
-        } catch {
-            // ignore
-        }
-    }
-    cachedApp = null;
-    cachedDb = null;
-    cachedAuth = null;
-    cachedStorage = null;
-}
+export default app;
