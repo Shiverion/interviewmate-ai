@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
-import { db } from "@/lib/firebase/config";
+import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import Link from "next/link";
 
@@ -20,6 +20,10 @@ export default function DashboardPage() {
         if (!user) return;
 
         async function fetchDashboard() {
+            if (!isFirebaseReady()) {
+                setLoading(false);
+                return;
+            }
             try {
                 // Fetch simple equality to avoid needing composite indexes early on
                 const q = query(

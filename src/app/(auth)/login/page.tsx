@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { auth } from "@/lib/firebase/config";
+import { auth, isFirebaseReady } from "@/lib/firebase/config";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from "next/navigation";
 
@@ -15,6 +15,10 @@ export default function LoginPage() {
 
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!isFirebaseReady()) {
+            setError("Firebase initialization failed. Authentication is unavailable.");
+            return;
+        }
         setError(null);
         setLoading(true);
 
@@ -34,6 +38,10 @@ export default function LoginPage() {
     };
 
     const handleGoogleAuth = async () => {
+        if (!isFirebaseReady()) {
+            setError("Firebase initialization failed. Authentication is unavailable.");
+            return;
+        }
         setError(null);
         setLoading(true);
         const provider = new GoogleAuthProvider();

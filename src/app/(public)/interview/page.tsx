@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import LottieAvatar from "@/components/interview/LottieAvatar";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { getOpenAIKey } from "@/lib/keys/store";
+import { isFirebaseReady } from "@/lib/firebase/config";
 
 export default function InterviewRoomPage() {
   const {
@@ -69,6 +70,12 @@ export default function InterviewRoomPage() {
   useEffect(() => {
     // The moment the state transitions to 'completed' and we haven't already hit this toggle
     if (status === "completed" && _sessionContext?.sessionId && !isEvaluating && !evaluationDone) {
+      if (!isFirebaseReady()) {
+        console.warn("[InterviewRoom] Skipping automated evaluation: Firebase not initialized.");
+        setIsEvaluating(false);
+        setEvaluationDone(true);
+        return;
+      }
       setIsEvaluating(true);
       const apiKey = getOpenAIKey() || "";
 

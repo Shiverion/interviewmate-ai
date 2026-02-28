@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
+import { auth, isFirebaseReady } from "@/lib/firebase/config";
 
 interface AuthContextType {
     user: User | null;
@@ -19,8 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!auth) {
-            console.error("[AuthProvider] Firebase auth is undefined. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is configured in your environment variables.");
+        if (!isFirebaseReady()) {
+            console.error("[AuthProvider] Firebase initialization skipped. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is configured in your environment variables.");
             setLoading(false);
             return;
         }

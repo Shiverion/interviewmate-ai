@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuthContext } from "@/components/providers/AuthProvider";
-import { db } from "@/lib/firebase/config";
+import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -22,6 +22,11 @@ export default function CandidateReportPage() {
         if (!user || !sessionId) return;
 
         async function fetchReport() {
+            if (!isFirebaseReady()) {
+                setError("Firebase is not initialized. Please ensure environment variables are configured.");
+                setLoading(false);
+                return;
+            }
             try {
                 const sessionRef = doc(db, "interview_sessions", sessionId);
                 const sessionSnap = await getDoc(sessionRef);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { db } from "@/lib/firebase/config";
+import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { extractTextFromPdfUrl } from "@/lib/pdf/parse";
@@ -22,6 +22,12 @@ export default function CandidateApplyPage() {
         if (!sessionId) return;
 
         async function verifySession() {
+            if (!isFirebaseReady()) {
+                setError("Firebase initialization failed. Please ensure the recruiter has configured the application correctly.");
+                setLoading(false);
+                return;
+            }
+
             try {
                 // 1. Fetch Session
                 const sessionRef = doc(db, "interview_sessions", sessionId);

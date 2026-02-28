@@ -24,41 +24,65 @@ let db: Firestore | undefined;
 let auth: Auth | undefined;
 let storage: FirebaseStorage | undefined;
 
-try {
-    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "mock_key") {
+const isConfigured = firebaseConfig.apiKey &&
+    firebaseConfig.apiKey !== "mock_key" &&
+    firebaseConfig.apiKey !== "undefined" &&
+    firebaseConfig.apiKey !== "";
+
+if (isConfigured) {
+    try {
         app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
         storage = getStorage(app);
-    } else {
-        console.warn("[Firebase] Skipped initialization. Mock key or undefined apiKey detected. This is expected during CI builds.");
+    } catch (e) {
+        console.error("[Firebase] Initialization error:", e);
     }
-} catch (e) {
-    console.error("[Firebase] Initialization error:", e);
+} else {
+    console.warn("[Firebase] Skipped initialization. Mock key or undefined apiKey detected. This is expected during CI builds.");
 }
 
-// Export with non-null assertions since the app assumes they are initialized at runtime,
-// except during Vercel's static worker build where they are safely skipped.
-const exportedDb = db as Firestore;
-const exportedAuth = auth as Auth;
-const exportedStorage = storage as FirebaseStorage;
+/**
+ * Proxy factory to provide descriptive errors instead of 'Cannot read properties of undefined'
+ * This prevents mysterious client-side crashes on Vercel when env vars are missing.
+ */
+function createSafeProxy<T extends object>(name: string, target: T | undefined): T {
+    // If target exists, return it directly for zero overhead in production
+    if (target) return target;
 
-export { exportedDb as db, exportedAuth as auth, exportedStorage as storage };
+    return new Proxy({} as T, {
+        get(_, prop) {
+            // Handle symbols and common standard properties gracefully
+            if (typeof prop === 'symbol' || prop === 'then' || prop === 'asPromise') {
+                return undefined;
+            }
+
+            const propName = String(prop);
+            const errorMsg = `[Firebase Error] Attempted to access '${propName}' on '${name}', but Firebase is NOT initialized. Ensure your NEXT_PUBLIC_FIREBASE_API_KEY is set on Vercel.`;
+
+            console.error(errorMsg);
+
+            // Return a function that throws if the code expects a method (common for SDK calls)
+            return () => {
+                throw new Error(errorMsg);
+            };
+        }
+    });
+}
+
+// Export proxied versions to ensure property access (like auth.onAuthStateChanged) doesn't crash on undefined.
+const safeDb = createSafeProxy<Firestore>("db", db);
+const safeAuth = createSafeProxy<Auth>("auth", auth);
+const safeStorage = createSafeProxy<FirebaseStorage>("storage", storage);
+
+export { safeDb as db, safeAuth as auth, safeStorage as storage };
 
 export function getFirebaseApp() {
     return app;
 }
 
-export function getDb() {
-    return exportedDb;
-}
-
-export function getFirebaseAuth() {
-    return exportedAuth;
-}
-
-export function getFirebaseStorage() {
-    return exportedStorage;
+export function isFirebaseReady(): boolean {
+    return !!app;
 }
 
 export default app;

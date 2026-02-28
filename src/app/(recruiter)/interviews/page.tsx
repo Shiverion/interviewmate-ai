@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase/config";
+import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { revokeInterviewSession } from "@/lib/firebase/interviews";
@@ -40,7 +40,10 @@ export default function InterviewsPage() {
     const [sortOrder, setSortOrder] = useState<"desc" | "asc" | "none">("none");
 
     const fetchSessions = async () => {
-        if (!user) return;
+        if (!user || !isFirebaseReady()) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const q = query(
