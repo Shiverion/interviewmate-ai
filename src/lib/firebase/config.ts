@@ -2,10 +2,10 @@
  * Firebase client — statically initialized via environment variables
  */
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getFirestore, Firestore } from "firebase/firestore";
+import { getAuth, Auth } from "firebase/auth";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,27 +17,48 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase (singleton pattern)
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Initialize Firebase (singleton pattern + build bypass)
+// During Vercel's static build, the API key might be missing or mocked. We must not crash the build worker.
+let app: FirebaseApp | undefined;
+let db: Firestore | undefined;
+let auth: Auth | undefined;
+let storage: FirebaseStorage | undefined;
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
+try {
+    if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "mock_key") {
+        app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        storage = getStorage(app);
+    } else {
+        console.warn("[Firebase] Skipped initialization. Mock key or undefined apiKey detected. This is expected during CI builds.");
+    }
+} catch (e) {
+    console.error("[Firebase] Initialization error:", e);
+}
+
+// Export with non-null assertions since the app assumes they are initialized at runtime,
+// except during Vercel's static worker build where they are safely skipped.
+const exportedDb = db as Firestore;
+const exportedAuth = auth as Auth;
+const exportedStorage = storage as FirebaseStorage;
+
+export { exportedDb as db, exportedAuth as auth, exportedStorage as storage };
 
 export function getFirebaseApp() {
     return app;
 }
 
 export function getDb() {
-    return db;
+    return exportedDb;
 }
 
 export function getFirebaseAuth() {
-    return auth;
+    return exportedAuth;
 }
 
 export function getFirebaseStorage() {
-    return storage;
+    return exportedStorage;
 }
 
 export default app;
