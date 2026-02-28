@@ -32,9 +32,10 @@ export default function SetupPage() {
         setIsValidating(true);
 
         try {
-            // Try to parse as JSON
+            // Parse raw JS object or JSON
             let config: FirebaseConfig;
             try {
+                // First try standard JSON
                 const parsed = JSON.parse(firebaseJson);
                 config = {
                     apiKey: parsed.apiKey || "",
@@ -45,11 +46,27 @@ export default function SetupPage() {
                     appId: parsed.appId || "",
                 };
             } catch {
-                setFirebaseError(
-                    "Invalid JSON. Paste your Firebase config object from the Firebase console."
-                );
-                setIsValidating(false);
-                return;
+                // If JSON fails, try regex to extract standard Firebase keys
+                // This handles the raw JS object syntax copied directly from Firebase console
+                const extractValue = (key: string) => {
+                    const regex = new RegExp(`${key}\\s*:\\s*['"\`]?([^'"\`,\\s]+)['"\`]?`, 'i');
+                    const match = firebaseJson.match(regex);
+                    return match ? match[1] : "";
+                };
+
+                config = {
+                    apiKey: extractValue("apiKey"),
+                    authDomain: extractValue("authDomain"),
+                    projectId: extractValue("projectId"),
+                    storageBucket: extractValue("storageBucket"),
+                    messagingSenderId: extractValue("messagingSenderId"),
+                    appId: extractValue("appId"),
+                };
+
+                // Validate we actually found at least an API key using the regex fallback
+                if (!config.apiKey) {
+                    throw new Error("Could not parse config");
+                }
             }
 
             const result = await validateFirebaseConfig(config);
@@ -62,7 +79,7 @@ export default function SetupPage() {
             // Store temporarily and move to next step
             setStep("openai");
         } catch {
-            setFirebaseError("Validation failed. Please check your config.");
+            setFirebaseError("Invalid format. Please paste the exact firebaseConfig object from your Firebase console.");
         } finally {
             setIsValidating(false);
         }
@@ -147,10 +164,10 @@ export default function SetupPage() {
                                 <div className="flex flex-col items-center gap-1">
                                     <div
                                         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all duration-300 ${isPast
-                                                ? "bg-success text-white"
-                                                : isCurrent
-                                                    ? "gradient-primary text-white shadow-glow"
-                                                    : "bg-[var(--surface-elevated)] text-[var(--muted)]"
+                                            ? "bg-success text-white"
+                                            : isCurrent
+                                                ? "gradient-primary text-white shadow-glow"
+                                                : "bg-[var(--surface-elevated)] text-[var(--muted)]"
                                             }`}
                                     >
                                         {isPast ? "✓" : i + 1}

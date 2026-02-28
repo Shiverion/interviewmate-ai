@@ -56,7 +56,30 @@ export default function SettingsPage() {
     const handleUpdateFirebase = async () => {
         setFirebaseError("");
         try {
-            const config: FirebaseConfig = JSON.parse(newFirebaseJson);
+            let config: FirebaseConfig;
+            try {
+                // Try standard JSON first
+                config = JSON.parse(newFirebaseJson);
+            } catch {
+                // Fallback to regex extraction for raw JS objects from Firebase console
+                const extractValue = (key: string) => {
+                    const regex = new RegExp(`${key}\\s*:\\s*['"\`]?([^'"\`,\\s]+)['"\`]?`, 'i');
+                    const match = newFirebaseJson.match(regex);
+                    return match ? match[1] : "";
+                };
+
+                config = {
+                    apiKey: extractValue("apiKey"),
+                    authDomain: extractValue("authDomain"),
+                    projectId: extractValue("projectId"),
+                    storageBucket: extractValue("storageBucket"),
+                    messagingSenderId: extractValue("messagingSenderId"),
+                    appId: extractValue("appId"),
+                };
+
+                if (!config.apiKey) throw new Error("Could not parse config");
+            }
+
             const result = await validateFirebaseConfig(config);
             if (!result.valid) {
                 setFirebaseError(result.error || "Invalid config");
@@ -68,7 +91,7 @@ export default function SettingsPage() {
             setEditingFirebase(false);
             setNewFirebaseJson("");
         } catch {
-            setFirebaseError("Invalid JSON format");
+            setFirebaseError("Invalid format. Please paste the exact firebaseConfig object.");
         }
     };
 
