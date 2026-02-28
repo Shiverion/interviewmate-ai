@@ -1,0 +1,17 @@
+{
+  "mode": "interactive",
+  "depth": "comprehensive",
+  "execution": "sequential",
+  "budget_tier": "standard",
+  "preferences": {
+    "auto_commit": true,
+    "verify_strict": true,
+    "cost_alerts": true
+  },
+  "project": {
+    "name": "InterviewMate AI",
+    "repo": "interviewmate-ai",
+    "visibility": "public",
+    "initialized": "2026-02-28"
+  }
+}
