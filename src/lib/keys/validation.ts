@@ -77,7 +77,7 @@ export async function validateFirebaseConfig(
 export async function validateOpenAIKey(
     apiKey: string
 ): Promise<ValidationResult> {
-    if (!apiKey || !apiKey.startsWith("sk-")) {
+    if (!apiKey || !apiKey.trim().startsWith("sk-")) {
         return {
             valid: false,
             error: 'OpenAI API key must start with "sk-"',
