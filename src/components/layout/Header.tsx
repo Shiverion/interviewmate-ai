@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useKeys } from "@/components/providers/KeyProvider";
 
@@ -13,22 +14,17 @@ export default function Header() {
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 group">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary shadow-md transition-transform duration-200 group-hover:scale-105">
-                        <svg
-                            className="h-5 w-5 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={2}
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                            />
-                        </svg>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 p-1 shadow-sm transition-transform duration-200 group-hover:scale-105 border border-white/10 overflow-hidden">
+                        <Image
+                            src="/logo.png"
+                            alt="InterviewMate Logo"
+                            width={32}
+                            height={32}
+                            className="object-contain"
+                            priority
+                        />
                     </div>
-                    <span className="text-lg font-semibold font-heading tracking-tight">
+                    <span className="text-xl font-bold font-heading tracking-tight">
                         Interview<span className="gradient-text">Mate</span>
                     </span>
                 </Link>

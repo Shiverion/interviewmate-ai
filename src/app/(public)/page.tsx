@@ -1,32 +1,48 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
     return (
         <main className="relative overflow-hidden" aria-label="InterviewMate AI Landing Page">
             {/* Hero section */}
-            <section className="relative mx-auto max-w-7xl px-4 pt-20 pb-32 sm:px-6 lg:px-8" aria-label="Hero Section">
+            <section className="relative mx-auto max-w-7xl px-4 pt-24 pb-32 sm:px-6 lg:px-8" aria-label="Hero Section">
                 {/* Background gradient blobs */}
                 <div className="absolute top-0 left-1/4 -z-10 h-72 w-72 rounded-full bg-primary-500/20 blur-[100px]" aria-hidden="true" />
                 <div className="absolute top-20 right-1/4 -z-10 h-64 w-64 rounded-full bg-accent-500/15 blur-[80px]" aria-hidden="true" />
 
-                <div className="text-center animate-fade-in">
+                <div className="text-center animate-fade-in flex flex-col items-center">
+                    {/* Brand Logo */}
+                    <div className="relative mb-8 animate-slide-down">
+                        <div className="absolute inset-0 bg-primary-500/20 blur-3xl rounded-full" />
+                        <div className="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-[var(--surface-elevated)] p-3 shadow-2xl border border-white/10 overflow-hidden">
+                            <Image
+                                src="/logo.png"
+                                alt="InterviewMate Logo"
+                                width={80}
+                                height={80}
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
+                    </div>
+
                     {/* Badge */}
                     <div className="inline-flex items-center gap-2 rounded-full border border-primary-500/20 bg-primary-500/10 px-4 py-1.5 text-sm font-medium text-primary-400 mb-8" role="status">
                         <span className="h-1.5 w-1.5 rounded-full bg-primary-400 animate-pulse-soft" aria-hidden="true" />
-                        AI-Powered Screening
+                        AI-Powered Screening • Powered by GPT-4o
                     </div>
 
                     {/* Heading */}
-                    <h1 className="text-4xl font-bold font-heading tracking-tight sm:text-5xl lg:text-6xl">
+                    <h1 className="text-4xl font-extrabold font-heading tracking-tight sm:text-6xl lg:text-7xl mb-6">
                         Meet Your Virtual
                         <br />
-                        <span className="gradient-text">Interview Assistant</span>
+                        <span className="gradient-text">InterviewMate AI</span>
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="mx-auto mt-6 max-w-2xl text-lg text-[var(--muted)] leading-relaxed">
+                    <p className="mx-auto max-w-2xl text-lg text-[var(--muted)] leading-relaxed">
                         Automate first-round candidate screening with an interactive AI
-                        avatar. Voice conversations, smart evaluation, instant results.
+                        interviewer. Natural voice conversations, objective evaluation, and instant results.
                     </p>
 
                     {/* CTA Buttons */}
