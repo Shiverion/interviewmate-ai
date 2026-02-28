@@ -8,6 +8,8 @@ import { z } from "zod";
 // In Next.js App Router, using ai-sdk requires creating an OpenAI instance if not using OpenAI generic handlers
 import { createOpenAI } from "@ai-sdk/openai";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
     try {
         const { sessionId } = await req.json();
