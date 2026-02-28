@@ -62,10 +62,12 @@ export class WebRTCAudioManager {
                     // Route specific known OpenAI Realtime events
                     const eventType = parsed.type;
 
-                    if (eventType === "response.audio_transcript.delta") {
+                    if (eventType === "response.audio_transcript.delta" || eventType === "response.text.delta") {
                         this.config.onMessage("transcript_delta", parsed.delta);
-                    } else if (eventType === "response.audio_transcript.done") {
-                        this.config.onMessage("transcript_done", parsed.transcript);
+                    } else if (eventType === "response.audio_transcript.done" || eventType === "response.text.done") {
+                        this.config.onMessage("transcript_done", parsed.transcript || parsed.text);
+                    } else if (eventType === "conversation.item.input_audio_transcription.completed") {
+                        this.config.onMessage("user_transcript_done", parsed.transcript);
                     } else if (eventType === "input_audio_buffer.speech_started") {
                         this.config.onMessage("user_started_speaking", null);
                     } else if (eventType === "response.created") {
@@ -74,6 +76,10 @@ export class WebRTCAudioManager {
                         this.config.onMessage("ai_speaking", null);
                     } else if (eventType === "response.done") {
                         this.config.onMessage("ai_done", null);
+                    } else if (eventType === "response.function_call_arguments.done") {
+                        if (parsed.name === "end_interview") {
+                            this.config.onMessage("end_interview", null);
+                        }
                     } else {
                         // Catch-all for other debugging
                         this.config.onMessage("raw_event", parsed);
@@ -82,6 +88,13 @@ export class WebRTCAudioManager {
                 } catch (err) {
                     console.error("Error parsing data channel message", err);
                 }
+            }
+        };
+
+        // Emit 'ready' when channel opens so the client knows it can send custom json events
+        this.dc.onopen = () => {
+            if (this.config.onMessage) {
+                this.config.onMessage("ready", null);
             }
         };
 
@@ -119,6 +132,24 @@ export class WebRTCAudioManager {
         } else {
             console.warn("Data channel is not open. Cannot send event:", eventObj);
         }
+    }
+
+    /**
+     * Helper to send an explicit text message to the AI
+     * and immediately mandate a text response.
+     */
+    public sendTextMessage(text: string): void {
+        this.sendEvent({
+            type: "conversation.item.create",
+            item: {
+                type: "message",
+                role: "user",
+                content: [{ type: "input_text", text: text }]
+            }
+        });
+
+        // Trigger the AI to analyze and respond
+        this.sendEvent({ type: "response.create" });
     }
 
     /**

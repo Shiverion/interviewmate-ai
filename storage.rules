@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Candidate Resumes
+    match /resumes/{sessionId}/{fileName} {
+      // Recruiters can upload resumes
+      allow write: if request.auth != null;
+      
+      // We allow reads by the exact path so the AI backend can download and parse the text
+      allow read: if true;
+    }
+    
+    // Audio Recordings
+    match /audio/{sessionId}/{fileName} {
+      // Candidate can upload from the browser WebRTC stream capturing
+      allow write: if true;
+      // Recruiter reads 
+      allow read: if request.auth != null;
+    }
+  }
+}

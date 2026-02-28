@@ -1,0 +1,25 @@
+[
+    {
+        "origin": [
+            "http://localhost:3000",
+            "http://localhost:3001",
+            "https://shiverion.com",
+            "https://www.shiverion.com"
+        ],
+        "method": [
+            "GET",
+            "PUT",
+            "POST",
+            "DELETE",
+            "OPTIONS"
+        ],
+        "maxAgeSeconds": 3600,
+        "responseHeader": [
+            "Content-Type",
+            "Authorization",
+            "Content-Length",
+            "User-Agent",
+            "x-goog-resumable"
+        ]
+    }
+]

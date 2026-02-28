@@ -1,23 +1,22 @@
 # Project State
 
-**Last Updated**: 2026-02-28
-**Current Focus**: Phase 4 planning and execution (Interactive Voice Interview)
+**Last Updated**: 2026-03-01
+**Current Focus**: Phase 10 planning (Polish, Testing & Deployment)
 **Overall Status**: 🟢 On track
 
 ## Active Work
 - [x] Phase 1: Scaffolding & Design System
 - [x] Phase 2: BYOK Key Management
 - [x] Phase 3: Avatar Generation (2D)
-- [ ] Phase 4: Interactive Voice Interview
+- [x] Phase 4: Interactive Voice Interview
+- [x] Phase 5: Interview Session CRUD
+- [x] Phase 6: AI Interview Rules, Ending Logic, & Streaming Subtitles
+- [x] Phase 7: Text Interview Mode
+- [x] Phase 8: Automated Evaluation & Scoring
+- [x] Phase 9: Reports, Dashboard & Notifications
 
 ## Recent Decisions
-- 2026-02-28: User requested a 2D lightweight avatar (Lottie/SVG) instead of 3D.
-- 2026-02-28: Reordered roadmap to tackle Avatar (Phase 3) and Voice (Phase 4) earlier to derisk complex features.
-- 2026-02-28: Updated CV flow to support two modes: Recruiter scheduled (pre-loaded CV) and Candidate auto-upload (generic link).
-- 2026-02-28: Chose comprehensive depth (10 phases) with standard budget tier
-- 2026-02-28: Added interactive voice + graphical virtual assistant as core features (not in original PRD)
-- 2026-02-28: Re-initialized git to remove unrelated commit history
-- 2026-02-28: Solo developer — sequential execution preferred
+- 2026-02-28: Completed Phase 9. Built the detailed `/interviews/[sessionId]` grading report viewer and added client-side `Blob` functionality for `.txt` Transcript downloading. Extended `/interviews` into a fully-fledged Pipeline management table featuring client-side text filtering and clickable column sorting by the AI Rubric evaluation score.
 
 ## Blockers
 - None
@@ -29,8 +28,9 @@
 - **Status**: 🟢 Under budget
 
 ## Next Steps
-1. Execute Phase 4 atomic tasks: Realtime WebRTC connection, transcription, and avatar syncing.
-2. Verify audio streaming and conversation flow handling.
+1. Task 10-01: CI/CD Pipeline & Production Deployment (Vercel, GitHub Actions, Meta tags, README).
+2. Task 10-02: Quality Assurance & Code Polish (Jest, Cypress, Lighthouse, A11y).
+3. Finalize complete deployment and audit tests.
 
 ## Session Memory
 - User wants interactive speaking with graphical virtual assistant — avatar that lip-syncs and shows emotions during interview

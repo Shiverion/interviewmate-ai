@@ -1,0 +1,2 @@
+﻿src/lib/firebase/interviews.ts(57,11): error TS2451: Cannot redeclare block-scoped variable 'templateRef'.
+src/lib/firebase/interviews.ts(69,12): error TS2451: Cannot redeclare block-scoped variable 'templateRef'.

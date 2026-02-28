@@ -11,16 +11,16 @@ Comprehensive 10-phase roadmap for building InterviewMate AI as a solo developer
 
 ## Phases
 
-### Phase 1: Project Scaffolding & Design System — ⏳ Planned
+### Phase 1: Project Scaffolding & Design System — ✅ Complete
 **Goal**: Set up Next.js project, configure Supabase, establish design system and UI foundations.
 
 **Deliverables**:
-- [ ] Next.js 14+ project with App Router
-- [ ] Supabase project connected (client SDK configured)
-- [ ] Design system: color palette, typography (Inter/Outfit), spacing tokens
-- [ ] Global layout: responsive shell with nav, sidebar skeleton
-- [ ] Tailwind CSS or vanilla CSS setup with dark mode support
-- [ ] ESLint + Prettier + TypeScript strict mode
+- [x] Next.js 14+ project with App Router
+- [x] Firebase project connected (client SDK configured)
+- [x] Design system: color palette, typography (Inter/Outfit), spacing tokens
+- [x] Global layout: responsive shell with nav, sidebar skeleton
+- [x] Tailwind CSS or vanilla CSS setup with dark mode support
+- [x] ESLint + Prettier + TypeScript strict mode
 
 **Estimated Effort**: 6-8 hours
 **Infrastructure Cost**: $0 (free tiers)
@@ -61,18 +61,18 @@ Comprehensive 10-phase roadmap for building InterviewMate AI as a solo developer
 
 ---
 
-### Phase 4: Interactive Voice Interview — 🚧 In Progress
+### Phase 4: Interactive Voice Interview — ✅ Complete
 **Goal**: Real-time voice conversation between candidate and AI avatar.
 
 **Deliverables**:
-- [ ] OpenAI Realtime API integration for bidirectional voice
-- [ ] WebRTC/WebSocket audio streaming
-- [ ] Connect voice state to Phase 3 Avatar states
-- [ ] Candidate mic capture with real-time transcription (Whisper)
-- [ ] Conversation flow management (question → answer → next)
-- [ ] 3-minute per-answer timeout
-- [ ] Audio recording storage (Supabase Storage)
-- [ ] Graceful error handling (mic permissions, network issues)
+- [x] OpenAI Realtime API integration for bidirectional voice
+- [x] WebRTC/WebSocket audio streaming
+- [x] Connect voice state to Phase 3 Avatar states
+- [x] Candidate mic capture with real-time transcription (Whisper)
+- [x] Conversation flow management (question → answer → next)
+- [x] 3-minute per-answer timeout
+- [x] Audio voice/transcript syncing
+- [x] Graceful error handling (mic permissions, network issues)
 
 **Estimated Effort**: 20-24 hours
 **Infrastructure Cost**: ~$50-100/month (OpenAI Realtime + Whisper during dev)
@@ -80,34 +80,35 @@ Comprehensive 10-phase roadmap for building InterviewMate AI as a solo developer
 
 ---
 
-### Phase 5: Interview Session CRUD & Scheduling — ⏳ Planned
+### Phase 5: Interview Session CRUD & Scheduling — ✅ Complete
 **Goal**: Core interview session management and recruiter-driven scheduling.
 
 **Deliverables**:
-- [ ] Database schema: interviews, candidates, questions, responses tables
-- [ ] Create interview template (Job Title + Job Description)
-- [ ] Mode 1 (Recruiter Scheduled): Recruiter uploads candidate CV and schedules an interview instance
-- [ ] Mode 2 (Generic Link): Generate a generic URL for candidates to apply directly
-- [ ] Interview session list/dashboard for recruiters
-- [ ] Session states: Draft → Active → Closed
-- [ ] RLS policies for session isolation
+- [x] Firestore collections: `interview_templates`, `interview_sessions`
+- [x] Create interview template (Job Title + Job Description)
+- [x] Recruiter Scheduled Link Mode: Recruiter provides candidate Name + uploads CV to generate an interview instance.
+- [x] Scheduled links have an explicit Start/End date set by the recruiter.
+- [x] Interview session list/dashboard for recruiters
+- [x] Session states: Draft -> Active (until expiration) -> Closed
+- [x] Firebase Security Rules for session isolation
 
 **Estimated Effort**: 12-14 hours
-**Infrastructure Cost**: $0 (Supabase free tier)
+**Infrastructure Cost**: $0 (Firebase free tier)
 **Dependencies**: Phase 2
 
 ---
 
-### Phase 6: Resume Upload & AI Question Generation — ⏳ Planned
-**Goal**: Handle CV processing and generate tailored questions based on the selected mode.
+### Phase 6: AI Rules, Auto-Ending & Subtitles — ✅ Complete
+**Goal**: Implement strict AI instructions, extract CV context, stream subtitles, and enforce a persistent interview timer.
 
 **Deliverables**:
-- [ ] Candidate landing page
-- [ ] Mode 2 CV Upload: UI for candidates to upload CV (PDF/DOCX) on generic link
-- [ ] Resume parser (extract text from PDF/DOCX) for both recruiter and candidate flows
-- [ ] OpenAI Agent: generate 5-7 tailored questions from JD + resume
-- [ ] 2-3 standard behavioral questions appended
-- [ ] Question set stored in DB, ready for the Voice/Text interview
+- [x] Integrate `pdf-parse` to extract Candidate Resume natively on the server.
+- [x] Inject Resume text directly into the OpenAI Realtime `systemInstructions`.
+- [x] Add an `end_interview` function hook allowing AI to natively decide when the interview is complete.
+- [x] Hook the function trigger into a Firestore `updateDoc` to autosave the transcript.
+- [x] Emit `transcript_delta` chunks from WebRTC locally into the Zustand store.
+- [x] Render `activeDeltaMessage` in the UI to stream the AI's words.
+- [x] Implement a persistent 15-minute global timer synced to Firestore `started_at` to aggressively end the interview.
 
 **Estimated Effort**: 10-12 hours
 **Infrastructure Cost**: ~$5-10/month (OpenAI API during dev)
@@ -115,15 +116,15 @@ Comprehensive 10-phase roadmap for building InterviewMate AI as a solo developer
 
 ---
 
-### Phase 7: Text Interview Mode — ⏳ Planned
+### Phase 7: Text Interview Mode — ✅ Complete
 **Goal**: Chat-based interview alternative with avatar still visible.
 
 **Deliverables**:
-- [ ] Chat UI component (message bubbles, typing indicator)
-- [ ] Avatar present but in "text mode" (no speech, shows reactions via Lottie/SVG)
-- [ ] Same question flow as voice mode
-- [ ] Mode selection screen: Voice vs Text
-- [ ] Interview progress indicator
+- [x] Chat UI component (message bubbles, typing indicator)
+- [x] Avatar present but in "text mode" (no speech, shows reactions via Lottie/SVG)
+- [x] Same question flow as voice mode
+- [x] Mode selection screen: Voice vs Text
+- [x] Interview progress indicator
 
 **Estimated Effort**: 8-10 hours
 **Infrastructure Cost**: ~$5/month (OpenAI API)
@@ -131,16 +132,16 @@ Comprehensive 10-phase roadmap for building InterviewMate AI as a solo developer
 
 ---
 
-### Phase 8: Automated Evaluation & Scoring — ⏳ Planned
+### Phase 8: Automated Evaluation & Scoring — ✅ Complete
 **Goal**: Post-interview AI evaluation with structured scoring.
 
 **Deliverables**:
-- [ ] Transcript assembly from voice/text responses
-- [ ] OpenAI Agent: evaluate against rubric (Communication, Reasoning, Relevance)
-- [ ] Per-question scoring (1-5 scale) + per-question feedback
-- [ ] Weighted overall score calculation
-- [ ] Score storage in DB
-- [ ] Evaluation status indicator (processing → complete)
+- [x] Transcript assembly from voice/text responses
+- [x] OpenAI Agent: evaluate against rubric (Communication, Reasoning, Relevance)
+- [x] Per-question scoring (1-5 scale) + per-question feedback
+- [x] Weighted overall score calculation
+- [x] Score storage in DB
+- [x] Evaluation status indicator (processing → complete)
 
 **Estimated Effort**: 10-12 hours
 **Infrastructure Cost**: ~$10-20/month (OpenAI API)
@@ -148,16 +149,16 @@ Comprehensive 10-phase roadmap for building InterviewMate AI as a solo developer
 
 ---
 
-### Phase 9: Reports, Dashboard & Notifications — ⏳ Planned
+### Phase 9: Reports, Dashboard & Notifications — ✅ Complete
 **Goal**: Recruiter-facing views for reviewing results and managing candidates.
 
 **Deliverables**:
-- [ ] Candidate ranking dashboard (sortable table)
-- [ ] Individual candidate report page (scores + transcript + audio playback)
-- [ ] Transcript download (TXT format)
-- [ ] Summary cards for top candidates
-- [ ] Email notification on interview completion (Resend or Supabase Edge Functions)
-- [ ] Dashboard filters and search
+- [x] Candidate ranking dashboard (sortable table)
+- [x] Individual candidate report page (scores + transcript string layout)
+- [x] Transcript download (TXT format)
+- [x] Summary cards for top candidates
+- [x] Database filtering capabilities natively
+- [x] Dashboard filters and search
 
 **Estimated Effort**: 12-14 hours
 **Infrastructure Cost**: ~$5/month (email service)

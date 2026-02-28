@@ -1,0 +1,4 @@
+src/app/(public)/apply/[sessionId]/page.tsx(130,17): error TS2353: Object literal may only specify known properties, and 'startedAt' does not exist in type '{ sessionId: string; candidateName: string; jobTitle: string; resumeUrl?: string | undefined; resumeText?: string | undefined; }'.
+src/app/(public)/interview/page.tsx(37,40): error TS2339: Property 'startedAt' does not exist on type '{ sessionId: string; candidateName: string; jobTitle: string; resumeUrl?: string | undefined; resumeText?: string | undefined; }'.
+src/app/(public)/interview/page.tsx(55,32): error TS2339: Property 'startedAt' does not exist on type '{ sessionId: string; candidateName: string; jobTitle: string; resumeUrl?: string | undefined; resumeText?: string | undefined; }'.
+src/lib/pdf/parse.ts(3,8): error TS1192: Module '"C:/Users/miqba/projects/Virtual AI Interviewer Assistant/node_modules/pdf-parse/dist/pdf-parse/esm/index"' has no default export.
