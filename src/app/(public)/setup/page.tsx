@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useKeys } from "@/components/providers/KeyProvider";
+import { useAuthContext } from "@/components/providers/AuthProvider";
 import ApiKeyInput from "@/components/ui/ApiKeyInput";
 import { validateOpenAIKey } from "@/lib/keys/validation";
 
@@ -11,9 +12,25 @@ type Step = "openai" | "success";
 export default function SetupPage() {
     const router = useRouter();
     const { saveKeys } = useKeys();
+    const { user, loading: authLoading } = useAuthContext();
+
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push("/login?redirect=/setup");
+        }
+    }, [user, authLoading, router]);
 
     const [step, setStep] = useState<Step>("openai");
     const [isValidating, setIsValidating] = useState(false);
+
+    if (authLoading || !user) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
+                <div className="w-12 h-12 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mb-4" />
+                <p className="text-[var(--muted)] animate-pulse">Checking authentication...</p>
+            </div>
+        );
+    }
 
     // OpenAI fields
     const [openaiKey, setOpenaiKey] = useState("");

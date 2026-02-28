@@ -65,7 +65,7 @@ export default function DashboardPage() {
     const copyToClipboard = () => {
         if (generatedLink) {
             navigator.clipboard.writeText(generatedLink);
-            showToast("Link copied to clipboard!", "success");
+            showToast("Success", "Link copied to clipboard!", "success");
         }
     };
 

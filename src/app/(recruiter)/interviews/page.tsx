@@ -96,10 +96,10 @@ export default function InterviewsPage() {
                     setSessions(prev => prev.map(s =>
                         s.id === sessionId ? { ...s, status: "revoked" } : s
                     ));
-                    showToast("Interview revoked successfully", "info");
+                    showToast("Success", "Interview revoked successfully", "info");
                 } catch (err) {
                     console.error("Failed to revoke session", err);
-                    showToast("Failed to revoke session", "error");
+                    showToast("Error", "Failed to revoke session", "error");
                 }
                 setConfirmConfig(prev => ({ ...prev, isOpen: false }));
             }
@@ -118,20 +118,20 @@ export default function InterviewsPage() {
             });
             const data = await res.json();
             if (data.success) {
-                showToast("Evaluation completed successfully!");
+                showToast("Success", "Evaluation completed successfully!", "success");
                 fetchSessions(); // Refresh to show score
             } else {
-                showToast(`Evaluation failed: ${data.error || "Unknown error"}`, "error");
+                showToast("Error", `Evaluation failed: ${data.error || "Unknown error"}`, "error");
             }
         } catch (err) {
             console.error("Manual eval error:", err);
-            showToast("An error occurred during manual evaluation.", "error");
+            showToast("Error", "An error occurred during manual evaluation.", "error");
         }
     };
 
     const copyToClipboard = (link: string) => {
         navigator.clipboard.writeText(link);
-        showToast("Link copied to clipboard!", "success");
+        showToast("Success", "Link copied to clipboard!", "success");
     };
 
     // Apply Client-Side Filtering
