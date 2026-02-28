@@ -49,6 +49,10 @@ export const metadata: Metadata = {
     title: "InterviewMate AI",
     description: "Automate candidate screening with interactive AI voice interviews.",
   },
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
