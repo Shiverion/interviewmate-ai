@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { useKeys } from "@/components/providers/KeyProvider";
 
 export default function Header() {
     const { theme, toggleTheme } = useTheme();
+    const { isConfigured } = useKeys();
 
     return (
         <header className="sticky top-0 z-50 w-full glass">
@@ -33,6 +35,16 @@ export default function Header() {
 
                 {/* Right side actions */}
                 <div className="flex items-center gap-3">
+                    {/* Connection status */}
+                    <div className="flex items-center gap-1.5" title={isConfigured ? "API keys configured" : "API keys not configured"}>
+                        <span
+                            className={`h-2 w-2 rounded-full transition-colors ${isConfigured ? "bg-success" : "bg-error animate-pulse-soft"
+                                }`}
+                        />
+                        <span className="hidden sm:inline text-xs text-[var(--muted-foreground)]">
+                            {isConfigured ? "Connected" : "Not configured"}
+                        </span>
+                    </div>
                     {/* Dark mode toggle */}
                     <button
                         onClick={toggleTheme}
