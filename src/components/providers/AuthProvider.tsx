@@ -19,6 +19,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!auth) {
+            console.error("[AuthProvider] Firebase auth is undefined. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is configured in your environment variables.");
+            setLoading(false);
+            return;
+        }
+
         // Subscribe to Firebase Auth state changes
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
