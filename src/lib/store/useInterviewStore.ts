@@ -72,11 +72,32 @@ export const useInterviewStore = create<InterviewState>((set, get) => ({
             });
 
             // 4. Initialize WebRTC Manager
+            let currentAssistantMessage = "";
+
             const manager = new WebRTCAudioManager({
                 ephemeralToken: token,
-                onMessage: (event) => {
-                    // This will be expanded in Task 04-03
-                    console.log("[WebRTC Event]", event);
+                onMessage: (type, payload) => {
+                    if (type === "user_started_speaking") {
+                        set({ avatarState: "listening" });
+                    } else if (type === "ai_thinking") {
+                        set({ avatarState: "thinking" });
+                        currentAssistantMessage = "";
+                    } else if (type === "ai_speaking") {
+                        // Because delta fires 50x a second, only set if state isn't already speaking
+                        if (get().avatarState !== "speaking") {
+                            set({ avatarState: "speaking" });
+                        }
+                    } else if (type === "transcript_delta") {
+                        // Append to current temporary message line
+                        currentAssistantMessage += payload;
+                        // We can optionally display this live if we want subtitling,
+                        // for now we'll wait for 'done' to add standard line.
+                    } else if (type === "transcript_done") {
+                        get().addTranscriptLine("assistant", payload || currentAssistantMessage);
+                        currentAssistantMessage = "";
+                    } else if (type === "ai_done") {
+                        set({ avatarState: "listening" });
+                    }
                 },
                 onDisconnect: () => {
                     set({ status: "completed", avatarState: "idle" });

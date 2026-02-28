@@ -5,7 +5,7 @@
 
 export interface WebRTCManagerConfig {
     ephemeralToken: string;
-    onMessage?: (event: any) => void;
+    onMessage?: (type: string, payload: any) => void;
     onTrack?: (track: MediaStreamTrack) => void;
     onDisconnect?: () => void;
 }
@@ -58,7 +58,27 @@ export class WebRTCAudioManager {
             if (this.config.onMessage) {
                 try {
                     const parsed = JSON.parse(e.data);
-                    this.config.onMessage(parsed);
+
+                    // Route specific known OpenAI Realtime events
+                    const eventType = parsed.type;
+
+                    if (eventType === "response.audio_transcript.delta") {
+                        this.config.onMessage("transcript_delta", parsed.delta);
+                    } else if (eventType === "response.audio_transcript.done") {
+                        this.config.onMessage("transcript_done", parsed.transcript);
+                    } else if (eventType === "input_audio_buffer.speech_started") {
+                        this.config.onMessage("user_started_speaking", null);
+                    } else if (eventType === "response.created") {
+                        this.config.onMessage("ai_thinking", null);
+                    } else if (eventType === "response.audio.delta") {
+                        this.config.onMessage("ai_speaking", null);
+                    } else if (eventType === "response.done") {
+                        this.config.onMessage("ai_done", null);
+                    } else {
+                        // Catch-all for other debugging
+                        this.config.onMessage("raw_event", parsed);
+                    }
+
                 } catch (err) {
                     console.error("Error parsing data channel message", err);
                 }
