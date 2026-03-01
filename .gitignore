@@ -42,4 +42,16 @@ next-env.d.ts
 .env.*.local
 .planning/
 
+# IDEs and Editors
+.vscode/
+.idea/
+
+# Agent & AI
+.gemini/
+.cursor/
+
+# Temporary Files
+tmp/
+temp/
+
 .vercel
