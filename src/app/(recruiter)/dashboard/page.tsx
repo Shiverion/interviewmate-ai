@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
+import DemoRoomModal from "@/components/dashboard/DemoRoomModal";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
@@ -12,6 +13,7 @@ export default function DashboardPage() {
     const { user } = useAuthContext();
     const { showToast } = useToast();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
     const [generatedLink, setGeneratedLink] = useState<string | null>(null);
     const [sessions, setSessions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -94,17 +96,16 @@ export default function DashboardPage() {
                         </svg>
                     </button>
 
-                    {/* Demo Button to launch Phase 4 testing room */}
-                    <Link
-                        href="/interview"
-                        target="_blank"
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] font-medium hover:bg-[var(--border)] transition-all"
+                    <button
+                        onClick={() => setIsDemoModalOpen(true)}
+                        className="group relative inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] font-medium transition-all duration-300 hover:-translate-y-1 hover:border-primary-500/50 hover:bg-primary-500/10 hover:shadow-lg hover:shadow-primary-500/20"
                     >
+                        <span className="absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-gradient-to-r from-primary-500/10 via-transparent to-primary-500/10 pointer-events-none" />
                         Demo Room
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                    </Link>
+                    </button>
                 </div>
             </div>
 
@@ -254,6 +255,10 @@ export default function DashboardPage() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={handleSuccess}
+            />
+            <DemoRoomModal
+                isOpen={isDemoModalOpen}
+                onClose={() => setIsDemoModalOpen(false)}
             />
         </div>
     );

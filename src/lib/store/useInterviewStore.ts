@@ -11,6 +11,7 @@ export interface InterviewContext {
     sessionId: string;
     candidateName: string;
     jobTitle: string;
+    jobDescription?: string;
     resumeUrl?: string;
     resumeText?: string;
     startedAt: number;
@@ -114,7 +115,14 @@ export const useInterviewStore = create<InterviewState>()(
                             console.log("[AI DIAGNOSTICS] Successfully injecting resume text into AI prompt.");
                         }
 
+                        const roleContext = sessionCtx.jobDescription
+                            ? `Role Description:
+${sessionCtx.jobDescription}
+`
+                            : "";
+
                         instructions = `You are an AI recruiter conducting a screening interview for the role of ${sessionCtx.jobTitle}. You are interviewing ${sessionCtx.candidateName}.
+${roleContext}
 
 ${safeResumeText ? `CANDIDATE BACKGROUND CONTEXT (from resume):
 """
@@ -281,12 +289,17 @@ STRICT INSTRUCTIONS:
                 const sessionCtx = get()._sessionContext;
                 if (sessionCtx?.sessionId) {
                     console.log("[STORE] endInterview triggered. Waiting for subtitle drain...");
+                    const isDemoSession = sessionCtx.sessionId.startsWith("demo-");
                     const monitorDrainAndFinish = () => {
                         if (get()._subtitleBuffer.length > 0 || get()._isDrainingSubtitle) {
                             setTimeout(monitorDrainAndFinish, 500);
                         } else {
                             console.log("[STORE] Subtitles drained. Terminating in 2.5s...");
                             setTimeout(() => {
+                                if (isDemoSession) {
+                                    get().disconnect();
+                                    return;
+                                }
                                 const finalTranscript = get().transcript;
                                 const sessionRef = doc(db, "interview_sessions", sessionCtx.sessionId);
                                 updateDoc(sessionRef, {

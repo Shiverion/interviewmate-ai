@@ -1,12 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import LottieAvatar from "@/components/interview/LottieAvatar";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { getOpenAIKey } from "@/lib/keys/store";
 import { isFirebaseReady } from "@/lib/firebase/config";
 
+interface EvaluationResult {
+  scores: {
+    communication: number;
+    reasoning: number;
+    relevance: number;
+  };
+  feedback: string;
+  overallScore: number;
+  is_passing: boolean;
+}
+
 export default function InterviewRoomPage() {
+  const router = useRouter();
   const {
     avatarState,
     isMicMuted,
@@ -29,6 +42,13 @@ export default function InterviewRoomPage() {
   const [chatInput, setChatInput] = useState("");
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationDone, setEvaluationDone] = useState(false);
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
+  const sessionId = _sessionContext?.sessionId;
+  const candidateName = _sessionContext?.candidateName;
+  const jobTitle = _sessionContext?.jobTitle;
+  const jobDescription = _sessionContext?.jobDescription;
+  const isDemoSession = !!sessionId && sessionId.startsWith("demo-");
 
   // Attach local stream to video element PIP when it becomes available
   useEffect(() => {
@@ -69,14 +89,21 @@ export default function InterviewRoomPage() {
   // Trigger automated evaluation asynchronously on completion
   useEffect(() => {
     // The moment the state transitions to 'completed' and we haven't already hit this toggle
-    if (status === "completed" && _sessionContext?.sessionId && !isEvaluating && !evaluationDone) {
-      if (!isFirebaseReady()) {
-        console.warn("[InterviewRoom] Skipping automated evaluation: Firebase not initialized.");
-        setIsEvaluating(false);
-        setEvaluationDone(true);
+    if (status === "completed" && sessionId && !isEvaluating && !evaluationDone) {
+      const hasTranscript = transcript.some((line) => line.text && line.text.trim().length > 0);
+      if (!hasTranscript) {
+        console.warn("[InterviewRoom] Skipping evaluation: no transcript captured.");
+        queueMicrotask(() => {
+          setEvaluationError("No transcript captured, so a score could not be generated.");
+          setEvaluationDone(true);
+        });
         return;
       }
-      setIsEvaluating(true);
+      if (!isDemoSession && !isFirebaseReady()) {
+        console.warn("[InterviewRoom] Skipping automated evaluation: Firebase not initialized.");
+        return;
+      }
+      queueMicrotask(() => setIsEvaluating(true));
       const apiKey = getOpenAIKey() || "";
 
       fetch("/api/evaluate", {
@@ -85,22 +112,38 @@ export default function InterviewRoomPage() {
           "Content-Type": "application/json",
           "x-openai-key": apiKey
         },
-        body: JSON.stringify({ sessionId: _sessionContext.sessionId })
+        body: JSON.stringify({
+          sessionId,
+          transcript,
+          candidateName,
+          jobTitle,
+          jobDescription: jobDescription || ""
+        })
       })
-        .then(res => res.json())
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data?.error || `Evaluation failed (${res.status})`);
+          }
+          return data;
+        })
         .then(data => {
           console.log("Evaluation complete:", data);
+          if (data?.evaluation) {
+            setEvaluationResult(data.evaluation as EvaluationResult);
+          }
           setIsEvaluating(false);
           setEvaluationDone(true);
         })
         .catch(err => {
           console.error("Eval Error:", err);
+          setEvaluationError(err?.message || "Failed to generate evaluation.");
           // Fail gracefully so the user isn't stuck waiting forever
           setIsEvaluating(false);
           setEvaluationDone(true);
         });
     }
-  }, [status, _sessionContext?.sessionId, isEvaluating, evaluationDone]);
+  }, [status, sessionId, transcript, candidateName, jobTitle, jobDescription, isDemoSession, isEvaluating, evaluationDone]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -162,7 +205,7 @@ export default function InterviewRoomPage() {
   if (status === "completed") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 text-center">
-        <div className="max-w-md w-full glass-card p-12 space-y-6 relative overflow-hidden">
+        <div className="max-w-2xl w-full glass-card p-8 md:p-10 space-y-6 relative overflow-hidden">
           {isEvaluating ? (
             <>
               <div className="mx-auto w-16 h-16 relative flex items-center justify-center mb-6">
@@ -173,8 +216,62 @@ export default function InterviewRoomPage() {
               </div>
               <h2 className="text-2xl font-bold font-heading">Analyzing Interview...</h2>
               <p className="text-[var(--muted)] text-sm">
-                The AI is currently compiling your results and evaluating your responses. Please don't close this window just yet.
+                The AI is currently compiling your results and evaluating your responses. Please do not close this window just yet.
               </p>
+            </>
+          ) : isDemoSession ? (
+            <>
+              <h2 className="text-2xl font-bold font-heading">Demo Interview Complete</h2>
+
+              {evaluationResult ? (
+                <div className="space-y-5 text-left">
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-[var(--muted)]">Overall Score</p>
+                      <span className={`text-sm font-semibold ${evaluationResult.is_passing ? "text-green-500" : "text-red-500"}`}>
+                        {evaluationResult.is_passing ? "Pass" : "Needs Improvement"}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-4xl font-bold font-heading gradient-text">
+                      {Math.round(evaluationResult.overallScore)}%
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4">
+                      <p className="text-xs text-[var(--muted)] uppercase tracking-wider">Communication</p>
+                      <p className="mt-1 text-xl font-semibold">{Math.round(evaluationResult.scores.communication)}%</p>
+                    </div>
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4">
+                      <p className="text-xs text-[var(--muted)] uppercase tracking-wider">Reasoning</p>
+                      <p className="mt-1 text-xl font-semibold">{Math.round(evaluationResult.scores.reasoning)}%</p>
+                    </div>
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4">
+                      <p className="text-xs text-[var(--muted)] uppercase tracking-wider">Relevance</p>
+                      <p className="mt-1 text-xl font-semibold">{Math.round(evaluationResult.scores.relevance)}%</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4">
+                    <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-2">AI Feedback</p>
+                    <p className="text-sm text-[var(--foreground)] leading-relaxed">{evaluationResult.feedback}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-error/20 bg-error/10 p-4 text-sm text-error">
+                  {evaluationError || "Evaluation could not be generated for this demo interview."}
+                </div>
+              )}
+
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl gradient-primary text-white font-medium shadow-lg hover:-translate-y-0.5 transition-all"
+              >
+                Back to Dashboard
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </button>
             </>
           ) : (
             <>

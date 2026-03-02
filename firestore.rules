@@ -17,6 +17,11 @@ service cloud.firestore {
       allow get, list, write: if request.auth != null;
     }
 
+    // Interview Templates
+    match /interview_templates/{templateId} {
+      allow get, list, write: if request.auth != null;
+    }
+
     // Candidate Reports
     match /candidate_reports/{reportId} {
       allow get, list, write: if request.auth != null;

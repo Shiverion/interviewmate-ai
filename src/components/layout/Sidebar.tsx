@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -36,59 +37,138 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
+
+    const handleSignOut = () => {
+        import("@/lib/firebase/config").then(({ auth }) => {
+            import("firebase/auth").then(({ signOut }) => {
+                signOut(auth);
+                window.location.href = "/login";
+            });
+        });
+    };
 
     return (
-        <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:pt-16">
-            <nav className="flex flex-1 flex-col gap-1 p-4 overflow-y-auto border-r border-[var(--border)]">
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`
+        <>
+            <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:pt-16">
+                <nav className="flex flex-1 flex-col gap-1 p-4 overflow-y-auto border-r border-[var(--border)]">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`
                 group flex items-center gap-3 rounded-lg px-3 py-2.5
                 text-sm font-medium transition-all duration-200
                 ${isActive
-                                    ? "bg-primary-500/10 text-primary-400 shadow-sm"
-                                    : "text-[var(--muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]"
-                                }
+                                        ? "bg-primary-500/10 text-primary-400 shadow-sm"
+                                        : "text-[var(--muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]"
+                                    }
               `}
-                        >
-                            <span
-                                className={`transition-colors duration-200 ${isActive
-                                    ? "text-primary-400"
-                                    : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"
-                                    }`}
                             >
-                                {item.icon}
-                            </span>
-                            {item.label}
-                            {isActive && (
-                                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-400 animate-pulse-soft" />
-                            )}
-                        </Link>
-                    );
-                })}
-            </nav>
-            <div className="p-4 border-t border-[var(--border)]">
-                <button
-                    onClick={() => {
-                        import("@/lib/firebase/config").then(({ auth }) => {
-                            import("firebase/auth").then(({ signOut }) => {
-                                signOut(auth);
-                                window.location.href = "/login";
-                            });
-                        });
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--muted)] hover:bg-error/10 hover:text-error transition-all duration-200"
-                >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                    </svg>
-                    Sign Out
-                </button>
-            </div>
-        </aside>
+                                <span
+                                    className={`transition-colors duration-200 ${isActive
+                                        ? "text-primary-400"
+                                        : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"
+                                        }`}
+                                >
+                                    {item.icon}
+                                </span>
+                                {item.label}
+                                {isActive && (
+                                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-400 animate-pulse-soft" />
+                                )}
+                            </Link>
+                        );
+                    })}
+                </nav>
+                <div className="p-4 border-t border-[var(--border)]">
+                    <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--muted)] hover:bg-error/10 hover:text-error transition-all duration-200"
+                    >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                        </svg>
+                        Sign Out
+                    </button>
+                </div>
+            </aside>
+
+            <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden fixed right-4 top-20 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--background)]/95 text-[var(--foreground)] shadow-md backdrop-blur"
+                aria-label="Open navigation menu"
+            >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+
+            {isMobileMenuOpen && (
+                <div className="lg:hidden fixed inset-0 z-[60]">
+                    <button
+                        type="button"
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        aria-label="Close navigation menu"
+                    />
+                    <aside className="absolute right-0 top-0 h-full w-[85vw] max-w-xs border-l border-[var(--border)] bg-[var(--background)] shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-4">
+                            <h2 className="text-sm font-semibold">Menu</h2>
+                            <button
+                                type="button"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]"
+                                aria-label="Close menu"
+                            >
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <nav className="flex flex-col gap-1 p-4">
+                            {navItems.map((item) => {
+                                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
+                                            ? "bg-primary-500/10 text-primary-400 shadow-sm"
+                                            : "text-[var(--muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--foreground)]"
+                                            }`}
+                                    >
+                                        <span className={isActive ? "text-primary-400" : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"}>
+                                            {item.icon}
+                                        </span>
+                                        {item.label}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+
+                        <div className="border-t border-[var(--border)] p-4">
+                            <button
+                                onClick={handleSignOut}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--muted)] hover:bg-error/10 hover:text-error transition-all duration-200"
+                            >
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                </svg>
+                                Sign Out
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+            )}
+        </>
     );
 }

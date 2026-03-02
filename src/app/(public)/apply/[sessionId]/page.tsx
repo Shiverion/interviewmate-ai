@@ -149,6 +149,7 @@ export default function CandidateApplyPage() {
                 sessionId: sessionData.id,
                 candidateName: sessionData.candidate_name,
                 jobTitle: templateData.job_title,
+                jobDescription: templateData.job_description || "",
                 resumeUrl: sessionData.resume_url,
                 resumeText: sessionData._resumeText || "", // Ensure it's passed
                 startedAt: sessionData.started_at?.toMillis() || Date.now(),
