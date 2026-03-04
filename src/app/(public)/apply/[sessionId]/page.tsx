@@ -150,6 +150,11 @@ export default function CandidateApplyPage() {
                 candidateName: sessionData.candidate_name,
                 jobTitle: templateData.job_title,
                 jobDescription: templateData.job_description || "",
+                questionTopic: templateData.question_topic || "",
+                questionLevel: templateData.question_level || "",
+                questionCount: templateData.question_count || "",
+                customQuestions: Array.isArray(templateData.custom_questions) ? templateData.custom_questions : [],
+                preferredLanguage: templateData.preferred_language || "",
                 resumeUrl: sessionData.resume_url,
                 resumeText: sessionData._resumeText || "", // Ensure it's passed
                 startedAt: sessionData.started_at?.toMillis() || Date.now(),

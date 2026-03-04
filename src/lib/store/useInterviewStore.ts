@@ -12,6 +12,11 @@ export interface InterviewContext {
     candidateName: string;
     jobTitle: string;
     jobDescription?: string;
+    questionTopic?: string;
+    questionLevel?: "easy" | "medium" | "hard" | "";
+    questionCount?: number | "";
+    customQuestions?: string[];
+    preferredLanguage?: string;
     resumeUrl?: string;
     resumeText?: string;
     startedAt: number;
@@ -100,6 +105,11 @@ export const useInterviewStore = create<InterviewState>()(
                         console.log(`[AI DIAGNOSTICS] Building session context. Candidate: ${sessionCtx.candidateName}`);
                         console.log(`[AI DIAGNOSTICS] Resume URL present? ${!!sessionCtx.resumeUrl}`);
                         console.log(`[AI DIAGNOSTICS] Parsed Resume Text Length: ${sessionCtx.resumeText ? sessionCtx.resumeText.length : 0} characters`);
+                        console.log(`[AI DIAGNOSTICS] Topic: ${sessionCtx.questionTopic || "(none)"}`);
+                        console.log(`[AI DIAGNOSTICS] Level: ${sessionCtx.questionLevel || "(none)"}`);
+                        console.log(`[AI DIAGNOSTICS] Question Count: ${sessionCtx.questionCount || "(default)"}`);
+                        console.log(`[AI DIAGNOSTICS] Custom Questions Count: ${sessionCtx.customQuestions?.length || 0}`);
+                        console.log(`[AI DIAGNOSTICS] Preferred Language: ${sessionCtx.preferredLanguage || "(auto)"}`);
 
                         // 1. TOP-HEAVY CONTEXT:
                         // Models pay the most attention to the beginning of the prompt. We inject the resume here.
@@ -120,9 +130,49 @@ export const useInterviewStore = create<InterviewState>()(
 ${sessionCtx.jobDescription}
 `
                             : "";
+                        const preferredLanguage = sessionCtx.preferredLanguage?.trim() || "";
+                        const languageMandate = preferredLanguage
+                            ? `LANGUAGE MANDATE (HIGHEST PRIORITY):
+You must conduct the entire interview in ${preferredLanguage}.
+Do not switch to English unless the user explicitly asks to switch language.
+If the candidate uses another language, politely bring them back to ${preferredLanguage}.`
+                            : "";
+                        const topicContext = sessionCtx.questionTopic
+                            ? `Primary Topic Focus:
+${sessionCtx.questionTopic}
+`
+                            : "";
+                        const levelContext = sessionCtx.questionLevel
+                            ? `Target Question Difficulty: ${sessionCtx.questionLevel.toUpperCase()}`
+                            : "";
+                        const safeQuestionCount = typeof sessionCtx.questionCount === "number"
+                            ? Math.min(10, Math.max(1, sessionCtx.questionCount))
+                            : null;
+                        const questionCountContext = safeQuestionCount
+                            ? `Total Questions Target: ${safeQuestionCount}`
+                            : "";
+                        const customQuestionsList = sessionCtx.customQuestions && sessionCtx.customQuestions.length > 0
+                            ? sessionCtx.customQuestions
+                                .slice(0, 10)
+                                .map((q, i) => `${i + 1}. ${q}`)
+                                .join("\n")
+                            : "";
+                        const customQuestionsContext = customQuestionsList
+                            ? `Custom Questions To Include:\n${customQuestionsList}`
+                            : "";
+                        const preferredLanguageContext = sessionCtx.preferredLanguage
+                            ? `Preferred Interview Language: ${sessionCtx.preferredLanguage}`
+                            : "";
+                        console.log(`[AI DIAGNOSTICS] Prompt injection flags => topic:${Boolean(topicContext)} level:${Boolean(levelContext)} questionCount:${Boolean(questionCountContext)} customQuestions:${Boolean(customQuestionsContext)} language:${Boolean(preferredLanguageContext)}`);
 
                         instructions = `You are an AI recruiter conducting a screening interview for the role of ${sessionCtx.jobTitle}. You are interviewing ${sessionCtx.candidateName}.
+${languageMandate}
 ${roleContext}
+${topicContext}
+${levelContext}
+${questionCountContext}
+${customQuestionsContext}
+${preferredLanguageContext}
 
 ${safeResumeText ? `CANDIDATE BACKGROUND CONTEXT (from resume):
 """
@@ -134,11 +184,16 @@ CRITICAL MANDATE: You MUST NOT ask generic interview questions (like "tell me ab
 STRICT INSTRUCTIONS:
 1. Conduct the interview within a 30-minute window.
 2. PERSONALITY: You are a charismatic senior recruiter. Speak at a moderate, natural human pace. You are NOT a robot. Use warm intonation and natural conversational fillers.
-3. CLOSING PROTOCOL: When concluding, provide a definitive summary of EXACTLY 2-3 professional sentences. Thank the candidate and inform them the team will reach out.
-4. STRICT NEGATIVE CONSTRAINT: Under NO CIRCUMSTANCES should you ask the candidate "Do you have any questions," "Is there anything else," or request final remarks. End with your 2-3 sentence speech ONLY.
-5. IMMEDIATELY call the 'end_interview' tool the second you finish speaking your closing sentence.`;
+3. If a topic focus is provided, prioritize most questions around that topic while keeping them job-relevant.
+4. If a difficulty level is provided, calibrate question depth and complexity to that level.
+5. If total questions target is provided, ask approximately that many core interview questions and never exceed 10.
+6. If custom questions are provided, include each custom question naturally during the interview.
+7. If preferred interview language is provided, use that language consistently throughout the interview.
+8. CLOSING PROTOCOL: When concluding, provide a definitive summary of EXACTLY 2-3 professional sentences. Thank the candidate and inform them the team will reach out.
+9. STRICT NEGATIVE CONSTRAINT: Under NO CIRCUMSTANCES should you ask the candidate "Do you have any questions," "Is there anything else," or request final remarks. End with your 2-3 sentence speech ONLY.
+10. IMMEDIATELY call the 'end_interview' tool the second you finish speaking your closing sentence.`;
 
-                        if (safeResumeText) {
+                        if (!sessionCtx.preferredLanguage && safeResumeText) {
                             instructions += `\n\nLANGUAGE INSTRUCTION: The default language for this interview is English. You MUST address the candidate and conduct the interview in English, UNLESS the resume above is explicitly written in another primary language. If the resume is in another language, conduct the interview in that exact language. If the candidate switches languages during the interview, gently remind them to stick to a professional environment and respond back in the expected language. Flag any deviations internally.`;
                         }
                     }
@@ -237,12 +292,17 @@ STRICT INSTRUCTIONS:
                                 });
 
                                 // Instruct the AI to initiate the conversation right away
+                                const preferredLanguage = sessionCtx?.preferredLanguage?.trim() || "";
                                 let greetingPrompt = sessionCtx
                                     ? `Start the interview by warmly greeting ${sessionCtx.candidateName} and introducing yourself as the AI Interviewer for the ${sessionCtx.jobTitle} position.`
                                     : "Greet the user warmly, introduce yourself as the AI Interviewer, and ask them how they are doing to kick off the interview.";
 
                                 if (sessionCtx?.resumeText) {
                                     greetingPrompt += " Mention that you have reviewed their resume and acknowledge a specific, interesting detail (e.g., a past company, a project, or a specific skill) right in this greeting to show you are prepared.";
+                                }
+
+                                if (preferredLanguage) {
+                                    greetingPrompt = `Respond only in ${preferredLanguage}. ${greetingPrompt} Keep all wording in ${preferredLanguage}.`;
                                 }
 
                                 manager.sendEvent({

@@ -18,6 +18,11 @@ export interface InterviewTemplate {
     recruiter_id: string;
     job_title: string;
     job_description: string;
+    question_topic?: string;
+    question_level?: "easy" | "medium" | "hard";
+    question_count?: number;
+    custom_questions?: string[];
+    preferred_language?: string;
     created_at?: any;
 }
 
@@ -43,6 +48,11 @@ export async function createScheduledInterview(
     recruiterId: string,
     jobTitle: string,
     jobDescription: string,
+    questionTopic: string,
+    questionLevel: "easy" | "medium" | "hard" | "",
+    questionCount: number | "",
+    customQuestions: string[],
+    preferredLanguage: string,
     candidateName: string,
     candidateId: string,
     candidateEmail: string,
@@ -57,6 +67,11 @@ export async function createScheduledInterview(
         recruiter_id: recruiterId,
         job_title: jobTitle,
         job_description: jobDescription,
+        question_topic: questionTopic || "",
+        question_level: questionLevel || "",
+        question_count: questionCount || "",
+        custom_questions: customQuestions || [],
+        preferred_language: preferredLanguage || "",
         created_at: serverTimestamp()
     };
 

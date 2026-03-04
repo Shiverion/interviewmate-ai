@@ -36,6 +36,11 @@ export default function DemoRoomModal({ isOpen, onClose }: DemoRoomModalProps) {
     const router = useRouter();
     const [jobTitle, setJobTitle] = useState("");
     const [jobDescription, setJobDescription] = useState("");
+    const [questionTopic, setQuestionTopic] = useState("");
+    const [questionLevel, setQuestionLevel] = useState<"easy" | "medium" | "hard" | "">("");
+    const [questionCount, setQuestionCount] = useState<number | "">("");
+    const [customQuestionsText, setCustomQuestionsText] = useState("");
+    const [preferredLanguage, setPreferredLanguage] = useState("");
     const [candidateName, setCandidateName] = useState("");
     const [interviewMode, setInterviewMode] = useState<"voice" | "text">("voice");
     const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -53,6 +58,17 @@ export default function DemoRoomModal({ isOpen, onClose }: DemoRoomModalProps) {
             return;
         }
 
+        if (questionCount !== "" && (questionCount < 1 || questionCount > 10)) {
+            setError("Number of questions must be between 1 and 10.");
+            return;
+        }
+
+        const parsedCustomQuestions = customQuestionsText
+            .split("\n")
+            .map((q) => q.trim())
+            .filter(Boolean)
+            .slice(0, 10);
+
         setLoading(true);
         try {
             const resumeText = await extractTextFromPdfFile(resumeFile);
@@ -62,6 +78,11 @@ export default function DemoRoomModal({ isOpen, onClose }: DemoRoomModalProps) {
                     candidateName,
                     jobTitle,
                     jobDescription,
+                    questionTopic,
+                    questionLevel,
+                    questionCount,
+                    customQuestions: parsedCustomQuestions,
+                    preferredLanguage,
                     resumeText,
                     startedAt: Date.now(),
                     interviewMode,
@@ -131,6 +152,80 @@ export default function DemoRoomModal({ isOpen, onClose }: DemoRoomModalProps) {
                                 value={candidateName}
                                 onChange={(e) => setCandidateName(e.target.value)}
                             />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Topic <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    placeholder="e.g. Next.js, product analytics"
+                                    value={questionTopic}
+                                    onChange={(e) => setQuestionTopic(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Question Level <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                                <select
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    value={questionLevel}
+                                    onChange={(e) => setQuestionLevel(e.target.value as "easy" | "medium" | "hard" | "")}
+                                >
+                                    <option value="">No preference</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Number of Questions <span className="text-[var(--muted)] font-normal">(optional, max 10)</span></label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={10}
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    placeholder="e.g. 6"
+                                    value={questionCount}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        if (!raw) {
+                                            setQuestionCount("");
+                                            return;
+                                        }
+                                        const parsed = Number(raw);
+                                        if (Number.isFinite(parsed)) {
+                                            setQuestionCount(Math.min(10, Math.max(1, parsed)));
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium mb-1">Custom Interview Questions <span className="text-[var(--muted)] font-normal">(optional, one per line)</span></label>
+                                <textarea
+                                    rows={4}
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-y"
+                                    placeholder="Describe a difficult bug you diagnosed and how you fixed it."
+                                    value={customQuestionsText}
+                                    onChange={(e) => setCustomQuestionsText(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Language Preference <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                                <select
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    value={preferredLanguage}
+                                    onChange={(e) => setPreferredLanguage(e.target.value)}
+                                >
+                                    <option value="">Auto-detect</option>
+                                    <option value="English">English</option>
+                                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                                    <option value="Spanish">Spanish</option>
+                                    <option value="French">French</option>
+                                    <option value="German">German</option>
+                                    <option value="Arabic">Arabic</option>
+                                    <option value="Mandarin Chinese">Mandarin Chinese</option>
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Candidate CV (PDF)</label>

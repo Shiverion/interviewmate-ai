@@ -17,6 +17,11 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
 
     const [jobTitle, setJobTitle] = useState("");
     const [jobDescription, setJobDescription] = useState("");
+    const [questionTopic, setQuestionTopic] = useState("");
+    const [questionLevel, setQuestionLevel] = useState<"easy" | "medium" | "hard" | "">("");
+    const [questionCount, setQuestionCount] = useState<number | "">("");
+    const [customQuestionsText, setCustomQuestionsText] = useState("");
+    const [preferredLanguage, setPreferredLanguage] = useState("");
     const [candidateName, setCandidateName] = useState("");
     const [candidateEmail, setCandidateEmail] = useState("");
     const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -41,6 +46,16 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        const parsedCustomQuestions = customQuestionsText
+            .split("\n")
+            .map((q) => q.trim())
+            .filter(Boolean)
+            .slice(0, 10);
+
+        if (questionCount !== "" && (questionCount < 1 || questionCount > 10)) {
+            setError("Number of questions must be between 1 and 10.");
+            return;
+        }
 
         // Generate a human-readable unique Candidate ID (CAND-1234)
         const generateCandidateId = () => {
@@ -66,6 +81,11 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
                 user.uid,
                 jobTitle,
                 jobDescription,
+                questionTopic,
+                questionLevel,
+                questionCount,
+                parsedCustomQuestions,
+                preferredLanguage,
                 candidateName,
                 candidateId,
                 candidateEmail,
@@ -79,6 +99,11 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
             // Reset state
             setJobTitle("");
             setJobDescription("");
+            setQuestionTopic("");
+            setQuestionLevel("");
+            setQuestionCount("");
+            setCustomQuestionsText("");
+            setPreferredLanguage("");
             setCandidateName("");
             setCandidateEmail("");
             setResumeFile(null);
@@ -144,6 +169,80 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
                                 value={jobDescription}
                                 onChange={e => setJobDescription(e.target.value)}
                             />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Topic <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    placeholder="e.g. React hooks, system design"
+                                    value={questionTopic}
+                                    onChange={e => setQuestionTopic(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Question Level <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                                <select
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    value={questionLevel}
+                                    onChange={e => setQuestionLevel(e.target.value as "easy" | "medium" | "hard" | "")}
+                                >
+                                    <option value="">No preference</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Number of Questions <span className="text-[var(--muted)] font-normal">(optional, max 10)</span></label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={10}
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    placeholder="e.g. 6"
+                                    value={questionCount}
+                                    onChange={e => {
+                                        const raw = e.target.value;
+                                        if (!raw) {
+                                            setQuestionCount("");
+                                            return;
+                                        }
+                                        const parsed = Number(raw);
+                                        if (Number.isFinite(parsed)) {
+                                            setQuestionCount(Math.min(10, Math.max(1, parsed)));
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium mb-1">Custom Interview Questions <span className="text-[var(--muted)] font-normal">(optional, one per line)</span></label>
+                                <textarea
+                                    rows={4}
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-y"
+                                    placeholder="What tradeoffs did you make in your last architecture decision?"
+                                    value={customQuestionsText}
+                                    onChange={e => setCustomQuestionsText(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Language Preference <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                                <select
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                    value={preferredLanguage}
+                                    onChange={e => setPreferredLanguage(e.target.value)}
+                                >
+                                    <option value="">Auto-detect</option>
+                                    <option value="English">English</option>
+                                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                                    <option value="Spanish">Spanish</option>
+                                    <option value="French">French</option>
+                                    <option value="German">German</option>
+                                    <option value="Arabic">Arabic</option>
+                                    <option value="Mandarin Chinese">Mandarin Chinese</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
