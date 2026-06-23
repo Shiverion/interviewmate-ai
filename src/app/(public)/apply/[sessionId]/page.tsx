@@ -96,17 +96,49 @@ export default function CandidateApplyPage() {
                 setTemplateData(tData);
 
                 // 4. Pre-fetch and parse the CV text so the AI has it immediately
+                let extractedResumeText = "";
                 if (sData.resume_url) {
                     console.log("[CV PDF DIAGNOSIS] Attempting to extract text from:", sData.resume_url);
-                    const extractedText = await extractTextFromPdfUrl(sData.resume_url);
-                    if (extractedText) {
-                        console.log(`[CV PDF DIAGNOSIS] Success. Extracted ${extractedText.length} characters.`);
-                        setSessionData((prev: any) => ({ ...prev, _resumeText: extractedText }));
+                    extractedResumeText = await extractTextFromPdfUrl(sData.resume_url) || "";
+                    if (extractedResumeText) {
+                        console.log(`[CV PDF DIAGNOSIS] Success. Extracted ${extractedResumeText.length} characters.`);
+                        setSessionData((prev: any) => ({ ...prev, _resumeText: extractedResumeText }));
                     } else {
                         console.warn("[CV PDF DIAGNOSIS] FAILED or returned empty string.");
                     }
-                } else {
-                    console.log("[CV PDF DIAGNOSIS] No resume_url found on session.");
+                }
+
+                // 5. ATS pre-screen score (run async, don't block page load)
+                if (extractedResumeText && tData?.job_title && tData?.job_description) {
+                    fetch("/api/ats-score", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            resumeText: extractedResumeText,
+                            jobTitle: tData.job_title,
+                            jobDescription: tData.job_description,
+                            sessionId
+                        })
+                    }).then(r => r.ok ? r.json() : null)
+                    .then(data => {
+                        if (data?.ats_score) console.log(`[ATS] Pre-screen score: ${data.ats_score.overall_match}%`);
+                    }).catch(e => console.warn("[ATS] Pre-screen failed:", e));
+                }
+
+                // 6. GitHub enrichment (if template has a github_username)
+                if (tData?.github_username) {
+                    try {
+                        const ghRes = await fetch(`/api/github-enrich?username=${encodeURIComponent(tData.github_username)}`);
+                        if (ghRes.ok) {
+                            const ghData = await ghRes.json();
+                            if (ghData.enrichment) {
+                                setSessionData((prev: any) => ({ ...prev, _githubEnrichment: ghData.enrichment }));
+                                console.log(`[GITHUB] Enriched with ${ghData.enrichment.top_repos.length} repos`);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("[GITHUB] Enrichment failed, continuing without:", e);
+                    }
                 }
 
             } catch (err: any) {
@@ -141,10 +173,6 @@ export default function CandidateApplyPage() {
 
         // Push the session context into the UI store so the Voice implementation knows what to do
         useInterviewStore.setState({
-            // We use temporary fields in the store or we can just pass them as query params.
-            // But since Zustand uses a global mutable store, we can just attach them.
-            // The `useInterviewStore` interface currently doesn't have `sessionContext`.
-            // Let's rely on standard UI context. We will update useInterviewStore next.
             _sessionContext: {
                 sessionId: sessionData.id,
                 candidateName: sessionData.candidate_name,
@@ -156,10 +184,13 @@ export default function CandidateApplyPage() {
                 customQuestions: Array.isArray(templateData.custom_questions) ? templateData.custom_questions : [],
                 preferredLanguage: templateData.preferred_language || "",
                 resumeUrl: sessionData.resume_url,
-                resumeText: sessionData._resumeText || "", // Ensure it's passed
+                resumeText: sessionData._resumeText || "",
+                githubEnrichment: sessionData._githubEnrichment || null,
                 startedAt: sessionData.started_at?.toMillis() || Date.now(),
                 interviewMode: sessionData.allowed_modes === "audio_only" ? "voice" : interviewMode,
-                allowedModes: sessionData.allowed_modes || "audio_and_text"
+                allowedModes: sessionData.allowed_modes || "audio_and_text",
+                visualPanel: templateData.visual_panel || "none",
+                codeDiff: templateData.code_diff || ""
             } as any
         });
 

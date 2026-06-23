@@ -1,26 +1,42 @@
-import { calculateOverallScore, isPassingScore } from '../src/lib/utils/scoring';
+import { calculateOverallScore, isPassingScore, type EvaluationScores } from '../src/lib/utils/scoring';
+
+const perfectScores: EvaluationScores = {
+    communication: 100,
+    reasoning: 100,
+    relevance: 100,
+    technical_depth: 100,
+    production_experience: 100,
+    skill_match: 100,
+    confidence: 100
+};
 
 describe('AI Evaluation Scoring Utilities', () => {
 
     it('calculates the perfect score correctly', () => {
-        const scores = { communication: 5, reasoning: 5, relevance: 5 };
-        const percentage = calculateOverallScore(scores);
+        const percentage = calculateOverallScore(perfectScores);
         expect(percentage).toBe(100);
     });
 
-    it('calculates a weighted average correctly', () => {
-        // Communication 3, Reasoning 4, Relevance 5
-        // (3*0.3) + (4*0.3) + (5*0.4) = 0.9 + 1.2 + 2.0 = 4.1
-        // (4.1/5) * 100 = 82
-        const scores = { communication: 3, reasoning: 4, relevance: 5 };
-        const percentage = calculateOverallScore(scores);
-        expect(percentage).toBe(82);
+    it('calculates weighted average correctly', () => {
+        // communication 15% + reasoning 20% + relevance 15% + technical_depth 20%
+        // + production_experience 15% + skill_match 10% + confidence 5%
+        const scores: EvaluationScores = {
+            communication: 80,
+            reasoning: 70,
+            relevance: 90,
+            technical_depth: 60,
+            production_experience: 75,
+            skill_match: 85,
+            confidence: 65
+        };
+        const expected = Math.round(80*0.15 + 70*0.20 + 90*0.15 + 60*0.20 + 75*0.15 + 85*0.10 + 65*0.05);
+        expect(calculateOverallScore(scores)).toBe(expected);
     });
 
-    it('determines passing threshold correctly', () => {
-        expect(isPassingScore(82)).toBe(true);
-        expect(isPassingScore(65)).toBe(false);
-        expect(isPassingScore(70)).toBe(true); // default threshold inclusive
+    it('determines passing threshold correctly (default 75)', () => {
+        expect(isPassingScore(80)).toBe(true);
+        expect(isPassingScore(74)).toBe(false);
+        expect(isPassingScore(75)).toBe(true);
     });
 
     it('allows custom passing thresholds', () => {

@@ -7,6 +7,25 @@ import { getOpenAIKey } from "@/lib/keys/store";
 import { db } from "@/lib/firebase/config";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 
+export interface GitHubEnrichment {
+    profile: {
+        name: string | null;
+        bio: string | null;
+        public_repos: number;
+        followers: number;
+        company: string | null;
+    };
+    top_repos: Array<{
+        name: string;
+        description: string | null;
+        language: string | null;
+        stars: number;
+        topics: string[];
+    }>;
+    top_languages: string[];
+    github_url: string;
+}
+
 export interface InterviewContext {
     sessionId: string;
     candidateName: string;
@@ -19,9 +38,12 @@ export interface InterviewContext {
     preferredLanguage?: string;
     resumeUrl?: string;
     resumeText?: string;
+    githubEnrichment?: GitHubEnrichment;
     startedAt: number;
     interviewMode: "voice" | "text";
     allowedModes: "audio_only" | "audio_and_text";
+    visualPanel?: "none" | "code" | "whiteboard" | "code_review";
+    codeDiff?: string;
 }
 
 interface InterviewState {
@@ -163,7 +185,29 @@ ${sessionCtx.questionTopic}
                         const preferredLanguageContext = sessionCtx.preferredLanguage
                             ? `Preferred Interview Language: ${sessionCtx.preferredLanguage}`
                             : "";
-                        console.log(`[AI DIAGNOSTICS] Prompt injection flags => topic:${Boolean(topicContext)} level:${Boolean(levelContext)} questionCount:${Boolean(questionCountContext)} customQuestions:${Boolean(customQuestionsContext)} language:${Boolean(preferredLanguageContext)}`);
+
+                        // GitHub enrichment context
+                        const gh = sessionCtx.githubEnrichment;
+                        const githubContext = gh ? `
+CANDIDATE GITHUB PROFILE (github.com/${gh.github_url.split("/").pop()}):
+- Public repos: ${gh.profile.public_repos} | Followers: ${gh.profile.followers}
+- Top languages: ${gh.top_languages.join(", ")}
+${gh.profile.bio ? `- Bio: ${gh.profile.bio}` : ""}
+Top Repositories:
+${gh.top_repos.map(r => `  • ${r.name}${r.language ? ` (${r.language})` : ""}${r.stars > 0 ? ` ⭐${r.stars}` : ""}${r.description ? `: ${r.description}` : ""}${r.topics.length ? ` [${r.topics.join(", ")}]` : ""}`).join("\n")}
+
+MANDATE: Reference at least 1-2 specific GitHub projects or their languages when asking technical questions.` : "";
+
+                        // Visual panel context
+                        const visualPanelContext = sessionCtx.visualPanel === "code"
+                            ? "\nTECHNICAL ROUND: The candidate has a live code editor in front of them. You may ask them to write code, solve algorithms, or debug snippets. Reference 'your code editor' when relevant."
+                            : sessionCtx.visualPanel === "whiteboard"
+                            ? "\nSYSTEM DESIGN ROUND: The candidate has a live whiteboard. Ask them to draw system architectures, data flows, or diagrams. Reference 'your whiteboard' and guide them to sketch their designs."
+                            : sessionCtx.visualPanel === "code_review"
+                            ? "\nCODE REVIEW ROUND: The candidate is reviewing a code diff on screen. Ask them to identify issues, suggest improvements, and explain their critique of the changes shown."
+                            : "";
+
+                        console.log(`[AI DIAGNOSTICS] Prompt flags => topic:${Boolean(topicContext)} level:${Boolean(levelContext)} github:${Boolean(githubContext)} visualPanel:${sessionCtx.visualPanel || "none"}`);
 
                         instructions = `You are an AI recruiter conducting a screening interview for the role of ${sessionCtx.jobTitle}. You are interviewing ${sessionCtx.candidateName}.
 ${languageMandate}
@@ -173,6 +217,8 @@ ${levelContext}
 ${questionCountContext}
 ${customQuestionsContext}
 ${preferredLanguageContext}
+${visualPanelContext}
+${githubContext}
 
 ${safeResumeText ? `CANDIDATE BACKGROUND CONTEXT (from resume):
 """
