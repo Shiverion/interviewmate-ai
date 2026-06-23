@@ -2,18 +2,27 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useKeys } from "@/components/providers/KeyProvider";
+import { useAuthContext } from "@/components/providers/AuthProvider";
+
+const NAV_LINKS = [
+    { label: "ATS Checker", href: "/ats-check" },
+    { label: "Dashboard", href: "/dashboard", authOnly: true },
+];
 
 export default function Header() {
     const { theme, toggleTheme } = useTheme();
     const { isConfigured } = useKeys();
+    const { user } = useAuthContext();
+    const pathname = usePathname();
 
     return (
         <header className="sticky top-0 z-50 w-full glass">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 group">
+                <Link href="/" className="flex items-center gap-2 group shrink-0">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 p-1 shadow-sm transition-transform duration-200 group-hover:scale-105 border border-white/10 overflow-hidden">
                         <Image
                             src="/logo.png"
@@ -28,6 +37,34 @@ export default function Header() {
                         Interview<span className="gradient-text">Mate</span>
                     </span>
                 </Link>
+
+                {/* Nav links */}
+                <nav className="hidden sm:flex items-center gap-1">
+                    {NAV_LINKS.filter(l => !l.authOnly || user).map(link => {
+                        const isActive = pathname === link.href;
+                        return (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                                    isActive
+                                        ? "bg-primary-500/10 text-primary-400"
+                                        : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-elevated)]"
+                                }`}
+                            >
+                                {link.label}
+                            </Link>
+                        );
+                    })}
+                    {!user && (
+                        <Link
+                            href="/login"
+                            className="ml-2 px-4 py-1.5 rounded-lg text-sm font-semibold bg-primary-600 text-white hover:bg-primary-500 transition-colors duration-200"
+                        >
+                            Sign In
+                        </Link>
+                    )}
+                </nav>
 
                 {/* Right side actions */}
                 <div className="flex items-center gap-3">
