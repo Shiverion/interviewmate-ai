@@ -20,7 +20,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "resumeText and jobDescription are required" }, { status: 400 });
         }
 
-        const apiKey = req.headers.get("x-openai-key") || process.env.OPENAI_API_KEY;
+        const apiKey = (req.headers.get("x-openai-key") || process.env.OPENAI_API_KEY || "").trim() || undefined;
         if (!apiKey) {
             return NextResponse.json({ error: "OpenAI API key missing" }, { status: 401 });
         }
