@@ -24,14 +24,14 @@ function decode(value: string): string {
 }
 
 export function saveOpenAIKey(key: string): void {
-    localStorage.setItem(`${STORAGE_PREFIX}openai`, encode(key));
+    localStorage.setItem(`${STORAGE_PREFIX}openai`, encode(key.trim()));
 }
 
 export function getOpenAIKey(): string | null {
     if (typeof window === "undefined") return null;
     const stored = localStorage.getItem(`${STORAGE_PREFIX}openai`);
     if (!stored) return null;
-    const decoded = decode(stored);
+    const decoded = decode(stored).trim();
     return decoded || null;
 }
 

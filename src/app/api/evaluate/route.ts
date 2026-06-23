@@ -84,7 +84,7 @@ export async function POST(req: Request) {
             jobContext = `\nROLE: ${jobTitle || "Not specified"}\nDESCRIPTION:\n${jobDescription || "Not specified"}\n`;
         }
 
-        const apiKey = req.headers.get("x-openai-key") || process.env.OPENAI_API_KEY;
+        const apiKey = (req.headers.get("x-openai-key") || process.env.OPENAI_API_KEY || "").trim() || undefined;
         if (!apiKey) {
             return NextResponse.json({ error: "OpenAI API key missing" }, { status: 401 });
         }
