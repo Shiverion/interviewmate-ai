@@ -116,10 +116,27 @@ export default function CandidateReportPage() {
         if (isEvaluated) {
             txt += `--- AI EVALUATION MATRIX ---\n`;
             txt += `OVERALL SCORE: ${evaluation.overallScore.toFixed(0)} / 100\n`;
+            if (evaluation.recommendation) txt += `RECOMMENDATION: ${evaluation.recommendation.replace(/_/g, " ").toUpperCase()}\n`;
+            txt += `\nDIMENSION SCORES:\n`;
             Object.entries(evaluation.scores).forEach(([key, score]) => {
-                txt += `- ${key.toUpperCase()}: ${score} / 100\n`;
+                txt += `- ${key.replace(/_/g, " ").toUpperCase()}: ${score} / 100\n`;
             });
+            if (evaluation.evidence) {
+                txt += `\nSTRENGTHS:\n${evaluation.evidence.strengths.map((s: string) => `• ${s}`).join("\n")}\n`;
+                txt += `\nWEAKNESSES:\n${evaluation.evidence.weaknesses.map((w: string) => `• ${w}`).join("\n")}\n`;
+                if (evaluation.evidence.notable_moments?.length) {
+                    txt += `\nNOTABLE MOMENTS:\n${evaluation.evidence.notable_moments.map((m: string) => `★ ${m}`).join("\n")}\n`;
+                }
+            }
             txt += `\nFEEDBACK SUMMARY:\n${evaluation.feedback}\n\n`;
+        }
+        if (sessionData?.ats_score) {
+            const ats = sessionData.ats_score;
+            txt += `--- ATS PRE-SCREEN SCORE ---\n`;
+            txt += `OVERALL MATCH: ${ats.overall_match}%\n`;
+            txt += `KEYWORD MATCH: ${ats.keyword_match}% | SKILLS COVERAGE: ${ats.skills_coverage}% | EXPERIENCE FIT: ${ats.experience_alignment}%\n`;
+            if (ats.missing_keywords?.length) txt += `MISSING KEYWORDS: ${ats.missing_keywords.join(", ")}\n`;
+            txt += `\nATS SUMMARY:\n${ats.summary}\n\n`;
         }
 
         txt += `--- RAW TRANSCRIPT ---\n\n`;
@@ -217,6 +234,62 @@ export default function CandidateReportPage() {
                 )}
             </div>
 
+            {/* ATS Pre-Screen Score */}
+            {sessionData?.ats_score && (
+                <div className="mb-8 space-y-4">
+                    <h2 className="text-2xl font-bold font-heading flex items-center gap-2">
+                        <svg className="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        ATS Resume Match
+                    </h2>
+                    {(() => {
+                        const ats = sessionData.ats_score;
+                        const recColor = ats.overall_match >= 75 ? "text-green-400" : ats.overall_match >= 50 ? "text-yellow-400" : "text-red-400";
+                        return (
+                            <div className="grid md:grid-cols-4 gap-4">
+                                {[
+                                    { label: "Overall Match", value: ats.overall_match },
+                                    { label: "Keyword Match", value: ats.keyword_match },
+                                    { label: "Skills Coverage", value: ats.skills_coverage },
+                                    { label: "Experience Fit", value: ats.experience_alignment }
+                                ].map(m => (
+                                    <div key={m.label} className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-4 text-center">
+                                        <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-1">{m.label}</p>
+                                        <p className={`text-2xl font-bold font-heading ${m.value >= 75 ? "text-green-400" : m.value >= 50 ? "text-yellow-400" : "text-red-400"}`}>{m.value}%</p>
+                                        <div className="mt-2 h-1.5 bg-[var(--background)] rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${m.value >= 75 ? "bg-green-400" : m.value >= 50 ? "bg-yellow-400" : "bg-red-400"}`} style={{ width: `${m.value}%` }} />
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="md:col-span-2 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-4">
+                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-2">Matched Keywords</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {ats.matched_keywords?.slice(0, 15).map((kw: string) => (
+                                            <span key={kw} className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{kw}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="md:col-span-2 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-4">
+                                    <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-2">Missing Keywords</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {ats.missing_keywords?.slice(0, 15).map((kw: string) => (
+                                            <span key={kw} className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">{kw}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                {ats.summary && (
+                                    <div className="md:col-span-4 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-4">
+                                        <p className="text-xs text-[var(--muted)] uppercase tracking-wider mb-2">ATS Summary</p>
+                                        <p className="text-sm text-[var(--foreground)] leading-relaxed">{ats.summary}</p>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
+
             {/* AI Evaluation Matrix */}
             {isEvaluated && (
                 <div className="mb-8 space-y-6">
@@ -225,35 +298,81 @@ export default function CandidateReportPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                         </svg>
                         AI Recruiter Evaluation
+                        {evaluation.recommendation && (
+                            <span className={`ml-auto text-sm font-semibold px-3 py-1 rounded-full border ${
+                                evaluation.recommendation === "strong_hire" ? "bg-green-500/10 text-green-400 border-green-500/30" :
+                                evaluation.recommendation === "hire" ? "bg-accent-500/10 text-accent-400 border-accent-500/30" :
+                                evaluation.recommendation === "borderline" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" :
+                                "bg-red-500/10 text-red-400 border-red-500/30"
+                            }`}>
+                                {evaluation.recommendation.replace("_", " ").toUpperCase()}
+                            </span>
+                        )}
                     </h2>
 
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {/* Sub-Scores */}
-                        <div className="md:col-span-1 space-y-4">
-                            {Object.entries(evaluation.scores).map(([key, score]) => (
-                                <div key={key} className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-4 flex items-center justify-between">
-                                    <span className="capitalize font-medium text-[var(--muted)]">{key}</span>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-24 h-2 bg-[var(--background)] rounded-full overflow-hidden">
-                                            <div
-                                                className={`h-full ${Number(score) >= 80 ? 'bg-accent-500' : Number(score) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                                style={{ width: `${Number(score)}%` }}
-                                            />
-                                        </div>
-                                        <span className="font-bold w-8 text-right text-xs">{String(score)}%</span>
-                                    </div>
+                    {/* 7-Dimension Scores Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {Object.entries(evaluation.scores).map(([key, score]) => (
+                            <div key={key} className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-3">
+                                <p className="text-[10px] text-[var(--muted)] uppercase tracking-wider mb-1">{key.replace(/_/g, " ")}</p>
+                                <div className="flex items-end gap-2">
+                                    <span className={`text-xl font-bold font-heading ${Number(score) >= 80 ? "text-green-400" : Number(score) >= 60 ? "text-yellow-400" : "text-red-400"}`}>{String(score)}</span>
+                                    <span className="text-xs text-[var(--muted)] mb-0.5">/100</span>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="mt-1.5 h-1 bg-[var(--background)] rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${Number(score) >= 80 ? "bg-green-400" : Number(score) >= 60 ? "bg-yellow-400" : "bg-red-400"}`} style={{ width: `${Number(score)}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Evidence */}
+                        {evaluation.evidence && (
+                            <div className="space-y-4">
+                                <div className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-5">
+                                    <p className="text-xs text-green-400 uppercase tracking-wider font-semibold mb-3">Strengths</p>
+                                    <ul className="space-y-2">
+                                        {evaluation.evidence.strengths.map((s: string, i: number) => (
+                                            <li key={i} className="text-sm text-[var(--foreground)] flex gap-2 leading-relaxed">
+                                                <span className="text-green-400 mt-0.5 shrink-0">✓</span>{s}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <div className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-5">
+                                    <p className="text-xs text-red-400 uppercase tracking-wider font-semibold mb-3">Weaknesses</p>
+                                    <ul className="space-y-2">
+                                        {evaluation.evidence.weaknesses.map((w: string, i: number) => (
+                                            <li key={i} className="text-sm text-[var(--foreground)] flex gap-2 leading-relaxed">
+                                                <span className="text-red-400 mt-0.5 shrink-0">✗</span>{w}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                {evaluation.evidence.notable_moments?.length > 0 && (
+                                    <div className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-5">
+                                        <p className="text-xs text-yellow-400 uppercase tracking-wider font-semibold mb-3">Notable Moments</p>
+                                        <ul className="space-y-2">
+                                            {evaluation.evidence.notable_moments.map((m: string, i: number) => (
+                                                <li key={i} className="text-sm text-[var(--foreground)] flex gap-2 leading-relaxed">
+                                                    <span className="text-yellow-400 mt-0.5 shrink-0">★</span>{m}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Recruiter Feedback */}
-                        <div className="md:col-span-2 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 relative">
+                        <div className="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 relative">
                             <div className="absolute top-4 right-4 opacity-10">
                                 <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                                 </svg>
                             </div>
-                            <h3 className="font-semibold text-[var(--foreground)] mb-3">Summary Feedback</h3>
+                            <h3 className="font-semibold text-[var(--foreground)] mb-3">Recruiter Summary</h3>
                             <p className="text-[var(--muted)] leading-relaxed relative z-10">
                                 {evaluation.feedback}
                             </p>

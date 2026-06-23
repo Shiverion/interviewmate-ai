@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createScheduledInterview } from "@/lib/firebase/interviews";
+import { createScheduledInterview, type VisualPanel } from "@/lib/firebase/interviews";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 
 interface CreateInterviewModalProps {
@@ -26,6 +26,9 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
     const [candidateEmail, setCandidateEmail] = useState("");
     const [resumeFile, setResumeFile] = useState<File | null>(null);
     const [allowedModes, setAllowedModes] = useState<"audio_only" | "audio_and_text">("audio_and_text");
+    const [githubUsername, setGithubUsername] = useState("");
+    const [visualPanel, setVisualPanel] = useState<VisualPanel>("none");
+    const [codeDiff, setCodeDiff] = useState("");
 
     // Default to today and 3 days from now
     const [startDate, setStartDate] = useState(() => {
@@ -92,7 +95,10 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
                 resumeFile,
                 new Date(startDate),
                 new Date(endDate),
-                allowedModes
+                allowedModes,
+                githubUsername,
+                visualPanel,
+                codeDiff
             );
 
             onSuccess(sessionId);
@@ -108,6 +114,9 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
             setCandidateEmail("");
             setResumeFile(null);
             setAllowedModes("audio_and_text");
+            setGithubUsername("");
+            setVisualPanel("none");
+            setCodeDiff("");
 
             // Reset dates
             const now = new Date();
@@ -320,6 +329,51 @@ export default function CreateInterviewModal({ isOpen, onClose, onSuccess }: Cre
                                 <option value="audio_and_text">Audio & Text (Candidate can speak or type)</option>
                                 <option value="audio_only">Audio Only (Forces microphone, prevents typing)</option>
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Visual Panel <span className="text-[var(--muted)] font-normal">(optional)</span></label>
+                            <p className="text-xs text-[var(--muted)] mb-2">Add a side panel for technical or system design rounds.</p>
+                            <select
+                                className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                value={visualPanel}
+                                onChange={e => setVisualPanel(e.target.value as VisualPanel)}
+                            >
+                                <option value="none">None — standard interview</option>
+                                <option value="code">Code Editor — live coding round (Monaco)</option>
+                                <option value="whiteboard">Whiteboard — system design round</option>
+                                <option value="code_review">Code Review — candidate critiques a diff</option>
+                            </select>
+                        </div>
+
+                        {visualPanel === "code_review" && (
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Code Diff (unified diff format)</label>
+                                <p className="text-xs text-[var(--muted)] mb-2">Paste a git diff. The candidate will see this rendered side-by-side and be asked to review it.</p>
+                                <textarea
+                                    rows={6}
+                                    className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-y font-mono text-xs"
+                                    placeholder={"--- a/src/auth.js\n+++ b/src/auth.js\n@@ -1,5 +1,6 @@\n ..."}
+                                    value={codeDiff}
+                                    onChange={e => setCodeDiff(e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* GitHub Enrichment */}
+                    <div className="space-y-4 pt-4 border-t border-[var(--border)]">
+                        <h3 className="font-semibold text-lg text-primary-400">4. AI Enrichment <span className="text-sm font-normal text-[var(--muted)]">(optional)</span></h3>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Candidate GitHub Username</label>
+                            <p className="text-xs text-[var(--muted)] mb-2">If provided, the AI will reference the candidate's real repos during technical questioning.</p>
+                            <input
+                                type="text"
+                                className="w-full bg-[var(--surface-elevated)] border border-[var(--border)] rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                                placeholder="e.g. torvalds"
+                                value={githubUsername}
+                                onChange={e => setGithubUsername(e.target.value.replace(/[^a-zA-Z0-9\-\.]/g, ""))}
+                            />
                         </div>
                     </div>
 

@@ -3,9 +3,6 @@ import { db } from "@/lib/firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { generateObject } from "ai";
 import { z } from "zod";
-
-// Ensure AI functionality is properly imported.
-// In Next.js App Router, using ai-sdk requires creating an OpenAI instance if not using OpenAI generic handlers
 import { createOpenAI } from "@ai-sdk/openai";
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +34,6 @@ export async function POST(req: Request) {
 
         const isDemoSession = !sessionId || sessionId.startsWith("demo-");
         console.log(`[EVALUATE] Starting evaluation. sessionId=${sessionId || "none"} demoMode=${isDemoSession}`);
-        console.log(`[EVALUATE] Project: ${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}`);
 
         let sessionRef: ReturnType<typeof doc> | null = null;
         let sessionData: Record<string, unknown> | null = null;
@@ -46,19 +42,16 @@ export async function POST(req: Request) {
         let shouldPersist = false;
 
         if (!isDemoSession && sessionId) {
-            console.log(`[EVALUATE] Step 1: Fetching session ${sessionId}`);
             sessionRef = doc(db, "interview_sessions", sessionId);
             const sessionSnap = await getDoc(sessionRef).catch(err => {
-                console.error(`[EVALUATE] Step 1 Failed: ${err.message}`);
+                console.error(`[EVALUATE] Fetch failed: ${err.message}`);
                 throw err;
             });
 
             if (sessionSnap.exists()) {
                 sessionData = sessionSnap.data();
                 shouldPersist = true;
-                console.log(`[EVALUATE] Step 1 OK: Session loaded for ${String(sessionData.candidate_name || "unknown")}`);
             } else if (transcriptArr.length === 0) {
-                console.error(`[EVALUATE] Session ${sessionId} not found`);
                 return NextResponse.json({ error: "Session not found" }, { status: 404 });
             }
         }
@@ -78,32 +71,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No transcript available to evaluate" }, { status: 400 });
         }
 
-        // Parse transcript into a readable string for the LLM
         const formattedTranscript = transcriptArr.map((t) => `[${t.role.toUpperCase()}]: ${t.text}`).join("\n");
 
-        // 2. Build Job Context
         if (shouldPersist && sessionData?.template_id) {
-            console.log(`[EVALUATE] Step 2: Fetching template ${String(sessionData.template_id)}`);
             const templateRef = doc(db, "interview_templates", String(sessionData.template_id));
-            const templateSnap = await getDoc(templateRef).catch(err => {
-                console.error(`[EVALUATE] Step 2 Failed: ${err.message}`);
-                throw err;
-            });
-
+            const templateSnap = await getDoc(templateRef).catch(err => { throw err; });
             if (templateSnap.exists()) {
                 const temp = templateSnap.data();
                 jobContext = `\nROLE: ${temp.job_title}\nDESCRIPTION:\n${temp.job_description}\n`;
-                console.log(`[EVALUATE] Step 2 OK: Template loaded for ${temp.job_title}`);
-            } else {
-                console.warn(`[EVALUATE] Step 2: Template not found, proceeding without detail.`);
             }
-        } else {
-            if (jobTitle || jobDescription) {
-                jobContext = `\nROLE: ${jobTitle || "Not specified"}\nDESCRIPTION:\n${jobDescription || "Not specified"}\n`;
-            }
+        } else if (jobTitle || jobDescription) {
+            jobContext = `\nROLE: ${jobTitle || "Not specified"}\nDESCRIPTION:\n${jobDescription || "Not specified"}\n`;
         }
 
-        // Check for BYOK API Key or fallback to strictly server ENV
         const apiKey = req.headers.get("x-openai-key") || process.env.OPENAI_API_KEY;
         if (!apiKey) {
             return NextResponse.json({ error: "OpenAI API key missing" }, { status: 401 });
@@ -111,43 +91,44 @@ export async function POST(req: Request) {
 
         const openai = createOpenAI({ apiKey });
 
-        // 3. Define Zod Schema for strict Output JSON mapping
+        // 7-dimension evaluation schema inspired by hiring-agent's rubric pattern
         const evaluationSchema = z.object({
             scores: z.object({
-                communication: z.number().min(0).max(100).describe("Score from 0 to 100 evaluating clarity, structure, and professionalism of responses."),
-                reasoning: z.number().min(0).max(100).describe("Score from 0 to 100 evaluating logical approach, problem-solving, and quality of answers."),
-                relevance: z.number().min(0).max(100).describe("Score from 0 to 100 evaluating how well the candidate matched the job description and answered the specific questions asked.")
+                communication: z.number().min(0).max(100).describe("Clarity, structure, vocabulary, and professionalism of spoken responses."),
+                reasoning: z.number().min(0).max(100).describe("Logical approach, problem decomposition, and quality of analytical thinking."),
+                relevance: z.number().min(0).max(100).describe("How directly the candidate addressed the specific questions and stayed on topic."),
+                technical_depth: z.number().min(0).max(100).describe("Depth and accuracy of technical knowledge — specificity over buzzwords, real understanding."),
+                production_experience: z.number().min(0).max(100).describe("Evidence of real shipped work: ownership, scale, real-world constraints, incident response."),
+                skill_match: z.number().min(0).max(100).describe("How closely the candidate's demonstrated skills match the job description requirements."),
+                confidence: z.number().min(0).max(100).describe("Decisiveness, clear conviction in answers, appropriate certainty vs. hedging.")
             }),
-            feedback: z.string().describe("A 2-3 sentence overall summary feedback meant for the HR recruiter outlining strengths and weaknesses."),
-            overallScore: z.number().min(0).max(100).describe("The mathematically derived average or weighted overall score from 0 to 100, rounded to nearest whole number."),
-            is_passing: z.boolean().describe("Whether the candidate passed the interview. True if overallScore is 80 or above, false otherwise.")
+            evidence: z.object({
+                strengths: z.array(z.string()).min(1).max(4).describe("Specific strengths with concrete examples from the transcript."),
+                weaknesses: z.array(z.string()).min(1).max(4).describe("Specific gaps or weaknesses with concrete examples from the transcript."),
+                notable_moments: z.array(z.string()).min(0).max(3).describe("Standout moments — either exceptionally strong or notably poor — worth flagging.")
+            }),
+            recommendation: z.enum(["strong_hire", "hire", "borderline", "no_hire"]).describe("Hiring recommendation: strong_hire (90+), hire (75-89), borderline (60-74), no_hire (<60)."),
+            feedback: z.string().describe("3-4 sentence professional summary for the recruiter: overall impression, top strength, top gap, role fit verdict."),
+            overallScore: z.number().min(0).max(100).describe("Weighted score: communication 15%, reasoning 20%, relevance 15%, technical_depth 20%, production_experience 15%, skill_match 10%, confidence 5%."),
+            is_passing: z.boolean().describe("True if overallScore >= 75 AND recommendation is 'hire' or 'strong_hire'.")
         });
 
-        // 4. Generate the Evaluation Matrix
-        console.log(`[EVALUATE] Step 3: Generating evaluation with AI for session ${sessionId}`);
+        console.log(`[EVALUATE] Generating 7-dimension evaluation for session ${sessionId || candidateName}`);
         const result = await generateObject({
             model: openai("gpt-4o"),
             schema: evaluationSchema,
-            system: `You are an expert HR Recruiter and Technical Evaluator. Your goal is to review transcript records of candidate interviews and objectively grade them against the provided job context.${jobContext}\nCRITICAL INSTRUCTION: Analyze the transcript deeply. Be critical but fair. Score the candidate from 0 to 100. Generate a strict 'is_passing' boolean (requires overall score >= 80 to pass).`,
-            prompt: `CANDIDATE TRANSCRIPT to Evaluate:\n"""\n${formattedTranscript}\n"""\n\nGenerate the structured evaluation.`
+            system: `You are a Senior Technical Recruiter and Hiring Manager. Evaluate interview transcripts with rigorous, evidence-based scoring across 7 dimensions. Be critical but fair — reward specificity, penalize vagueness and generic answers.${jobContext}\n\nWEIGHTED SCORING:\ncommunication 15% + reasoning 20% + relevance 15% + technical_depth 20% + production_experience 15% + skill_match 10% + confidence 5% = overallScore\n\nSet is_passing=true ONLY if overallScore>=75 AND recommendation is 'hire' or 'strong_hire'.`,
+            prompt: `CANDIDATE TRANSCRIPT:\n"""\n${formattedTranscript}\n"""\n\nGenerate the full 7-dimension structured evaluation with evidence and recommendation.`
         });
 
         const evaluationData = result.object;
-        console.log(`[EVALUATE] Step 3 OK: Generated evaluation for ${sessionId || candidateName || "in-memory"}. Score: ${evaluationData.overallScore}%`);
+        console.log(`[EVALUATE] Done. Score: ${evaluationData.overallScore}% | Recommendation: ${evaluationData.recommendation}`);
 
-        // 5. Update Firestore Database for persisted sessions only
         if (shouldPersist && sessionRef) {
-            console.log(`[EVALUATE] Step 4: Updating session document`);
             await updateDoc(sessionRef, {
                 status: "evaluated",
                 evaluation: evaluationData
-            }).catch(err => {
-                console.error(`[EVALUATE] Step 4 Failed: ${err.message}`);
-                throw err;
-            });
-            console.log(`[EVALUATE] Step 4 OK: Session updated.`);
-        } else {
-            console.log("[EVALUATE] Step 4 skipped: in-memory demo evaluation (no Firestore write).");
+            }).catch(err => { throw err; });
         }
 
         return NextResponse.json({ success: true, evaluation: evaluationData, persisted: shouldPersist }, { status: 200 });
