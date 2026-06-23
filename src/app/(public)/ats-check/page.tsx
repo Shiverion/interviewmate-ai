@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, DragEvent } from "react";
+import { getOpenAIKey } from "@/lib/keys/store";
 
 interface AtsScore {
     overall_match: number;
@@ -114,9 +115,12 @@ export default function AtsCheckPage() {
             if (!resumeText?.trim()) throw new Error("No text found in PDF");
 
             setStage("scoring");
+            const byokKey = getOpenAIKey();
+            const scoreHeaders: Record<string, string> = { "Content-Type": "application/json" };
+            if (byokKey) scoreHeaders["x-openai-key"] = byokKey;
             const scoreRes = await fetch("/api/ats-score", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: scoreHeaders,
                 body: JSON.stringify({
                     resumeText,
                     jobTitle: jobTitle.trim() || "the role",
