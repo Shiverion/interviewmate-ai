@@ -1,67 +1,96 @@
 # InterviewMate AI
 
-An AI-powered candidate screening platform featuring an interactive, bilingual virtual assistant. Build comprehensive pre-interview pipelines that evaluate candidates natively over Voice or Text, assessing communication, reasoning, and role-specific relevance automatically.
+An AI-powered candidate screening platform. Recruiters create interview sessions, candidates receive a unique link and are interviewed by a live AI avatar over voice or text. Results are evaluated automatically across 7 dimensions and surfaced in a recruiter dashboard.
 
-## Core Features
-1. **Interactive AI Avatar:** Conducts real-time WebRTC voice interviews using OpenAI's Realtime API.
-2. **Contextual Questioning:** Extracts the candidate's Resume (PDF) natively to inject specific, project-tailored context directly into the AI's system prompt.
-3. **Pipeline Management:** A recruiter dashboard allowing you to schedule custom links and lock the interview formats (`Audio Only` vs `Audio & Text`).
-4. **Automated Evaluation:** Generates a structured transcript and auto-grades candidates across a custom rubric (1-100%).
-5. **BYOK (Bring Your Own Key):** Enterprise-ready, allowing recruiters to securely attach their own OpenAI keys.
+## Features
 
-## Architecture & Tech Stack
+### Interview Engine
+- **Live AI Avatar** — WebRTC voice interview via OpenAI Realtime API with bilingual (EN/ID) support
+- **Voice & Text modes** — candidate chooses; text shows real-time subtitles
+- **PDF Resume parsing** — resume extracted server-side and injected into the AI's system prompt for contextual questioning
+- **GitHub Enrichment** — optional: link a candidate's GitHub username on the template; AI references their real repos
 
-- **Framework:** Next.js 14+ (App Router, Server Actions)
-- **Database:** Supabase (Auth, RLS) & Firebase Firestore (Sessions, Templates)
-- **Storage:** Firebase Storage (Resume PDF uploads)
-- **AI/LLM:** OpenAI Realtime API (Voice) + GPT-4o-mini (Evaluation Pipeline)
-- **Styling:** Tailwind CSS + custom design tokens
-- **State Management:** Zustand (persisted local stores)
+### Visual Panels (split-screen beside the AI avatar)
+- **Code Editor** — Monaco (VS Code engine), 12 languages, live-synced to recruiter view via Firestore
+- **Whiteboard** — HTML5 canvas with color/brush/eraser, Firestore snapshot sync
+- **Code Review** — recruiter supplies a git diff; rendered side-by-side for candidate to critique
 
-## Local Development Setup
+### Evaluation
+- **7-dimension scoring**: Communication (15%), Reasoning (20%), Relevance (15%), Technical Depth (20%), Production Experience (15%), Skill Match (10%), Confidence (5%)
+- **Evidence extraction**: strengths, weaknesses, notable moments
+- **Hiring recommendation**: `strong_hire` / `hire` / `borderline` / `no_hire`
+- **ATS Pre-screen**: keyword matching runs automatically when candidate opens their link
+
+### ATS Resume Checker (`/ats-check`)
+Standalone public tool — no login, no API key required. Upload a PDF resume, paste a job description, get instant scores:
+- Overall match %, keyword match %, skills coverage %, experience fit %
+- Matched and missing keyword clouds
+- Resume strengths and ATS red flags
+- Fully algorithmic — zero external API calls
+
+### Recruiter Dashboard
+- Session pipeline with status tracking
+- Per-candidate report: ATS score card + 7-dimension evaluation grid + evidence + transcript download
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Auth | Firebase Authentication (Google + Email) |
+| Database | Firebase Firestore |
+| Storage | Firebase Storage (resume PDFs) |
+| AI — Voice | OpenAI Realtime API (WebRTC) |
+| AI — Evaluation | OpenAI GPT-4o via Vercel AI SDK |
+| State | Zustand with persist middleware |
+| Styling | Tailwind CSS v4 + custom design tokens |
+| Code Editor | `@monaco-editor/react` |
+| Diff Viewer | `diff2html` |
+| PDF Parsing | `pdfjs-dist` |
+
+## Local Development
 
 ### 1. Prerequisites
-Ensure you have Node.js 18+ installed. 
+Node.js 18+
 
 ### 2. Environment Variables
-Create a `.env.local` file in the root directory and populate it with your specific service keys:
+Create `.env.local` in the project root (no spaces around `=`):
 
 ```bash
-# OpenAI Key (Fallback if BYOK is disabled)
-OPENAI_API_KEY=your_openai_api_key
+# Firebase (required)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
 
-# Supabase Auth
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# OpenAI — used for AI evaluation and voice interviews
+# Recruiters can also bring their own key via Settings (BYOK)
+OPENAI_API_KEY=sk-...
 
-# Firebase Data & Storage
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
-
-# Public URL (for absolute linking in SEO / Sitemaps)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Optional: raises GitHub API rate limit for /api/github-enrich
+GITHUB_TOKEN=ghp_...
 ```
 
-### 3. Install Dependencies & Run
+> The ATS Resume Checker (`/ats-check`) uses deterministic keyword matching — no API key needed.
+
+### 3. Install and Run
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application. 
+Open [http://localhost:3000](http://localhost:3000).
 
-### 4. Database Setup
-You will need to manually configure:
-1. **Supabase**: Enable Google OAuth and Email/Password signups.
-2. **Firebase Firestore**: We use two primary collections `interview_templates` and `interview_sessions`. Ensure your CORS rules permit your origin.
-3. **Firebase Storage**: Create a `/resumes` bucket with public read access but restricted write access.
+### 4. Firebase Setup
+- **Auth**: Enable Email/Password and Google providers
+- **Firestore**: Collections used: `interview_sessions`, `interview_templates`, `interview_code`, `interview_whiteboard`
+- **Storage**: Create `/resumes` bucket; allow authenticated writes, public reads
 
 ## Deployment
-This project is configured out-of-the-box for **Vercel** with a GitHub Actions CI pipeline.
-1. Connect your repository to Vercel.
-2. Map all environment variables from `.env.local` natively into the Vercel dashboard.
-3. Hit Deploy. The provided `next.config.ts` handles the `canvas` parsing dependency natively for Vercel Serverless environments.
+
+Configured for **Vercel**:
+1. Connect repository to Vercel
+2. Add all `NEXT_PUBLIC_*` and `OPENAI_API_KEY` environment variables in the Vercel dashboard
+3. Deploy — `next.config.ts` handles `canvas` and `pdfjs-dist` server-side dependencies automatically
