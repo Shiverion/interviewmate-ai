@@ -2,7 +2,9 @@
 
 Status: **Planned — no sprint evaluation results collected.**
 
-Created / last updated: 2026-09-07. Planned allocation: 8 hours. [Previous phase](03-prototype-build.md) · [Sprint index](README.md) · [Next phase](05-case-study-and-handoff.md)
+Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+
+[Documentation home](../../README.md) · [Previous phase](03-prototype-build.md) · [Sprint index](../README.md) · [Next phase](05-case-study-and-handoff.md)
 
 ## Objective
 
@@ -12,7 +14,7 @@ Evaluate whether the prototype produces useful, supportable review briefs and ho
 
 Author eight synthetic transcript cases for the same role and criteria. Freeze expected evidence before tuning prompts. Split ordinary development examples from at least two cases withheld from prompt tuning, and record any later use of those cases for fixes.
 
-The fragment in [Phase 1](01-discovery-and-ux.md) and the completed [P1-A/P1-B reviewer packet](phase-1/reviewer-packet.md) are discovery/practice material, not the Phase 4 dataset. Their [assistant-authored reference notes](phase-1/reference-notes.md) have already been inspected during development; neither practice case may be labeled held-out.
+The [discovery example](../research/discovery-example.md) and completed [P1-A/P1-B reviewer packet](../evaluation/practice/reviewer-packet.md) are discovery/practice material, not the Phase 4 dataset. Their [assistant-authored reference notes](../evaluation/practice/reference-notes.md) have already been inspected during development; neither practice case may be labeled held-out.
 
 | Case | Scenario to author | Expected behavior |
 |---|---|---|
@@ -59,16 +61,16 @@ Keep the author's expected evidence separate from model output. If only the proj
 
 ## Manual comparison
 
-Use the detailed protocol and raw-log fields in [Phase 1](01-discovery-and-ux.md). A creator-run rehearsal is acceptable exploratory evidence when identified correctly. If no human measurements are collected, report that limitation instead of using agent timing or vendor figures as a substitute.
+Use the detailed protocol and raw-log fields in the [manual study guide](../evaluation/manual-study-guide.md). A creator-run rehearsal is acceptable exploratory evidence when identified correctly. If no human measurements are collected, report that limitation instead of using agent timing or vendor figures as a substitute.
 
-The [facilitator guide](phase-1/manual-study-guide.md), [blank brief](phase-1/blank-review-brief.md), and [header-only timing CSV](phase-1/baseline/human-review-log.csv) are prepared. No human participant is assigned and no manual baseline session has occurred. This outstanding Phase 1 measurement is carried here explicitly. The completed [source-level inventory](phase-1/current-product-baseline.md) is a separate engineering baseline, not an AI-quality or timing result.
+The [facilitator guide](../evaluation/manual-study-guide.md), [blank brief](../evaluation/templates/review-brief.md), and [header-only timing CSV](../evaluation/baselines/human-review-log.csv) are prepared. No human participant is assigned and no manual baseline session has occurred. This outstanding Phase 1 measurement is carried here explicitly. The completed [source-level inventory](../evaluation/current-product-baseline.md) is a separate engineering baseline, not an AI-quality or timing result.
 
 | Condition | Completed human tasks | Active time median/range | Quality outcome |
 |---|---|---|---|
 | Manual brief | Not measured | Not measured | Not measured |
 | AI-assisted, including review | Not measured | Not measured | Not measured |
 
-## Exit criteria and progress
+## Exit criteria
 
 - [ ] Dataset, expected behavior, and development/withheld split documented.
 - [ ] Base and variant run records collected with failures preserved.
@@ -77,6 +79,10 @@ The [facilitator guide](phase-1/manual-study-guide.md), [blank brief](phase-1/bl
 - [ ] Human baseline comparison completed, or unavailable measurement disclosed clearly.
 - [ ] UX changes based on actual findings recorded and rechecked.
 - [ ] Results distinguish draft quality from human-corrected quality.
+
+## Open items and next action
+
+The evaluation dataset, prototype outputs and human timing remain outstanding. Finalize expected behavior and the development/withheld split before tuning, then collect versioned runs after the prototype exists. A willing human reviewer is still needed for the manual/assisted comparison.
 
 ## Progress log
 

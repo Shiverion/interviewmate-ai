@@ -11,12 +11,12 @@ The three inspected product files were not changed. The audit reads and parses t
 From the repository root, with the repository's Node.js and installed dependencies available:
 
 ```powershell
-node docs/hr-product-sprint/phase-1/scripts/audit-current-product.cjs
+node docs/hr-product-sprint/scripts/audit-current-product.cjs
 ```
 
-- [Audit script](scripts/audit-current-product.cjs): uses the installed TypeScript parser to inspect the inline evaluation schema, selected declarations/imports, and report-page JSX/state declarations.
-- [Recorded output](baseline/current-product-audit.json): contains actual extracted values, source line numbers, TypeScript version, SHA-256 hashes of all three source files, and the run's UTC timestamp. The recorded UTC date is September 6; the local date in Asia/Jakarta is September 7.
-- The command overwrites that output file with the current source inventory. Preserve this version in Git before a later implementation comparison; use the recorded hashes to distinguish snapshots. Timestamp changes on rerun are expected.
+- [Audit script](../scripts/audit-current-product.cjs): uses the installed TypeScript parser to inspect the inline evaluation schema, selected declarations/imports, and report-page JSX/state declarations.
+- [Recorded output](baselines/2026-09-07-source-audit.json): contains actual extracted values, source line numbers, TypeScript version, SHA-256 hashes of all three source files, and the run's UTC timestamp. The recorded UTC date is September 6; the local date in Asia/Jakarta is September 7.
+- Reruns write `evaluation/runs/source-audit-latest.json` (ignored scratch output). They never overwrite the dated baseline above. Compare source hashes and extracted values; timestamps change on rerun. To retain a later result, copy it to a new dated/versioned file in `baselines/` and record why it was captured.
 
 The audit completed with exit code 0 using TypeScript 5.9.3. Console summary:
 
@@ -63,7 +63,7 @@ Reusable pieces are the transcript/report display, structured-output endpoint, s
 | Recruiter usefulness, demand, or adoption | **Not measured** |
 | Hiring accuracy, candidate quality, or fairness across people/groups | **Not measured** |
 
-The human timing protocol remains the protocol in [Phase 1](../01-discovery-and-ux.md). A human must perform the defined task and record their own raw timings before any time-saving claim is made. These source counts cannot substitute for that study or for the behavioral runs planned in [Phase 4](../04-evaluation-and-iteration.md).
+The human timing protocol remains the protocol in the [manual study guide](manual-study-guide.md). A human must perform the defined task and record their own raw timings before any time-saving claim is made. These source counts cannot substitute for that study or for the behavioral runs planned in [Phase 4](../phases/04-evaluation-and-iteration.md).
 
 ## Scope and verification limits
 

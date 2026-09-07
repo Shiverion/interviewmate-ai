@@ -2,20 +2,22 @@
 
 Status: **Planned — detailed design has not started; Phase 1 inputs are ready.**
 
-Created / last updated: 2026-09-07. Planned allocation: 8 hours. [Previous phase](01-discovery-and-ux.md) · [Sprint index](README.md) · [Next phase](03-prototype-build.md)
+Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+
+[Documentation home](../../README.md) · [Previous phase](01-discovery-and-ux.md) · [Sprint index](../README.md) · [Next phase](03-prototype-build.md)
 
 ## Objective and inputs
 
 Translate Phase 1's provisional transcript-to-review-brief concept into an inspectable UX and AI behavior specification. Carry forward the desk-research limitation; no direct user validation has occurred.
 
-Inputs: [Phase 1 evidence and scope](01-discovery-and-ux.md), the existing [evaluator](../../src/app/api/evaluate/route.ts), [report page](../../src/app/(recruiter)/interviews/[sessionId]/page.tsx), and [interview configuration](../../src/components/dashboard/CreateInterviewModal.tsx).
+Inputs: the [Phase 1 report](01-discovery-and-ux.md), [source register](../research/source-register.md), existing [evaluator](../../../src/app/api/evaluate/route.ts), [report page](<../../../src/app/(recruiter)/interviews/[sessionId]/page.tsx>), and [interview configuration](../../../src/components/dashboard/CreateInterviewModal.tsx).
 
-The completed [D01 decision](phase-1/decision-and-scope.md), [practice role/questions](phase-1/reviewer-packet.md), [reference notes](phase-1/reference-notes.md), and [current-product capability baseline](phase-1/current-product-baseline.md) are concrete starting materials. Finalize the provisional criteria and behavior here; they have not been calibrated by a recruiter. Human review time remains unmeasured.
+The completed [D01 decision](../decisions/001-sprint-scope.md), [practice role/questions](../evaluation/practice/reviewer-packet.md), [reference notes](../evaluation/practice/reference-notes.md), and [current-product capability baseline](../evaluation/current-product-baseline.md) are concrete starting materials. Finalize the provisional criteria and behavior here; they have not been calibrated by a recruiter. Human review time remains unmeasured.
 
 ## Planned deliverables
 
 - A workflow/wireframe covering role confirmation, input, generation, source review, correction, and export.
-- One provisional frontend-role framework with 3-4 observable job criteria, evidence anchors, and five shared core questions.
+- One provisional frontend-role framework with four observable job criteria, evidence anchors, and five shared core questions.
 - AI input/output specification, prompt version, and model configuration recorded explicitly.
 - Example good, sparse, conflicting, and failed outputs, marked as authored examples until generated.
 - A draft synthetic case matrix with expected behavior written before implementation tuning.
@@ -55,7 +57,7 @@ The exact schema, prompt, validation policy, retry limits, model choice, and cos
 - Source inspection, edit/remove, reviewed state, and export.
 - AI unavailable: saved examples remain explicitly labeled; never imply a live model ran.
 
-## Exit criteria and progress
+## Exit criteria
 
 - [ ] Complete the flow and report wireframe.
 - [ ] Define role criteria, anchors and question set; label lack of practitioner calibration.
@@ -64,9 +66,11 @@ The exact schema, prompt, validation policy, retry limits, model choice, and cos
 - [ ] Define synthetic cases and expected evidence before tuning.
 - [ ] Map the design to a bounded Phase 3 implementation backlog.
 
-## Open items
+## Open items and next action
 
 Which criteria fit the provisional role; how to distinguish conflicting from missing evidence; which reviewer actions are essential; whether Firebase persistence is required for the synthetic demo; whether the existing voice flow is reliable enough to include.
+
+Next action when this phase begins: use D01 and the practice materials to specify the role framework and review journey before finalizing the AI contract.
 
 ## Progress log
 

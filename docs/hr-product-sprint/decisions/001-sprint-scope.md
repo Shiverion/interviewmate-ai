@@ -2,7 +2,7 @@
 
 Decision ID: D01. Date: 2026-09-07. Status: selected for the sprint under explicit research limitations.
 
-[Phase 1 progress](../01-discovery-and-ux.md) · [Reviewer packet](reviewer-packet.md) · [Current-product baseline](current-product-baseline.md)
+[Phase 1 progress](../phases/01-discovery-and-ux.md) · [Reviewer packet](../evaluation/practice/reviewer-packet.md) · [Current-product baseline](../evaluation/current-product-baseline.md)
 
 ## Decision
 
@@ -10,7 +10,7 @@ Use the existing InterviewMate application to prototype the work from **a comple
 
 The primary user prepares feedback for an engineering hiring manager. The unit of work is one interview brief. The intended benefit is less effort locating, interpreting, and checking evidence while preparing that brief. The sprint will not infer applicant suitability from names, personality, appearance, or voice presentation.
 
-The problem's prevalence, urgency, and commercial value remain unvalidated. The user chose desk research because direct recruiter access is unavailable. The evidence and source limitations are recorded in [Phase 1](../01-discovery-and-ux.md).
+The problem's prevalence, urgency, and commercial value remain unvalidated. The user chose desk research because direct recruiter access is unavailable. The evidence and source limitations are recorded in the [source register](../research/source-register.md) and [problem/workflow study](../research/problem-and-workflow.md).
 
 ## Why this problem was selected
 
@@ -55,6 +55,10 @@ A draft must not display as reviewed simply because generation succeeded. The de
 
 ## Scope commitments
 
+AI transforms unstructured answers into a draft and surfaces unanswered criteria. Deterministic checks should verify citation existence and output shape; human review determines whether an interpretation is justified. A valid quotation alone does not prove the conclusion drawn from it.
+
+Use job-related evidence. Personality, accent, appearance, name and generic confidence are not assessment signals for this sprint. Technical criteria remain provisional until practitioner review; the demo cannot validate actual job competence.
+
 ### Required for the core demonstration
 
 - One synthetic frontend role with four provisional evidence criteria: implementation/data flow, debugging, verification/testing, and accessible interfaces.
@@ -84,7 +88,7 @@ Resume ranking, coding/whiteboard evaluation, GitHub enrichment, automated rejec
 | Is the implemented AI brief grounded and consistent? | Future Phase 4 generated outputs, checks and human review | Population-level hiring validity |
 | Does the workflow save human effort? | Timed manual/assisted tasks including checking, correction and export | Scheduling reduction or total time-to-hire |
 
-No human timing has been collected. [The study guide](manual-study-guide.md) assigns a task to a future available human reviewer, provides a stopping rule and raw log, and keeps this measurement explicitly pending. A baseline audit of code capabilities is a separate engineering proxy, not a substitute for recruiter time.
+No human timing has been collected. [The study guide](../evaluation/manual-study-guide.md) assigns a task to a future available human reviewer, provides a stopping rule and raw log, and keeps this measurement explicitly pending. A baseline audit of code capabilities is a separate engineering proxy, not a substitute for recruiter time.
 
 ## Handoff decisions and open questions
 
@@ -103,3 +107,15 @@ No human timing has been collected. [The study guide](manual-study-guide.md) ass
 | Real workflow fit and willingness to adopt | Future direct research |
 
 Phase 2 should produce a concrete UX/AI specification for this scope. If research later shows the target user's biggest problem is elsewhere, record the new evidence and change the decision rather than expanding the feature set to cover every possibility.
+
+## Five-day scope
+
+| Phase | Eight-hour planning allocation | Output |
+|---|---|---|
+| 1 | Evidence review 2h; workflow/alternatives 2h; scope 1h; baseline preparation/rehearsal 2h; synthesis 1h | Discovery package and executable measurement plan |
+| 2 | Criteria/questions 2h; UX states 2h; AI/data contract 2h; test expectations 2h | Behavior spec and wireframes |
+| 3 | Stabilization 2h; core report flow 4h; demo preparation/verification 2h | Runnable synthetic demonstration |
+| 4 | Case runs 2h; quality review 2h; human timing 1h; fixes/retests 3h | Raw results and documented iteration |
+| 5 | Case study 3h; engineering handoff 2h; recording/review 3h | Submission package |
+
+These are proposed timeboxes, not elapsed work. Defer ATS scoring, GitHub enrichment, coding/whiteboard tools, multiple roles/languages, ATS integration, broad visual redesign, and production rollout. Existing authentication/data-access issues must be addressed if the chosen demo path depends on them; real candidate use remains outside the sprint.

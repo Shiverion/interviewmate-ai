@@ -8,8 +8,8 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const ts = require("typescript");
 
-const root = path.resolve(__dirname, "../../../..");
-const output = path.resolve(__dirname, "../baseline/current-product-audit.json");
+const root = path.resolve(__dirname, "../../..");
+const output = path.resolve(__dirname, "../evaluation/runs/source-audit-latest.json");
 const paths = {
   evaluator: "src/app/api/evaluate/route.ts",
   scoringHelper: "src/lib/utils/scoring.ts",

@@ -2,7 +2,9 @@
 
 Status: **Planned — submission artifacts not yet produced.**
 
-Created / last updated: 2026-09-07. Planned allocation: 8 hours. [Previous phase](04-evaluation-and-iteration.md) · [Sprint index](README.md)
+Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+
+[Documentation home](../../README.md) · [Previous phase](04-evaluation-and-iteration.md) · [Sprint index](../README.md)
 
 ## Objective
 
@@ -17,7 +19,7 @@ Package a runnable demonstration, a case study with honest evidence, and enginee
 5. **Evaluation:** synthetic dataset, reference-label method, raw results, repeated runs, failure examples and fixes. Include human baseline results only if measured.
 6. **Limits and next steps:** uncertainty from desk research, author-written fixtures, limited reviewers, language sensitivity, unsupported claims, and unverified production behavior.
 
-Use [Phase 1](01-discovery-and-ux.md) through [Phase 4](04-evaluation-and-iteration.md) as the evidence trail. The old [PRD](../../PRD.md) and [project report](../../PROJECT_REPORT.md) are historical references; their metrics must not be republished as measured sprint outcomes.
+Use [Phase 1](01-discovery-and-ux.md) through [Phase 4](04-evaluation-and-iteration.md) as the evidence trail. The old [PRD](../../archive/legacy-prd.md) and [project report](../../archive/legacy-project-report.md) are historical references; their metrics must not be republished as measured sprint outcomes.
 
 ## Engineering handoff checklist
 
@@ -54,7 +56,7 @@ Never describe saved output as a live model response. If using a replay for reco
 | Case study and engineering handoff Markdown | To be produced here or linked as a final artifact | Pending Phases 1-4 |
 | Five-minute Loom or screen-recorded video | No recording yet | Pending verified demonstration |
 
-## Exit criteria and progress
+## Exit criteria
 
 - [ ] Prototype can be run by following the handoff.
 - [ ] Case study accurately distinguishes assumptions, measurements and limitations.
@@ -62,6 +64,10 @@ Never describe saved output as a live model response. If using a replay for reco
 - [ ] Inherited work and sprint changes are disclosed.
 - [ ] Required recording exists, plays correctly, and matches the demonstrated behavior.
 - [ ] File links, diagrams and deliverable access checked.
+
+## Open items and next action
+
+The final prototype, measured evaluation results and recording do not exist yet. When Phases 2–4 provide them, assemble the case study from the linked evidence, verify the handoff instructions, and record the demonstrated workflow. Update the submission register with actual artifact locations.
 
 ## Progress log
 

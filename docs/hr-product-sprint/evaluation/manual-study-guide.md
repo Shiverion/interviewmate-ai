@@ -4,7 +4,7 @@ Version: phase1-practice-v1. Created: 2026-09-07.
 
 Status: **Practice packet checked and ready for a willing human reviewer. No participant is assigned and no human session has been run.**
 
-[Phase 1 progress](../01-discovery-and-ux.md) · [Participant packet](reviewer-packet.md) · [Blank brief](blank-review-brief.md) · [Raw timing log](baseline/human-review-log.csv)
+[Phase 1 progress](../phases/01-discovery-and-ux.md) · [Participant packet](practice/reviewer-packet.md) · [Blank brief](templates/review-brief.md) · [Raw timing log](baselines/human-review-log.csv)
 
 ## Purpose and limits
 
@@ -12,23 +12,40 @@ Practice the manual task that the prototype aims to assist: turn a supplied inte
 
 A human can perform this task without professional recruiting experience. In that case, record their actual background and call the result a usability rehearsal. Do not report it as recruiter validation. The AI agents that authored the materials cannot stand in as timed human participants.
 
-Current owner: project creator to arrange a willing human reviewer when available. No participant is assigned. The user's choice of desk research does not authorize outreach; none has been sent. Preparation can be completed without a participant, while timing stays pending in [Phase 4](../04-evaluation-and-iteration.md).
+Current owner: project creator to arrange a willing human reviewer when available. No participant is assigned. The user's choice of desk research does not authorize outreach; none has been sent. Preparation can be completed without a participant, while timing stays pending in [Phase 4](../phases/04-evaluation-and-iteration.md).
 
 ## Materials and separation
 
 Give the participant only:
 
-1. [Reviewer packet](reviewer-packet.md): fictional role, evidence criteria, and one assigned transcript.
-2. A fresh copy of the [blank brief](blank-review-brief.md).
+1. [Reviewer packet](practice/reviewer-packet.md): fictional role, evidence criteria, and one assigned transcript.
+2. A fresh copy of the [blank brief](templates/review-brief.md).
 3. The task instruction below.
 
-Keep [reference notes](reference-notes.md) away from the participant until the task ends. Record whether they previously read the cases or reference. Both practice cases are deliberately visible to the development team and must never be described as held-out evaluation material.
+Keep [reference notes](practice/reference-notes.md) away from the participant until the task ends. Record whether they previously read the cases or reference. Both practice cases are deliberately visible to the development team and must never be described as held-out evaluation material.
 
 ## Participant task
 
 > You are preparing a brief for an engineering hiring manager after a first-round screen. Read the fictional role and assigned interview. For each of the four criteria, capture what the candidate actually said, point to the relevant turn, explain what it supports, and note any uncertainty or missing information. Add useful follow-up questions and check the brief before finishing. Do not choose whom to hire or assign a general candidate score.
 
 The participant may inspect the full transcript throughout. For the manual condition, do not show AI-generated summaries or use AI to write the brief. Normal text editing, search and copying exact excerpts are allowed; record tools used.
+
+## Measurement definitions
+
+**Primary baseline: active human minutes required to produce a reviewable brief from a supplied transcript. Current value: Not measured.**
+
+Measure post-screen work only; scheduling, interview duration and total time-to-hire are outside this metric. Record active work, AI wait and total elapsed time separately. Fix the environment, task instructions, brief template and stopping criteria across conditions. Preserve interruptions and failed tasks.
+
+| Measure | Definition | Current result |
+|---|---|---|
+| Manual active minutes | Reading + evidence extraction + writing + final checking | Not measured |
+| Assisted active minutes | Setup + source verification + corrections + final checking | Not measured |
+| Elapsed minutes | Start-to-finish time including generation/waiting | Not measured |
+| Unsupported-claim rate | Unsupported factual candidate claims / all factual candidate claims in brief | Not measured |
+| Missing-evidence handling | Correctly flagged expected-unknown criteria / expected-unknown criteria | Not measured |
+| Correction burden | Substantive claim corrections and removals per brief | Not measured |
+
+Use the [CSV header](baselines/human-review-log.csv) as the canonical field list, including `ai_wait_seconds`, prior exposure and tools used. Report raw per-case values before medians and ranges. A speed improvement is `(manual median - assisted median) / manual median * 100`, only for comparable conditions and a nonzero manual median. Report quality alongside time; revisit the direction if verification removes the time advantage or quality declines.
 
 ## Run sequence
 
