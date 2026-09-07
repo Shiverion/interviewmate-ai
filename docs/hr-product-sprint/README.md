@@ -12,7 +12,7 @@ The user confirmed desk research as the starting method because recruiter/hiring
 
 | Phase | Progress document | Status | Main output |
 |---|---|---|---|
-| 1 | [Discovery and UX workflow](01-discovery-and-ux.md) | In progress: desk exploration documented | Problem, user, workflow, evidence, scope, baseline protocol |
+| 1 | [Discovery and UX workflow](01-discovery-and-ux.md) | Desk-research package complete; human timing pending | Problem, user, workflow, evidence, scope, practice packet and source-level baseline |
 | 2 | [Solution design and AI logic](02-solution-design-and-ai-logic.md) | Planned | UX flow, rubric, prompts, input/output contract |
 | 3 | [Prototype build](03-prototype-build.md) | Planned | Runnable core workflow and reproducible demo |
 | 4 | [Evaluation and iteration](04-evaluation-and-iteration.md) | Planned | Synthetic cases, actual results, fixes, comparison |
@@ -46,9 +46,21 @@ The new documents live in a trackable `docs/` folder; `.planning/` is ignored by
 - [ ] Case study and engineering handoff with observed results.
 - [ ] Five-minute demo video and accessible recording link/file.
 
+## Phase 1 working materials
+
+- [Decision and scope](phase-1/decision-and-scope.md): the selected task and Phase 2 handoff.
+- [Reviewer packet](phase-1/reviewer-packet.md): fictional role and two synthetic practice transcripts.
+- [Manual study guide](phase-1/manual-study-guide.md) and [blank brief](phase-1/blank-review-brief.md): ready for a future human rehearsal.
+- [Current-product baseline](phase-1/current-product-baseline.md): reproducible source observations, distinct from user outcomes.
+- [Reference notes](phase-1/reference-notes.md): facilitator/development material; keep separate from a participant's task.
+
+The baseline timing log has no results yet. Phase 1 documentation readiness does not imply that recruiter demand or time savings have been validated.
+
 ## Progress log
 
 | Date | Work completed | Evidence / consequence |
 |---|---|---|
 | 2026-09-07 | Created five separate phase progress documents and this index | Phase 1 is active; Phases 2-5 remain planned |
 | 2026-09-07 | Recorded desk-research-only discovery approach | Proceed with explicit assumptions; do not imply direct user validation |
+| 2026-09-07 | Saved initial documents in commit `0e9eba2` on `codex/hr-product-sprint` | New sprint branch established |
+| 2026-09-07 | Finished the desk-research discovery package, practice inputs and source-level baseline | Ready for Phase 2 design; human timing remains pending |

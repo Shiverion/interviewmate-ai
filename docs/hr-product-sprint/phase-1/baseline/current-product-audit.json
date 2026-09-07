@@ -1,0 +1,242 @@
+{
+  "auditKind": "offline_source_inventory",
+  "auditVersion": 1,
+  "generatedAtUtc": "2026-09-07T14:15:20.103Z",
+  "parser": {
+    "name": "typescript",
+    "version": "5.9.3"
+  },
+  "inspectedFiles": [
+    {
+      "path": "src/app/api/evaluate/route.ts",
+      "sha256": "b9993024b36a021385975c304c84fcbcdab87efc2d74391f67cb2d91c4ce0ce8"
+    },
+    {
+      "path": "src/lib/utils/scoring.ts",
+      "sha256": "d7cd8dfe03f8b4c6a0ba2254d798aad122bdf1eb64e21f386de57b598bea2120"
+    },
+    {
+      "path": "src/app/(recruiter)/interviews/[sessionId]/page.tsx",
+      "sha256": "544720c29a114eb768e226714703772cf5dea4098202b666796080b6482d3270"
+    }
+  ],
+  "evaluationSchema": {
+    "requiredNumericDimensionCount": 7,
+    "dimensions": [
+      {
+        "name": "communication",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 97,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "name": "reasoning",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 98,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "name": "relevance",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 99,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "name": "technical_depth",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 100,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "name": "production_experience",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 101,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "name": "skill_match",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 102,
+        "min": 0,
+        "max": 100
+      },
+      {
+        "name": "confidence",
+        "type": "number",
+        "required": true,
+        "nullable": false,
+        "line": 103,
+        "min": 0,
+        "max": 100
+      }
+    ],
+    "evidenceCollectionCount": 3,
+    "freeTextEvidenceCollectionCount": 3,
+    "structuredEvidenceItemCollectionCount": 0,
+    "evidenceCollections": [
+      {
+        "name": "strengths",
+        "type": "array",
+        "required": true,
+        "nullable": false,
+        "line": 106,
+        "item": {
+          "type": "string",
+          "required": true,
+          "nullable": false,
+          "line": 106
+        },
+        "min": 1,
+        "max": 4
+      },
+      {
+        "name": "weaknesses",
+        "type": "array",
+        "required": true,
+        "nullable": false,
+        "line": 107,
+        "item": {
+          "type": "string",
+          "required": true,
+          "nullable": false,
+          "line": 107
+        },
+        "min": 1,
+        "max": 4
+      },
+      {
+        "name": "notable_moments",
+        "type": "array",
+        "required": true,
+        "nullable": false,
+        "line": 108,
+        "item": {
+          "type": "string",
+          "required": true,
+          "nullable": false,
+          "line": 108
+        },
+        "min": 0,
+        "max": 3
+      }
+    ],
+    "minimumStrengthItems": 1,
+    "minimumWeaknessItems": 1,
+    "structuredCitationFieldsWithinEvidenceItems": [],
+    "topLevelFields": [
+      "scores",
+      "evidence",
+      "recommendation",
+      "feedback",
+      "overallScore",
+      "is_passing"
+    ]
+  },
+  "deterministicTotalHelper": {
+    "name": "calculateOverallScore",
+    "definition": {
+      "path": "src/lib/utils/scoring.ts",
+      "line": 12
+    },
+    "identifierReferenceCountInEvaluator": 0,
+    "canonicalScoringModuleImportsInEvaluator": 0,
+    "evaluationDataInitializer": {
+      "expression": "result.object",
+      "line": 124
+    }
+  },
+  "reportPageAffordances": {
+    "nativeEditingControlCount": 0,
+    "nativeEditingControls": [],
+    "nativeButtons": [
+      {
+        "tag": "button",
+        "line": 395,
+        "attributes": [
+          {
+            "name": "onClick",
+            "value": "{downloadTranscript}"
+          }
+        ],
+        "literalText": "Download Report (.txt)"
+      }
+    ],
+    "jsxEventHandlers": [
+      {
+        "tag": "button",
+        "line": 395,
+        "name": "onClick",
+        "value": "{downloadTranscript}"
+      }
+    ],
+    "customJsxComponentTags": [
+      "Link"
+    ],
+    "localUseStateBindings": [
+      {
+        "binding": "[sessionData, setSessionData]",
+        "line": 16
+      },
+      {
+        "binding": "[templateData, setTemplateData]",
+        "line": 17
+      },
+      {
+        "binding": "[loading, setLoading]",
+        "line": 18
+      },
+      {
+        "binding": "[error, setError]",
+        "line": 19
+      }
+    ],
+    "comparedSessionStatuses": [
+      {
+        "value": "evaluated",
+        "line": 97
+      },
+      {
+        "value": "evaluated",
+        "line": 184
+      },
+      {
+        "value": "completed",
+        "line": 185
+      },
+      {
+        "value": "active",
+        "line": 186
+      },
+      {
+        "value": "evaluated",
+        "line": 189
+      }
+    ],
+    "semanticReviewerStateConclusion": "Requires manual source interpretation; see current-product-baseline.md. This inventory does not infer review semantics from variable names."
+  },
+  "limitations": [
+    "Only the three listed source files were inspected; hashes identify their exact bytes.",
+    "Schema extraction understands this inline syntax only; it is not a general Zod or application validator.",
+    "Identifier/import counts do not follow aliases, re-exports, indirect calls, runtime-generated UI, or other routes.",
+    "JSX inventories describe source affordances, not a browser-tested accessible user journey.",
+    "No product module, model request, Firebase operation, or candidate dataset was executed.",
+    "No human timing, hallucination frequency, scoring consistency, hiring outcome, or fairness result was measured."
+  ]
+}

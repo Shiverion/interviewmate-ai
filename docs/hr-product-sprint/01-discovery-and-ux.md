@@ -1,6 +1,6 @@
 # Phase 1: discovery and UX workflow
 
-Status: **In progress — desk exploration documented; baseline not measured.**
+Status: **Desk-research discovery package complete; human timing baseline pending.**
 
 Started / last updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours. [Sprint index](README.md) · [Next phase](02-solution-design-and-ai-logic.md)
 
@@ -31,7 +31,7 @@ We have no defensible estimate yet for applicant volume, review minutes, salary 
 
 ## 3. Evidence register
 
-Evidence labels: **External** = a cited source reports it; **Code** = observed in this repository; **Hypothesis** = a proposition to test; **Proposed** = our design choice; **Measured** = an actual recorded study/run. There are no new measured user outcomes yet.
+Evidence labels: **External** = a cited source reports it; **Code** = observed in this repository; **Hypothesis** = a proposition to test; **Proposed** = our design choice; **Measured** = an actual recorded study/run. An offline source inventory has now been executed; there are no measured user outcomes or prototype AI-quality results yet.
 
 All external sources below were accessed on 2026-09-07. Dates are publication/update dates visible on the source, where available.
 
@@ -122,7 +122,7 @@ Proposed boundaries:
 
 ## 8. Synthetic discovery example
 
-**Author-created illustration; not a user interview, model output, measured benchmark, or validated rubric.** This short fragment explores what an inspectable brief should contain. It is too short for a representative timing study.
+**Illustration authored by the project AI assistant; not a user interview, prototype-evaluator output, measured benchmark, or validated rubric.** This short fragment explores what an inspectable brief should contain. It is too short for a representative timing study. The longer [reviewer packet](phase-1/reviewer-packet.md) now supplies two practice records with a separate [reference guide](phase-1/reference-notes.md).
 
 Role context: a frontend engineer builds web interfaces, investigates defects, and explains testing choices.
 
@@ -141,7 +141,7 @@ Expected interpretation for exploration:
 - Testing: T04 supports manual checking and explicitly states the lack of an automated regression test for that change. It does not prove that the candidate cannot write tests.
 - Accessibility: this example does not establish accessibility competence. Ask for a separate example; do not infer poor overall ability from T06.
 
-Result of this reasoning exercise: the brief needs separate fields for source quotation, interpretation, evidence status, and follow-up. Requiring a strength and weakness for every input would not represent this fragment cleanly. No AI call was executed for this example.
+Result of this reasoning exercise: the brief needs separate fields for source quotation, interpretation, evidence status, and follow-up. Requiring a strength and weakness for every input would not represent this fragment cleanly. The prototype evaluator was not run on this example.
 
 ## 9. Baseline definition and measurement plan
 
@@ -155,7 +155,7 @@ Assisted task: load the material, generate the draft, check every cited claim, f
 
 Protocol to execute later:
 
-1. Finalize a role framework and 6-8 realistic synthetic transcripts. Write expected evidence before model testing; keep author/reference bias explicit.
+1. Use the two completed Phase 1 practice records to rehearse the procedure. Finalize the role framework and author eight separate Phase 4 cases before model testing; keep author/reference bias explicit. Practice records and their assistant-authored references are never held-out evaluation data.
 2. Use a human reviewer. If this is the project creator, label it a creator-run usability rehearsal, not recruiter validation. Agent execution speed cannot substitute for human timing.
 3. Use matched case sets and alternate manual/assisted order to reduce learning effects. With two reviewers, reverse assignments so each case appears in both conditions without immediate repeat exposure. Record any reuse and familiarity.
 4. Fix the environment, task instructions, brief template, and stopping criteria. Log interruptions and failed tasks; exclude none silently.
@@ -172,6 +172,22 @@ Protocol to execute later:
 | Correction burden | Substantive claim corrections and removals per brief | Not measured |
 
 Raw log template: `date, reviewer_id, reviewer_background, case_id, condition, order, role_version, prompt_version, model_id, active_seconds, wait_seconds, elapsed_seconds, claims_total, unsupported_claims, expected_unknowns, correctly_flagged_unknowns, substantive_edits, task_completed, interruptions, notes`.
+
+The executable study materials are the [facilitator guide](phase-1/manual-study-guide.md), [participant packet](phase-1/reviewer-packet.md), [blank brief](phase-1/blank-review-brief.md), and [header-only human timing log](phase-1/baseline/human-review-log.csv). The guide adds fields for prior exposure and tools used. No human participant is assigned; this empirical measure remains explicitly pending in Phase 4.
+
+### Separate current-product capability baseline
+
+The [offline source audit](phase-1/current-product-baseline.md) ran against the existing evaluator, scoring helper and report page. Its [recorded JSON](phase-1/baseline/current-product-audit.json) includes source hashes and line references:
+
+| Source-level measure | Observed starting value | Proposed improvement to design |
+|---|---|---|
+| Structured evidence-item collections | 0 of 3; all three contain strings | Separate criterion, quotation and source-turn fields |
+| Required numeric dimensions | 7 nonnullable numbers | Explicit evidence limits; numeric scoring only if justified |
+| Required strength/weakness entries | At least 1 of each | Permit an honest report when evidence is insufficient |
+| Native editing controls in the inspected report | 0 | Recruiter correction and removal |
+| Separate human-review workflow in the inspected report | None found in manual source review | A reviewed state distinct from AI evaluation |
+
+These are actual source-inventory observations. They are not measurements of recruiter time, AI hallucination frequency, hiring accuracy, or fairness. A free-text evidence string may contain a quotation; the audit shows that its citation is not a separate structured field. The script's scope and limitations are documented with the baseline.
 
 A speed improvement, when measured, is `(manual median - assisted median) / manual median * 100`, only for comparable conditions with nonzero manual time. Report the raw data and quality measures alongside it. Do not reuse the old project's percentages as a baseline.
 
@@ -211,10 +227,28 @@ Capture anonymized observations, exact quotations only when actually recorded, w
 - [x] Set a narrow concept and five-day scope.
 - [x] Define baseline measures and a comparison protocol.
 - [x] Explore one explicitly synthetic example.
-- [ ] Finalize realistic baseline materials and assign the human manual rehearsal when a reviewer is available. Track the pending measurement in [Phase 4](04-evaluation-and-iteration.md).
-- [ ] Resolve any new scope changes and hand the discovery decision into Phase 2.
+- [x] Prepare two realistic practice records, separate source annotations, a blank brief, task instructions and an empty raw timing log.
+- [x] Record a reproducible current-product capability inventory, clearly separate from human timing and AI-quality evaluation.
+- [x] Resolve the discovery scope and hand the decision into Phase 2 through [D01](phase-1/decision-and-scope.md).
+- [ ] Collect an empirical human timing baseline. No participant is assigned; this outstanding evidence is tracked in [Phase 4](04-evaluation-and-iteration.md), not marked complete.
 
-Decision confidence: sufficient to begin a small design experiment; insufficient to claim validated demand, time savings, hiring accuracy, or reduced bias. Phase 1 remains in progress. The discovery documentation is ready to inform Phase 2; the requested empirical baseline remains outstanding and is also tracked in Phase 4. Documentation readiness must not be described as a measured baseline. Lack of recruiter access does not block Phase 2 design under these limitations.
+Decision confidence: sufficient to begin a small design experiment; insufficient to claim validated demand, time savings, hiring accuracy, or reduced bias. The desk-research discovery package is complete and ready for Phase 2. The requested empirical human baseline remains outstanding; the source-level baseline does not replace it. Lack of recruiter access does not block detailed design under these limitations.
+
+## 13. Completed discovery artifacts and verification
+
+| Artifact | Purpose / result |
+|---|---|
+| [Decision and scope](phase-1/decision-and-scope.md) | Compares three candidate problems and records the selected workflow, scope, dependencies and Phase 2 questions |
+| [Reviewer packet](phase-1/reviewer-packet.md) | Fixed fictional role, four provisional criteria, five core questions, and two practice transcripts |
+| [Reference notes](phase-1/reference-notes.md) | Source annotations kept separate from participant materials; permissible interpretations, unsupported conclusions and follow-ups |
+| [Blank review brief](phase-1/blank-review-brief.md) | Common output template for manual and later assisted tasks |
+| [Facilitator guide](phase-1/manual-study-guide.md) | Timing boundaries, completion rule, quality checks, debrief and limitations |
+| [Human timing log](phase-1/baseline/human-review-log.csv) | Header only; no fabricated session data |
+| [Current-product baseline](phase-1/current-product-baseline.md) | Actual source inventory and manual interpretation, with reproducible script and raw JSON |
+
+Packet verification: P1-A has 14 turns and 643 transcript words; P1-B has 14 turns and 673 words, counting interviewer questions and candidate answers. All 28 quoted snippets checked in the reference guide occur in the cited candidate turns. Source quotations and interpretations were also read for context; the notes preserve self-report, testing limits and the ownership contradiction. This is an internal artifact check, not recruiter agreement or a live model-evaluation result. Similar length does not establish equal review difficulty.
+
+## 14. Progress log
 
 | Date | Progress | Evidence / next action |
 |---|---|---|
@@ -222,3 +256,6 @@ Decision confidence: sufficient to begin a small design experiment; insufficient
 | 2026-09-07 | User selected desk research | No direct user findings are claimed |
 | 2026-09-07 | Documented six external sources, alternatives, workflow and hypotheses | Category is established; target-user severity remains unknown |
 | 2026-09-07 | Prepared synthetic illustration, measurement protocol and scope | Next: realistic cases, human baseline when available, then detailed design |
+| 2026-09-07 | Committed sprint documents on `codex/hr-product-sprint` as `0e9eba2` | Six phase/index documents saved; inherited Firebase changes excluded |
+| 2026-09-07 | Prepared full Phase 1 practice and measurement materials and checked source annotations | Two synthetic practice records; no participant session or prototype evaluation run |
+| 2026-09-07 | Executed source inventory and finalized D01 discovery scope | Discovery package ready for Phase 2; human timing explicitly pending |

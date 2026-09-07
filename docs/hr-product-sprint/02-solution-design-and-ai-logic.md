@@ -1,6 +1,6 @@
 # Phase 2: solution design and AI logic
 
-Status: **Planned — design work has not started.**
+Status: **Planned — detailed design has not started; Phase 1 inputs are ready.**
 
 Created / last updated: 2026-09-07. Planned allocation: 8 hours. [Previous phase](01-discovery-and-ux.md) · [Sprint index](README.md) · [Next phase](03-prototype-build.md)
 
@@ -9,6 +9,8 @@ Created / last updated: 2026-09-07. Planned allocation: 8 hours. [Previous phase
 Translate Phase 1's provisional transcript-to-review-brief concept into an inspectable UX and AI behavior specification. Carry forward the desk-research limitation; no direct user validation has occurred.
 
 Inputs: [Phase 1 evidence and scope](01-discovery-and-ux.md), the existing [evaluator](../../src/app/api/evaluate/route.ts), [report page](../../src/app/(recruiter)/interviews/[sessionId]/page.tsx), and [interview configuration](../../src/components/dashboard/CreateInterviewModal.tsx).
+
+The completed [D01 decision](phase-1/decision-and-scope.md), [practice role/questions](phase-1/reviewer-packet.md), [reference notes](phase-1/reference-notes.md), and [current-product capability baseline](phase-1/current-product-baseline.md) are concrete starting materials. Finalize the provisional criteria and behavior here; they have not been calibrated by a recruiter. Human review time remains unmeasured.
 
 ## Planned deliverables
 
@@ -71,3 +73,4 @@ Which criteria fit the provisional role; how to distinguish conflicting from mis
 | Date | Work completed | Evidence / consequence |
 |---|---|---|
 | 2026-09-07 | Created Phase 2 tracker and starting questions | Planning only; no completed wireframes or final AI contract |
+| 2026-09-07 | Received Phase 1 decision, practice packet and capability baseline | Detailed design remains planned; no completed UX/AI contract claimed |

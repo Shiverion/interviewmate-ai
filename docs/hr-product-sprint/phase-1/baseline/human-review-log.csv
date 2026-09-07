@@ -1,0 +1,1 @@
+date,reviewer_id,reviewer_background,case_id,condition,order,role_version,prompt_version,model_id,prior_case_exposure,tools_used,active_seconds,ai_wait_seconds,elapsed_seconds,claims_total,unsupported_claims,expected_unknowns,correctly_flagged_unknowns,substantive_edits,task_completed,interruptions,notes
