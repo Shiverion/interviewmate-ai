@@ -1,0 +1,92 @@
+{
+  "version": "frontend-review-v1",
+  "title": "Mid-level frontend engineer",
+  "language": "English",
+  "provenance": "Provisional assistant-authored synthetic role; extends frontend-discovery-v1 without practitioner calibration.",
+  "context": "Build and maintain a React/TypeScript operations dashboard: filters, asynchronous API data, debugging, checks before release and accessible controls. Judge evidence in the supplied interview, not overall ability.",
+  "statuses": {
+    "specific_evidence": "A concrete relevant personal action with a mechanism, observation or check is described. Self-report is not independently verified; explicit limits can coexist with this status.",
+    "limited_evidence": "Some relevant activity is described, but ownership, mechanism or verification is too vague or indirect to establish a specific account.",
+    "not_established": "No relevant completed action is established: topic absent, answer missing, only future plans, or explicit nonperformance. This is not evidence of inability.",
+    "conflicting_evidence": "Candidate turns make incompatible statements about the same material contribution or event. Preserve both and ask for clarification; do not infer intent."
+  },
+  "criteria": [
+    {
+      "id": "R1",
+      "label": "Implementation and data flow",
+      "lookFor": "Specific interface behavior, action-to-data flow, implementation choices and personal contribution.",
+      "specificAnchor": "Names a personal implementation action and explains how an input/request/state change reaches the interface.",
+      "limitedAnchor": "Mentions a team feature or tooling without a clear personal action or data mechanism.",
+      "boundary": "Shared components, an existing API, and team ownership do not establish sole authorship."
+    },
+    {
+      "id": "R2",
+      "label": "Debugging and diagnosis",
+      "lookFor": "Symptom, investigation steps, observations supporting an explanation and a check of that explanation.",
+      "specificAnchor": "Describes a reproduction or investigation and concrete observations connected to a causal hypothesis.",
+      "limitedAnchor": "Reports trying the screen or proposing a cause without observations to distinguish it.",
+      "boundary": "A reported fix or closed ticket does not verify production success."
+    },
+    {
+      "id": "R3",
+      "label": "Verification and testing",
+      "lookFor": "Specific checks, intended assertions or expected behavior, and limits of checks actually performed.",
+      "specificAnchor": "Describes a concrete test or manual check and its expected behavior.",
+      "limitedAnchor": "Says tests passed or a file downloaded without establishing a relevant assertion or coverage.",
+      "boundary": "Missing one test type does not imply no testing ability; a team green suite does not prove coverage."
+    },
+    {
+      "id": "R4",
+      "label": "Accessible interfaces",
+      "lookFor": "Concrete accessible interface behavior or accessibility checks personally performed.",
+      "specificAnchor": "Describes a specific label, keyboard, focus or assistive-technology check and relevant behavior.",
+      "limitedAnchor": "Reports an accessibility-related implementation detail without checking or explaining relevant behavior.",
+      "boundary": "Library use and future intentions alone do not establish completed accessibility work or conformance."
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "criteria": [
+        "R1"
+      ],
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?",
+      "clarification": "What happened when the inputs changed again before the previous request finished?"
+    },
+    {
+      "id": "Q2",
+      "criteria": [
+        "R2"
+      ],
+      "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?",
+      "clarification": null
+    },
+    {
+      "id": "Q3",
+      "criteria": [
+        "R3"
+      ],
+      "text": "How did you check the change and decide it was ready for release?",
+      "clarification": "What did those checks leave untested or uncertain?"
+    },
+    {
+      "id": "Q4",
+      "criteria": [
+        "R4"
+      ],
+      "text": "What accessibility work or checks did you perform on this interface?",
+      "clarification": null
+    },
+    {
+      "id": "Q5",
+      "criteria": [
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      ],
+      "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?",
+      "clarification": null
+    }
+  ]
+}

@@ -1,14 +1,16 @@
 # Phase 3: prototype build
 
-Status: **Planned — sprint implementation has not started.**
+Status: **Planned — Phase 2 specification and implementation backlog are ready.**
 
-Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](02-solution-design-and-ai-logic.md) · [Sprint index](../README.md) · [Next phase](04-evaluation-and-iteration.md)
 
 ## Objective
 
 Build the Phase 2 behavior as a runnable synthetic transcript-to-review-brief workflow. Reuse InterviewMate's existing components and make the demonstrated boundary explicit.
+
+Use the completed [design package](../design/README.md), [D02 architecture decision](../decisions/002-review-brief-design.md) and [ordered Phase 3 backlog](../implementation/phase-3-backlog.md). The authored wireframe demonstrates interactions but does not implement live generation or the new product route.
 
 ## Inherited implementation and known verification limits
 
@@ -65,10 +67,11 @@ No sprint product-code changes yet. Add an entry per completed change with file 
 
 ## Open items and next action
 
-Implementation depends on the Phase 2 UX/AI contract. When that specification is ready, establish a reliable local path for saved synthetic input and record the exact startup/check results before building the core report flow.
+The Phase 2 UX/AI contract is ready. Begin B01 in the backlog: establish a reliable local page outside the recruiter gates, check its no-Firebase behavior, and record exact startup/check results before implementing generation and review.
 
 ## Progress log
 
 | Date | Work completed | Evidence / consequence |
 |---|---|---|
 | 2026-09-07 | Created build tracker and carried forward inherited risks | No new prototype behavior or repaired checks claimed |
+| 2026-09-08 | Received completed Phase 2 design package and six-task backlog | Ready to build; authored wireframe and offline checks do not complete product implementation |

@@ -108,6 +108,8 @@ No human timing has been collected. [The study guide](../evaluation/manual-study
 
 Phase 2 should produce a concrete UX/AI specification for this scope. If research later shows the target user's biggest problem is elsewhere, record the new evidence and change the decision rather than expanding the feature set to cover every possibility.
 
+Update, 2026-09-08: [D02](002-review-brief-design.md) resolves these design questions for the local synthetic prototype. The table above preserves the state entering Phase 2; current behavior is specified in the [design package](../design/README.md).
+
 ## Five-day scope
 
 | Phase | Eight-hour planning allocation | Output |

@@ -2,7 +2,7 @@
 
 [Documentation home](../README.md) · [Local development](local-development.md) · [Sprint scope](../hr-product-sprint/decisions/001-sprint-scope.md)
 
-Updated: 2026-09-07. Basis: repository review. The features below describe code present before the HR sprint, not a completed live acceptance test.
+Updated: 2026-09-08. Basis: repository review. The features below describe code present before the HR sprint, not a completed live acceptance test.
 
 InterviewMate creates interview sessions, gives candidates an entry link, handles voice/text conversation and presents an AI-generated report to a recruiter. The sprint reuses this foundation to explore the work between a transcript and a reviewed hiring-manager brief.
 
@@ -37,4 +37,4 @@ The [manifest](../../package.json) specifies Next.js 16.1.6, React 19.2.3 and No
 
 Four isolated scoring tests passed during the initial review. TypeScript/lint and default development startup had unresolved issues, and a complete live interview/Firebase round trip was not verified. See [local development](local-development.md#known-verification-state) for the recorded boundaries.
 
-The proposed Review Brief is still design work. Its input contract, prompt, review persistence and UI will be specified in [Phase 2](../hr-product-sprint/phases/02-solution-design-and-ai-logic.md), built in Phase 3 and evaluated in Phase 4. Earlier completion and performance claims remain in the [historical archive](../archive/README.md).
+The Review Brief's [Phase 2 design package](../hr-product-sprint/design/README.md) now specifies its input contract, prompt, review state and UI, with an authored clickable wireframe. The live workflow will be built in Phase 3 and evaluated in Phase 4. Earlier completion and performance claims remain in the [historical archive](../archive/README.md).

@@ -1,0 +1,1927 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>InterviewMate · Review Brief wireframe</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8fafc;
+        --surface: #fff;
+        --ink: #0f172a;
+        --muted: #475569;
+        --border: #cbd5e1;
+        --action: #4338ca;
+        --soft: #eef2ff;
+        --radius: 12px;
+        --space: 24px;
+        --focus: #4338ca;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          16px/1.5 system-ui,
+          -apple-system,
+          Segoe UI,
+          sans-serif;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        border: 1px solid #64748b;
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--ink);
+      }
+      button {
+        min-height: 44px;
+        padding: 9px 15px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:hover {
+        background: #f1f5f9;
+      }
+      button:active {
+        background: #e2e8f0;
+      }
+      button.primary {
+        background: var(--action);
+        border-color: var(--action);
+        color: white;
+      }
+      button.primary:hover {
+        background: #3730a3;
+      }
+      button:disabled {
+        cursor: not-allowed;
+        background: #e2e8f0;
+        color: #475569;
+        border-color: #94a3b8;
+      }
+      input,
+      select,
+      textarea {
+        padding: 10px;
+        max-width: 100%;
+      }
+      textarea {
+        width: 100%;
+        resize: vertical;
+        min-height: 88px;
+      }
+      input[type="checkbox"] {
+        width: 19px;
+        height: 19px;
+        accent-color: var(--action);
+        flex-shrink: 0;
+      }
+      a {
+        color: var(--action);
+      }
+      :focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 3px;
+      }
+      .skip {
+        position: absolute;
+        left: 16px;
+        top: -80px;
+        background: white;
+        padding: 12px;
+        z-index: 10;
+      }
+      .skip:focus {
+        top: 8px;
+      }
+      .notice {
+        background: #1e293b;
+        color: #f8fafc;
+        padding: 12px 24px;
+        font-size: 14px;
+      }
+      .notice strong {
+        margin-right: 14px;
+        letter-spacing: 0.04em;
+      }
+      .wrap {
+        max-width: 1200px;
+        margin: auto;
+        padding: 28px 32px 48px;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 20px;
+      }
+      .brand {
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .brand span {
+        font-weight: 400;
+        color: var(--muted);
+        margin-left: 12px;
+      }
+      .eyebrow {
+        font-size: 14px;
+        font-weight: 650;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--action);
+      }
+      h1 {
+        font-size: 32px;
+        line-height: 1.2;
+        font-weight: 650;
+        margin: 12px 0;
+      }
+      h2 {
+        font-size: 21px;
+        line-height: 1.3;
+        margin: 0 0 12px;
+      }
+      h3 {
+        font-size: 17px;
+        line-height: 1.4;
+        margin: 0;
+      }
+      p {
+        margin: 8px 0;
+      }
+      small,
+      .small {
+        font-size: 14px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .hero {
+        padding: 28px 0 20px;
+      }
+      .steps {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        padding: 14px 0;
+        margin: 0 0 24px;
+        list-style: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .steps li {
+        color: var(--muted);
+      }
+      .steps .current {
+        font-weight: 700;
+        color: var(--action);
+      }
+      .panel,
+      .criterion {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+      }
+      .panel + .panel {
+        margin-top: 24px;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+      .criteria-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 20px 0;
+      }
+      .mini {
+        border-left: 3px solid #a5b4fc;
+        padding: 4px 12px;
+      }
+      .mini span {
+        display: block;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      .check {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px 0;
+        cursor: pointer;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: 24px;
+        align-items: start;
+      }
+      .cards {
+        display: grid;
+        gap: 20px;
+        min-width: 0;
+      }
+      .criterion {
+        scroll-margin-top: 24px;
+      }
+      .criterion.checked {
+        border-left: 4px solid #4338ca;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 9px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        font-size: 14px;
+        color: #334155;
+      }
+      .badge.attention {
+        background: #fff7ed;
+        color: #9a3412;
+      }
+      .badge.complete {
+        background: var(--soft);
+        color: #3730a3;
+      }
+      .claim {
+        padding: 16px 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .claim p {
+        margin: 0 0 8px;
+      }
+      .citation {
+        font:
+          13px ui-monospace,
+          monospace;
+        color: var(--action);
+        padding: 6px 9px;
+        overflow-wrap: anywhere;
+        min-height: 44px;
+      }
+      .claim-tools {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .text-button {
+        font-size: 14px;
+        border-color: transparent;
+        padding-left: 0;
+        color: var(--action);
+      }
+      .label {
+        font-size: 14px;
+        font-weight: 650;
+        margin-top: 18px;
+      }
+      .source {
+        position: sticky;
+        top: 16px;
+        min-width: 0;
+      }
+      .source-list {
+        max-height: 65vh;
+        overflow: auto;
+        margin-top: 16px;
+        padding-right: 8px;
+      }
+      .turn {
+        border-top: 1px solid #e2e8f0;
+        padding: 14px 0;
+        overflow-wrap: anywhere;
+      }
+      .turn:first-child {
+        border-top: 0;
+      }
+      .turn.active {
+        background: #eef2ff;
+        border-radius: 8px;
+        padding: 12px;
+      }
+      .turn p {
+        white-space: pre-wrap;
+        font-size: 14px;
+      }
+      .turn h3 {
+        font:
+          13px/1.5 ui-monospace,
+          monospace;
+      }
+      .turn mark {
+        background: #fde68a;
+        color: #0f172a;
+      }
+      .footer {
+        margin-top: 24px;
+      }
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 20px;
+        margin: 18px 0;
+      }
+      .error {
+        padding: 18px 22px;
+        border: 1px solid #c2410c;
+        background: #fff7ed;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        color: #7c2d12;
+      }
+      .loading {
+        padding: 20px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        background: var(--soft);
+      }
+      .loading::before {
+        content: "◌";
+        display: inline-block;
+        margin-right: 12px;
+        font-size: 24px;
+      }
+      .hint {
+        border-left: 3px solid #a5b4fc;
+        padding: 4px 12px;
+        margin: 16px 0;
+        color: var(--muted);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      dialog {
+        width: min(700px, calc(100% - 32px));
+        max-height: 90vh;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        color: var(--ink);
+      }
+      dialog::backdrop {
+        background: rgb(15 23 42 / 0.5);
+      }
+      dialog form {
+        display: grid;
+        gap: 16px;
+      }
+      .edit-claim {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+      }
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+        background: #f1f5f9;
+        padding: 16px;
+        border-radius: 8px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+      }
+      details {
+        margin: 14px 0;
+      }
+      summary {
+        cursor: pointer;
+        padding: 8px 0;
+      }
+      button,
+      a,
+      input,
+      select,
+      textarea {
+        transition: background-color 150ms ease;
+      }
+      .walkthrough {
+        border-top: 1px solid var(--border);
+        margin-top: 32px;
+        padding-top: 18px;
+      }
+      @media (max-width: 1023px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .source {
+          position: static;
+        }
+        .source-list {
+          max-height: none;
+        }
+        .criteria-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 767px) {
+        .wrap {
+          padding: 20px 16px;
+        }
+        .notice {
+          padding: 12px 16px;
+        }
+        .notice strong {
+          display: block;
+        }
+        .brand span {
+          display: block;
+          margin-left: 0;
+        }
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .panel,
+        .criterion {
+          padding: 18px;
+        }
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+        h1 {
+          font-size: 28px;
+        }
+        .row.actions > button {
+          flex: 1 1 160px;
+        }
+        .criteria-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .steps {
+          gap: 12px;
+          font-size: 14px;
+        }
+        .source-list {
+          padding-right: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main" class="skip">Skip to review workspace</a>
+    <div class="notice">
+      <strong>PHASE 02 · AUTHORED WIREFRAME</strong>Sample outputs · No AI calls
+      · Changes stay in this tab
+    </div>
+    <div class="wrap">
+      <header>
+        <div class="brand">InterviewMate<span>Review Brief</span></div>
+        <a href="README.md">Design specification ↗</a>
+      </header>
+      <main id="main">
+        <div class="hero">
+          <div class="eyebrow">First-screen review</div>
+          <h1>Check the evidence. Prepare the handoff.</h1>
+          <p class="muted">
+            A brief organized by role criteria, with the candidate’s words close
+            at hand.
+          </p>
+        </div>
+        <ol class="steps" aria-label="Review steps">
+          <li id="step-input">01 · Prepare input</li>
+          <li id="step-review">02 · Check four criteria</li>
+          <li id="step-reviewed">03 · Reviewed brief</li>
+        </ol>
+        <div id="status-area"></div>
+        <section id="input-panel" class="panel" aria-labelledby="input-heading">
+          <div class="row between">
+            <h2 id="input-heading">Start with a shared role</h2>
+            <span class="badge">Synthetic data only</span>
+          </div>
+          <p>
+            Mid-level frontend engineer
+            <span class="muted small">· frontend-review-v1</span>
+          </p>
+          <div class="criteria-grid" id="role-criteria"></div>
+          <details>
+            <summary>Five shared questions and evidence boundaries</summary>
+            <div id="role-guide"></div>
+          </details>
+          <label class="field" for="case-select"
+            >Choose an authored scenario<select id="case-select">
+              <option value="specific">Detailed account · P1-A</option>
+              <option value="conflicting">Conflicting ownership · P1-B</option>
+              <option value="sparse">Incomplete coverage · P2-SPARSE</option>
+              <option value="unsupported">
+                Reviewer challenge · Unsupported interpretation
+              </option>
+            </select></label
+          >
+          <p class="small muted" id="input-meta"></p>
+          <details>
+            <summary>Preview the supplied transcript</summary>
+            <div id="input-transcript"></div>
+          </details>
+          <label class="check"
+            ><input id="role-confirm" type="checkbox" /><span
+              >Use these four role criteria. They are provisional and have not
+              been calibrated by a recruiter.</span
+            ></label
+          >
+          <div class="row actions">
+            <button id="load" class="primary" disabled>
+              Load authored draft</button
+            ><button id="preview-loading">Preview loading state</button
+            ><button id="preview-error">Preview failed generation</button>
+          </div>
+          <p class="small muted">
+            This wireframe uses supplied examples. JSON import and live
+            generation belong to the Phase 3 build.
+          </p>
+        </section>
+        <section id="review-area" hidden>
+          <div class="row between" style="margin-bottom: 18px">
+            <div>
+              <h2 id="review-heading">Review the draft</h2>
+              <p id="draft-meta" class="small muted"></p>
+            </div>
+            <button id="start-over">Change scenario</button>
+          </div>
+          <div class="workspace" id="workspace">
+            <div class="cards" id="cards"></div>
+            <aside
+              id="source"
+              class="panel source"
+              aria-labelledby="source-heading"
+            >
+              <div class="row between">
+                <h2 id="source-heading">Source transcript</h2>
+                <button id="return-claim" class="text-button" hidden>
+                  Return to claim
+                </button>
+              </div>
+              <p id="source-hint" class="small muted">
+                Choose a source turn on a claim. Source inspection does not mark
+                a criterion checked.
+              </p>
+              <div id="source-list" class="source-list"></div>
+            </aside>
+          </div>
+          <section class="panel footer" aria-labelledby="review-footer-heading">
+            <div class="row between">
+              <h2 id="review-footer-heading">Finish your review</h2>
+              <span id="review-count" class="badge">0 of 4 checked</span>
+            </div>
+            <div class="footer-grid">
+              <label class="field"
+                >Reviewer ID<input
+                  id="reviewer-id"
+                  maxlength="80"
+                  placeholder="e.g. reviewer-01"
+                  autocomplete="off" /></label
+              ><label class="field"
+                >Reviewer note
+                <span class="small muted"
+                  >Process and next steps; no new uncited findings.</span
+                ><textarea
+                  id="reviewer-note"
+                  maxlength="1000"
+                  rows="2"
+                  placeholder="What should the hiring manager follow up on?"
+                ></textarea>
+              </label>
+            </div>
+            <div class="row actions">
+              <button id="mark-reviewed" class="primary" disabled>
+                Mark reviewed</button
+              ><button id="export-json" disabled>Export authored JSON</button
+              ><button id="export-text" disabled>Export authored text</button>
+            </div>
+            <p id="review-reason" class="small muted">
+              Check all four criteria and enter a reviewer ID.
+            </p>
+            <div id="reviewed-message" class="hint" hidden></div>
+            <details id="export-preview">
+              <summary>Inspect the authored export payload</summary>
+              <pre id="export-content">
+Mark this revision reviewed to inspect its export.</pre
+              >
+            </details>
+          </section>
+        </section>
+        <section class="walkthrough small muted">
+          <strong>Explore the design:</strong> load P1-B, open both ownership
+          turns, edit the interpretation, check each criterion, then mark
+          reviewed. Edit again to see export eligibility reset. The reviewer
+          challenge shows why an exact quotation alone cannot validate a
+          conclusion.
+        </section>
+      </main>
+    </div>
+    <dialog id="editor" aria-labelledby="editor-heading">
+      <form id="edit-form">
+        <h2 id="editor-heading">Edit criterion</h2>
+        <p class="small muted">
+          Quotations stay unchanged. Check whether your edited claim is
+          supported by them.
+        </p>
+        <div id="edit-fields"></div>
+        <p id="edit-error" class="error" hidden role="alert"></p>
+        <div class="row actions">
+          <button type="submit" class="primary">Save changes</button
+          ><button id="cancel-edit" type="button">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+    <p class="sr-only" id="announcement" aria-live="polite"></p>
+    <script type="application/json" id="example-data">
+      {
+        "profile": {
+          "version": "frontend-review-v1",
+          "title": "Mid-level frontend engineer",
+          "language": "English",
+          "provenance": "Provisional assistant-authored synthetic role; extends frontend-discovery-v1 without practitioner calibration.",
+          "context": "Build and maintain a React/TypeScript operations dashboard: filters, asynchronous API data, debugging, checks before release and accessible controls. Judge evidence in the supplied interview, not overall ability.",
+          "statuses": {
+            "specific_evidence": "A concrete relevant personal action with a mechanism, observation or check is described. Self-report is not independently verified; explicit limits can coexist with this status.",
+            "limited_evidence": "Some relevant activity is described, but ownership, mechanism or verification is too vague or indirect to establish a specific account.",
+            "not_established": "No relevant completed action is established: topic absent, answer missing, only future plans, or explicit nonperformance. This is not evidence of inability.",
+            "conflicting_evidence": "Candidate turns make incompatible statements about the same material contribution or event. Preserve both and ask for clarification; do not infer intent."
+          },
+          "criteria": [
+            {
+              "id": "R1",
+              "label": "Implementation and data flow",
+              "lookFor": "Specific interface behavior, action-to-data flow, implementation choices and personal contribution.",
+              "specificAnchor": "Names a personal implementation action and explains how an input/request/state change reaches the interface.",
+              "limitedAnchor": "Mentions a team feature or tooling without a clear personal action or data mechanism.",
+              "boundary": "Shared components, an existing API, and team ownership do not establish sole authorship."
+            },
+            {
+              "id": "R2",
+              "label": "Debugging and diagnosis",
+              "lookFor": "Symptom, investigation steps, observations supporting an explanation and a check of that explanation.",
+              "specificAnchor": "Describes a reproduction or investigation and concrete observations connected to a causal hypothesis.",
+              "limitedAnchor": "Reports trying the screen or proposing a cause without observations to distinguish it.",
+              "boundary": "A reported fix or closed ticket does not verify production success."
+            },
+            {
+              "id": "R3",
+              "label": "Verification and testing",
+              "lookFor": "Specific checks, intended assertions or expected behavior, and limits of checks actually performed.",
+              "specificAnchor": "Describes a concrete test or manual check and its expected behavior.",
+              "limitedAnchor": "Says tests passed or a file downloaded without establishing a relevant assertion or coverage.",
+              "boundary": "Missing one test type does not imply no testing ability; a team green suite does not prove coverage."
+            },
+            {
+              "id": "R4",
+              "label": "Accessible interfaces",
+              "lookFor": "Concrete accessible interface behavior or accessibility checks personally performed.",
+              "specificAnchor": "Describes a specific label, keyboard, focus or assistive-technology check and relevant behavior.",
+              "limitedAnchor": "Reports an accessibility-related implementation detail without checking or explaining relevant behavior.",
+              "boundary": "Library use and future intentions alone do not establish completed accessibility work or conformance."
+            }
+          ],
+          "questions": [
+            {
+              "id": "Q1",
+              "criteria": ["R1"],
+              "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?",
+              "clarification": "What happened when the inputs changed again before the previous request finished?"
+            },
+            {
+              "id": "Q2",
+              "criteria": ["R2"],
+              "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?",
+              "clarification": null
+            },
+            {
+              "id": "Q3",
+              "criteria": ["R3"],
+              "text": "How did you check the change and decide it was ready for release?",
+              "clarification": "What did those checks leave untested or uncertain?"
+            },
+            {
+              "id": "Q4",
+              "criteria": ["R4"],
+              "text": "What accessibility work or checks did you perform on this interface?",
+              "clarification": null
+            },
+            {
+              "id": "Q5",
+              "criteria": ["R1", "R2", "R3", "R4"],
+              "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?",
+              "clarification": null
+            }
+          ]
+        },
+        "requests": {
+          "a": {
+            "schemaVersion": "review-brief-v1",
+            "roleVersion": "frontend-review-v1",
+            "transcriptId": "P1-A",
+            "transcriptVersion": "p1-practice-v1",
+            "synthetic": true,
+            "turns": [
+              {
+                "id": "P1-A-T01",
+                "speaker": "interviewer",
+                "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+              },
+              {
+                "id": "P1-A-T02",
+                "speaker": "candidate",
+                "text": "I worked on the order-search screen in an operations dashboard. I implemented the React filter controls and the component that requested and displayed results. The text input held the current search value; after a short delay, an effect sent the filters to our existing API. The component showed loading, empty, and error states separately. I also put the selected filters into the URL so another team member could open the same view. The API contract already existed. I agreed the parameter names with a backend engineer rather than changing the endpoint myself."
+              },
+              {
+                "id": "P1-A-T03",
+                "speaker": "interviewer",
+                "text": "What happened when the inputs changed again before the previous request finished?"
+              },
+              {
+                "id": "P1-A-T04",
+                "speaker": "candidate",
+                "text": "Originally, either response could update the result state. I added a request sequence number and only applied a response if its number matched the latest request. I also aborted the earlier request when starting another, but kept the sequence check because cancellation alone was not the behavior I wanted the interface to depend on."
+              },
+              {
+                "id": "P1-A-T05",
+                "speaker": "interviewer",
+                "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+              },
+              {
+                "id": "P1-A-T06",
+                "speaker": "candidate",
+                "text": "A support colleague said the table sometimes showed orders for an earlier search. I reproduced it by throttling the browser network and changing the query twice. The request for the first query finished after the second and replaced its results. I compared the query values and completion order in the network panel, then logged which response updated state. That gave me a specific explanation to test. I made the sequence-check change and repeated those steps. I did not find a backend filtering issue in that reproduction, although that does not rule out every possible backend defect."
+              },
+              {
+                "id": "P1-A-T07",
+                "speaker": "interviewer",
+                "text": "How did you check the change and decide it was ready for release?"
+              },
+              {
+                "id": "P1-A-T08",
+                "speaker": "candidate",
+                "text": "I added a component test with two mocked requests. It resolved the second request first, then the first, and checked that the table still displayed the second query's rows. I also checked the empty and failed response states. I manually repeated rapid input changes in the browser. Another frontend engineer reviewed the change, and quality assurance ran our existing search checklist. Those checks supported releasing it to the test environment and then through our normal release process. I did not measure whether the change reduced support tickets afterward."
+              },
+              {
+                "id": "P1-A-T09",
+                "speaker": "interviewer",
+                "text": "What did those checks leave untested or uncertain?"
+              },
+              {
+                "id": "P1-A-T10",
+                "speaker": "candidate",
+                "text": "The component test used mocked responses, so it did not cover the real API or authentication. We had no automated browser regression for this request-order case. I would add that if we saw repeated integration failures, and I would want to check whether navigating away during a request produces confusing error messages."
+              },
+              {
+                "id": "P1-A-T11",
+                "speaker": "interviewer",
+                "text": "What accessibility work or checks did you perform on this interface?"
+              },
+              {
+                "id": "P1-A-T12",
+                "speaker": "candidate",
+                "text": "I used native inputs with associated labels and checked the filter controls using only the keyboard. I verified that focus remained in the search field when results changed and that the clear-filter button had an understandable name. I added a status message for loading and the result count. I have not tested how that announcement behaves with a screen reader, so I cannot claim that part works well. I would ask a colleague familiar with assistive technology to review it and help me check for repeated announcements while typing."
+              },
+              {
+                "id": "P1-A-T13",
+                "speaker": "interviewer",
+                "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+              },
+              {
+                "id": "P1-A-T14",
+                "speaker": "candidate",
+                "text": "I owned the filter and result-state code; another engineer maintained the table's shared rendering component, and backend owned the query service. My evidence is the reproduction and checks I described, not a measured production improvement. Next I would verify the screen-reader announcements and add a browser regression around the real request flow. I would also ask support whether their original symptom returned."
+              }
+            ]
+          },
+          "b": {
+            "schemaVersion": "review-brief-v1",
+            "roleVersion": "frontend-review-v1",
+            "transcriptId": "P1-B",
+            "transcriptVersion": "p1-practice-v1",
+            "synthetic": true,
+            "turns": [
+              {
+                "id": "P1-B-T01",
+                "speaker": "interviewer",
+                "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+              },
+              {
+                "id": "P1-B-T02",
+                "speaker": "candidate",
+                "text": "I worked on an issue-search screen for an operations dashboard. It had React filters, a table, and an export action. I wrote the result-table component and export logic myself. A user selected the filters and the page called our existing API, then showed the returned items. We wanted it to feel responsive, and the team discussed loading and error handling. I remember using our shared request helper rather than writing a separate networking layer. I cannot explain the helper's internals now. The backend engineer supplied the endpoint and most of the response shape."
+              },
+              {
+                "id": "P1-B-T03",
+                "speaker": "interviewer",
+                "text": "What happened when the inputs changed again before the previous request finished?"
+              },
+              {
+                "id": "P1-B-T04",
+                "speaker": "candidate",
+                "text": "I think the request helper dealt with that, but I did not check whether it cancelled earlier requests or just kept the latest result. We discussed a delay after typing. I do not remember whether that delay was already in the shared filter component or added for this screen. I would need to look at the code to answer accurately."
+              },
+              {
+                "id": "P1-B-T05",
+                "speaker": "interviewer",
+                "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+              },
+              {
+                "id": "P1-B-T06",
+                "speaker": "candidate",
+                "text": "Someone reported that old issues appeared after changing a filter. I opened the page and tried a few searches, but the problem did not occur while I was watching. I told the backend engineer it might be cached data because I had seen caching cause something similar elsewhere. I did not capture a network trace or compare response order. They made a change later, and the ticket was closed. I remember seeing the screen behave normally afterward. I cannot say whether their change fixed the reported cause or whether the same steps were used to check it."
+              },
+              {
+                "id": "P1-B-T07",
+                "speaker": "interviewer",
+                "text": "How did you check the change and decide it was ready for release?"
+              },
+              {
+                "id": "P1-B-T08",
+                "speaker": "candidate",
+                "text": "I used the screen in the test environment, changed a few filters, and tried an export. The table displayed rows and a file downloaded. I do not remember which filter combinations I used or whether I checked the file contents against the table. The team's automated checks were green, and a reviewer approved the pull request. I did not add a test for this change. Quality assurance also looked at the screen, but I was not present for that check and cannot tell you which cases they covered. The release decision was made by the team lead."
+              },
+              {
+                "id": "P1-B-T09",
+                "speaker": "interviewer",
+                "text": "What did those checks leave untested or uncertain?"
+              },
+              {
+                "id": "P1-B-T10",
+                "speaker": "candidate",
+                "text": "I cannot identify a regression test for rapid filter changes, an empty result, or an API error. Those cases may exist in the suite, but I have not inspected them. The green result told me that the checks which ran passed; it did not tell me whether they exercised this particular screen or the reported defect."
+              },
+              {
+                "id": "P1-B-T11",
+                "speaker": "interviewer",
+                "text": "What accessibility work or checks did you perform on this interface?"
+              },
+              {
+                "id": "P1-B-T12",
+                "speaker": "candidate",
+                "text": "We used the team's component library and the design had labels for the controls. I assumed the library handled most accessibility behavior. I did not do a keyboard-only pass or use a screen reader on this screen. I remember discussing a loading message, but I do not know whether it was announced or only visible. I would first check whether I can reach and operate the filters without a mouse, then ask someone with more experience to help inspect focus and announcements. That is what I would do next, not something I completed during the project."
+              },
+              {
+                "id": "P1-B-T13",
+                "speaker": "interviewer",
+                "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+              },
+              {
+                "id": "P1-B-T14",
+                "speaker": "candidate",
+                "text": "Another engineer wrote both the result-table component and the export logic; I did not modify those files. My changes were the filter labels and the page layout. I joined the discussions, but I cannot reconstruct every implementation choice. Next I would review the request helper with that engineer, reproduce the reported stale-result sequence, and identify which tests actually cover it before suggesting another fix."
+              }
+            ]
+          },
+          "sparse": {
+            "schemaVersion": "review-brief-v1",
+            "roleVersion": "frontend-review-v1",
+            "transcriptId": "P2-SPARSE",
+            "transcriptVersion": "p2-authored-v1",
+            "synthetic": true,
+            "turns": [
+              {
+                "id": "S-T01",
+                "speaker": "interviewer",
+                "text": "Describe a frontend feature you worked on. What did you implement?"
+              },
+              {
+                "id": "S-T02",
+                "speaker": "candidate",
+                "text": "I implemented a React search input that sent the current query to our API and displayed either results or an error."
+              },
+              {
+                "id": "S-T03",
+                "speaker": "interviewer",
+                "text": "What did you investigate when someone reported stale results?"
+              },
+              {
+                "id": "S-T04",
+                "speaker": "candidate",
+                "text": "I tried reloading once. I did not reproduce the stale results."
+              }
+            ]
+          }
+        },
+        "drafts": {
+          "specific": {
+            "schemaVersion": "review-brief-v1",
+            "criteria": {
+              "R1": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Reports implementing React filters and result-request/display behavior.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T02",
+                        "quote": "I implemented the React filter controls and the component that requested and displayed results."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Describes a sequence check that applied only the latest response.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T04",
+                        "quote": "I added a request sequence number and only applied a response if its number matched the latest request."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Distinguishes personal result-state work from a shared table maintained by another engineer.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T14",
+                        "quote": "I owned the filter and result-state code; another engineer maintained the table's shared rendering component, and backend owned the query service."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Self-reported implementation; behavior on clearing filters or unmounting is not established.",
+                "followUp": "What should happen to pending requests when the filters are cleared or the component unmounts?"
+              },
+              "R2": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Describes reproducing stale results and comparing response completion order.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T06",
+                        "quote": "I reproduced it by throttling the browser network and changing the query twice."
+                      },
+                      {
+                        "turnId": "P1-A-T06",
+                        "quote": "I compared the query values and completion order in the network panel, then logged which response updated state."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "This account does not independently establish the production effect or rule out other defects.",
+                "followUp": "What observation would distinguish response-order overwriting from incorrectly filtered server results?"
+              },
+              "R3": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Describes a component assertion preserving the second query after out-of-order responses.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T08",
+                        "quote": "It resolved the second request first, then the first, and checked that the table still displayed the second query's rows."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Reports mocked checks without real API/authentication coverage or a browser regression for this case.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T10",
+                        "quote": "The component test used mocked responses, so it did not cover the real API or authentication."
+                      },
+                      {
+                        "turnId": "P1-A-T10",
+                        "quote": "We had no automated browser regression for this request-order case."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Real integration behavior and browser coverage remain unestablished by the described checks.",
+                "followUp": "Which integration assertion would reveal an API-contract mismatch for this search flow?"
+              },
+              "R4": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Reports using labeled native inputs and checking the filters with a keyboard.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T12",
+                        "quote": "I used native inputs with associated labels and checked the filter controls using only the keyboard."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "States that the result announcement has not been tested with a screen reader.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T12",
+                        "quote": "I have not tested how that announcement behaves with a screen reader"
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "The announcement behavior with assistive technology remains unverified.",
+                "followUp": "How would you check loading and result announcements during repeated searches with a screen reader?"
+              }
+            }
+          },
+          "conflicting": {
+            "schemaVersion": "review-brief-v1",
+            "criteria": {
+              "R1": {
+                "status": "conflicting_evidence",
+                "claims": [
+                  {
+                    "text": "Gives conflicting accounts of ownership of the same result-table and export implementation.",
+                    "citations": [
+                      {
+                        "turnId": "P1-B-T02",
+                        "quote": "I wrote the result-table component and export logic myself."
+                      },
+                      {
+                        "turnId": "P1-B-T14",
+                        "quote": "Another engineer wrote both the result-table component and the export logic; I did not modify those files."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Personal ownership of that implementation needs clarification; neither account resolves the conflict alone.",
+                "followUp": "Which result-table or export behaviors did you personally change, and which were implemented by your teammate?"
+              },
+              "R2": {
+                "status": "limited_evidence",
+                "claims": [
+                  {
+                    "text": "Reports proposing caching as a possible cause without capturing a trace or comparing response order.",
+                    "citations": [
+                      {
+                        "turnId": "P1-B-T06",
+                        "quote": "I told the backend engineer it might be cached data because I had seen caching cause something similar elsewhere."
+                      },
+                      {
+                        "turnId": "P1-B-T06",
+                        "quote": "I did not capture a network trace or compare response order."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "The reported cause and effect of the later change are not established by this investigation account.",
+                "followUp": "What evidence would distinguish cached data from responses arriving out of order?"
+              },
+              "R3": {
+                "status": "limited_evidence",
+                "claims": [
+                  {
+                    "text": "Reports seeing rows and a downloaded file, and not adding a test for this change.",
+                    "citations": [
+                      {
+                        "turnId": "P1-B-T08",
+                        "quote": "The table displayed rows and a file downloaded."
+                      },
+                      {
+                        "turnId": "P1-B-T08",
+                        "quote": "I did not add a test for this change."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Relevant regression coverage and whether export contents matched the filters remain unestablished.",
+                "followUp": "Which assertion would verify that exported contents match the selected filters?"
+              },
+              "R4": {
+                "status": "not_established",
+                "claims": [
+                  {
+                    "text": "Explicitly reports not doing a keyboard-only or screen-reader check on this screen.",
+                    "citations": [
+                      {
+                        "turnId": "P1-B-T12",
+                        "quote": "I did not do a keyboard-only pass or use a screen reader on this screen."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Completed accessibility verification is not established; a library assumption or future plan cannot establish it.",
+                "followUp": "What keyboard interaction and expected focus behavior would you check first?"
+              }
+            }
+          },
+          "sparse": {
+            "schemaVersion": "review-brief-v1",
+            "criteria": {
+              "R1": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Reports implementing a React input-to-API flow with results and error display.",
+                    "citations": [
+                      {
+                        "turnId": "S-T02",
+                        "quote": "I implemented a React search input that sent the current query to our API and displayed either results or an error."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Self-report only; request concurrency and implementation details remain unestablished.",
+                "followUp": "How should the interface handle a second query before the first request finishes?"
+              },
+              "R2": {
+                "status": "limited_evidence",
+                "claims": [
+                  {
+                    "text": "Reports trying one reload without reproducing the reported symptom.",
+                    "citations": [
+                      {
+                        "turnId": "S-T04",
+                        "quote": "I tried reloading once. I did not reproduce the stale results."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "The cause of stale results is not established.",
+                "followUp": "What sequence and observations would help reproduce the stale results?"
+              },
+              "R3": {
+                "status": "not_established",
+                "claims": [],
+                "limitation": "Testing choices and release checks are not established in this transcript.",
+                "followUp": "Which checks would you describe for the implemented search flow?"
+              },
+              "R4": {
+                "status": "not_established",
+                "claims": [],
+                "limitation": "Accessibility work is not established in this transcript.",
+                "followUp": "What accessibility work or checks did you perform on the search controls?"
+              }
+            }
+          },
+          "unsupported": {
+            "schemaVersion": "review-brief-v1",
+            "criteria": {
+              "R1": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Proves that the candidate can build every frontend system correctly in production.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T02",
+                        "quote": "I implemented the React filter controls and the component that requested and displayed results."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Describes a sequence check that applied only the latest response.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T04",
+                        "quote": "I added a request sequence number and only applied a response if its number matched the latest request."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Distinguishes personal result-state work from a shared table maintained by another engineer.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T14",
+                        "quote": "I owned the filter and result-state code; another engineer maintained the table's shared rendering component, and backend owned the query service."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Self-reported implementation; behavior on clearing filters or unmounting is not established.",
+                "followUp": "What should happen to pending requests when the filters are cleared or the component unmounts?"
+              },
+              "R2": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Describes reproducing stale results and comparing response completion order.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T06",
+                        "quote": "I reproduced it by throttling the browser network and changing the query twice."
+                      },
+                      {
+                        "turnId": "P1-A-T06",
+                        "quote": "I compared the query values and completion order in the network panel, then logged which response updated state."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "This account does not independently establish the production effect or rule out other defects.",
+                "followUp": "What observation would distinguish response-order overwriting from incorrectly filtered server results?"
+              },
+              "R3": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Describes a component assertion preserving the second query after out-of-order responses.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T08",
+                        "quote": "It resolved the second request first, then the first, and checked that the table still displayed the second query's rows."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "Reports mocked checks without real API/authentication coverage or a browser regression for this case.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T10",
+                        "quote": "The component test used mocked responses, so it did not cover the real API or authentication."
+                      },
+                      {
+                        "turnId": "P1-A-T10",
+                        "quote": "We had no automated browser regression for this request-order case."
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "Real integration behavior and browser coverage remain unestablished by the described checks.",
+                "followUp": "Which integration assertion would reveal an API-contract mismatch for this search flow?"
+              },
+              "R4": {
+                "status": "specific_evidence",
+                "claims": [
+                  {
+                    "text": "Reports using labeled native inputs and checking the filters with a keyboard.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T12",
+                        "quote": "I used native inputs with associated labels and checked the filter controls using only the keyboard."
+                      }
+                    ]
+                  },
+                  {
+                    "text": "States that the result announcement has not been tested with a screen reader.",
+                    "citations": [
+                      {
+                        "turnId": "P1-A-T12",
+                        "quote": "I have not tested how that announcement behaves with a screen reader"
+                      }
+                    ]
+                  }
+                ],
+                "limitation": "The announcement behavior with assistive technology remains unverified.",
+                "followUp": "How would you check loading and result announcements during repeated searches with a screen reader?"
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <script>
+      "use strict";
+      const data = JSON.parse(
+        document.getElementById("example-data").textContent
+      );
+      const $ = (id) => document.getElementById(id),
+        esc = (value) =>
+          String(value).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c]
+          );
+      const labels = {
+        specific_evidence: "Specific evidence",
+        limited_evidence: "Limited evidence",
+        not_established: "Not established",
+        conflicting_evidence: "Conflicting evidence",
+      };
+      const keys = ["R1", "R2", "R3", "R4"],
+        requests = {
+          specific: "a",
+          conflicting: "b",
+          sparse: "sparse",
+          unsupported: "a",
+        };
+      let state = {
+          mode: "input",
+          scenario: "specific",
+          draft: null,
+          original: null,
+          checked: {},
+          reviewer: "",
+          note: "",
+          revision: 0,
+          reviewedAt: null,
+          active: null,
+          removed: {},
+          loading: false,
+          error: false,
+        },
+        editing = null;
+      const input = () => data.requests[requests[state.scenario]],
+        announce = (message) => {
+          $("announcement").textContent = message;
+        };
+      function turnHTML(turn, quotes = [], prefix = "turn-") {
+        const ranges = [];
+        for (const quote of new Set(quotes)) {
+          if (!quote) continue;
+          let at = turn.text.indexOf(quote);
+          while (at >= 0) {
+            ranges.push([at, at + quote.length]);
+            at = turn.text.indexOf(quote, at + quote.length);
+          }
+        }
+        ranges.sort((a, b) => a[0] - b[0]);
+        const merged = [];
+        for (const range of ranges) {
+          const last = merged[merged.length - 1];
+          if (last && range[0] <= last[1])
+            last[1] = Math.max(last[1], range[1]);
+          else merged.push([...range]);
+        }
+        let text = "",
+          cursor = 0;
+        for (const [from, to] of merged) {
+          text +=
+            esc(turn.text.slice(cursor, from)) +
+            "<mark>" +
+            esc(turn.text.slice(from, to)) +
+            "</mark>";
+          cursor = to;
+        }
+        text += esc(turn.text.slice(cursor));
+        return (
+          '<section class="turn ' +
+          (quotes.length ? "active" : "") +
+          '" id="' +
+          prefix +
+          esc(turn.id) +
+          '" tabindex="-1"><h3>' +
+          esc(turn.id) +
+          " · " +
+          esc(turn.speaker) +
+          "</h3><p>" +
+          text +
+          "</p></section>"
+        );
+      }
+      function renderInput() {
+        const record = input();
+        $("input-meta").textContent =
+          record.transcriptId +
+          " · " +
+          record.turns.length +
+          " turns · " +
+          record.transcriptVersion +
+          " · Authored practice material";
+        $("input-transcript").innerHTML = record.turns
+          .map((t) => turnHTML(t, [], "preview-turn-"))
+          .join("");
+      }
+      function updateFooter() {
+        $("draft-meta").textContent =
+          input().transcriptId +
+          " · Authored example · " +
+          state.revision +
+          " revision(s) · Not a live AI response";
+        const count = keys.filter((k) => state.checked[k]).length;
+        const reviewed = !!state.reviewedAt;
+        const valid = keys.every((k) => validEntry(state.draft.criteria[k]));
+        $("review-count").textContent = count + " of 4 checked";
+        $("mark-reviewed").disabled =
+          count !== 4 || !state.reviewer.trim() || !valid || reviewed;
+        $("export-json").disabled = !reviewed;
+        $("export-text").disabled = !reviewed;
+        $("review-reason").textContent = reviewed
+          ? "Export contains this reviewed revision and keeps its authored-example label."
+          : !valid
+            ? "Fix the criterion content before reviewing."
+            : count !== 4 || !state.reviewer.trim()
+              ? "Check all four criteria and enter a reviewer ID."
+              : "Ready to mark this exact revision reviewed.";
+        $("reviewed-message").hidden = !reviewed;
+        $("reviewed-message").textContent = reviewed
+          ? "Reviewed by " +
+            state.reviewer +
+            " · revision " +
+            state.revision +
+            ". This records review, not a hiring decision."
+          : "";
+        $("step-input").className = "";
+        $("step-review").className = reviewed ? "" : "current";
+        $("step-reviewed").className = reviewed ? "current" : "";
+        $("export-content").textContent = reviewed
+          ? JSON.stringify(exportPayload(), null, 2)
+          : "Mark this revision reviewed to inspect its export.";
+      }
+      function validEntry(entry) {
+        if (!entry.limitation.trim() || !entry.followUp.trim()) return false;
+        if (entry.status !== "not_established" && !entry.claims.length)
+          return false;
+        if (entry.claims.some((c) => !c.text.trim() || !c.citations.length))
+          return false;
+        const cited = new Set();
+        for (const c of entry.claims)
+          for (const citation of c.citations) {
+            const turn = input().turns.find((t) => t.id === citation.turnId);
+            if (
+              !turn ||
+              turn.speaker !== "candidate" ||
+              !citation.quote.trim() ||
+              !turn.text.includes(citation.quote)
+            )
+              return false;
+            cited.add(turn.id);
+          }
+        return entry.status !== "conflicting_evidence" || cited.size >= 2;
+      }
+      function invalidate(key) {
+        state.revision++;
+        state.reviewedAt = null;
+        if (key) state.checked[key] = false;
+        else state.checked = {};
+        $("export-content").textContent =
+          "Mark this revision reviewed to inspect its export.";
+      }
+      function renderCards() {
+        if ($("source").parentElement !== $("workspace"))
+          $("workspace").append($("source"));
+        $("cards").innerHTML = keys
+          .map((key) => {
+            const e = state.draft.criteria[key],
+              name = data.profile.criteria.find((c) => c.id === key).label;
+            return (
+              '<article class="criterion ' +
+              (state.checked[key] ? "checked" : "") +
+              '" id="card-' +
+              key +
+              '"><div class="row between"><h3>' +
+              key +
+              " · " +
+              esc(name) +
+              '</h3><button class="text-button" id="edit-' +
+              key +
+              '" data-edit="' +
+              key +
+              '">Edit ' +
+              key +
+              '</button></div><span class="badge ' +
+              (e.status === "conflicting_evidence" ? "attention" : "") +
+              '">' +
+              esc(labels[e.status]) +
+              "</span>" +
+              e.claims
+                .map(
+                  (c, i) =>
+                    '<div class="claim"><p>' +
+                    esc(c.text) +
+                    '</p><div class="claim-tools">' +
+                    c.citations
+                      .map(
+                        (citation, j) =>
+                          '<button class="citation" id="cite-' +
+                          key +
+                          "-" +
+                          i +
+                          "-" +
+                          j +
+                          '" data-source="' +
+                          key +
+                          "," +
+                          i +
+                          "," +
+                          j +
+                          '">' +
+                          esc(citation.turnId) +
+                          "</button>"
+                      )
+                      .join("") +
+                    '<button class="text-button" data-remove="' +
+                    key +
+                    "," +
+                    i +
+                    '">Remove claim ' +
+                    (i + 1) +
+                    "</button></div></div>"
+                )
+                .join("") +
+              (!e.claims.length
+                ? '<p class="hint">No candidate claim is established here. Keep the missing evidence visible.</p>'
+                : "") +
+              (state.removed[key]?.length
+                ? '<button class="text-button" data-restore="' +
+                  key +
+                  '">Restore last removed claim</button>'
+                : "") +
+              '<div class="label">What remains unclear</div><p>' +
+              esc(e.limitation) +
+              '</p><div class="label">Suggested follow-up</div><p>' +
+              esc(e.followUp) +
+              '</p><label class="check"><input id="checked-' +
+              key +
+              '" data-check="' +
+              key +
+              '" type="checkbox" ' +
+              (state.checked[key] ? "checked" : "") +
+              "><span>I checked this criterion against the source.</span></label></article>"
+            );
+          })
+          .join("");
+        renderSource();
+        updateFooter();
+      }
+      function renderSource() {
+        const active = state.active;
+        let citations = [];
+        if (active)
+          citations =
+            state.draft.criteria[active.key].claims[active.index]?.citations ||
+            [];
+        $("source-list").innerHTML = input()
+          .turns.map((t) =>
+            turnHTML(
+              t,
+              citations.filter((c) => c.turnId === t.id).map((c) => c.quote)
+            )
+          )
+          .join("");
+        $("return-claim").hidden = !active;
+        $("source-hint").textContent = active
+          ? "Highlighted quotations come from this claim. Read the surrounding wording before accepting its interpretation."
+          : "Choose a source turn on a claim. Source inspection does not mark a criterion checked.";
+        placeSource();
+      }
+      function placeSource() {
+        if (
+          window.matchMedia("(max-width:1023px)").matches &&
+          state.active &&
+          $("card-" + state.active.key)
+        )
+          $("card-" + state.active.key).after($("source"));
+        else $("workspace").append($("source"));
+      }
+      function render() {
+        const reviewing = state.mode === "review";
+        $("input-panel").hidden = reviewing;
+        $("review-area").hidden = !reviewing;
+        $("status-area").innerHTML = state.loading
+          ? '<div class="loading" role="status"><strong>Preview: drafting evidence…</strong><p class="small">This is an illustrated loading state. No request is running.</p><button id="cancel-loading">Cancel preview</button></div>'
+          : state.error
+            ? '<div class="error" role="alert"><strong>Preview: the draft could not be verified</strong><p>A quotation pointed to interviewer text. The proposed application blocks this output and preserves the input.</p><p class="small">INVALID_CITATION · Authored failure state; no model request ran.</p><button id="dismiss-error">Return to input</button></div>'
+            : "";
+        $("load").disabled = !$("role-confirm").checked || state.loading;
+        $("step-input").className = reviewing ? "" : "current";
+        $("step-review").className = "";
+        $("step-reviewed").className = "";
+        if (reviewing) {
+          $("draft-meta").textContent =
+            input().transcriptId +
+            " · Authored example · " +
+            state.revision +
+            " revision(s) · Not a live AI response";
+          $("reviewer-id").value = state.reviewer;
+          $("reviewer-note").value = state.note;
+          renderCards();
+        } else renderInput();
+      }
+      function load() {
+        state.mode = "review";
+        state.draft = structuredClone(data.drafts[state.scenario]);
+        state.original = structuredClone(state.draft);
+        state.checked = {};
+        state.removed = {};
+        state.reviewer = "";
+        state.note = "";
+        state.revision = 1;
+        state.reviewedAt = null;
+        state.active = null;
+        state.loading = false;
+        state.error = false;
+        render();
+        $("review-heading").tabIndex = -1;
+        $("review-heading").focus();
+        announce("Authored draft loaded. All four criteria need review.");
+      }
+      $("role-criteria").innerHTML = data.profile.criteria
+        .map(
+          (c) =>
+            '<div class="mini"><strong>' +
+            esc(c.id) +
+            "</strong><span>" +
+            esc(c.label) +
+            "</span></div>"
+        )
+        .join("");
+      $("role-guide").innerHTML =
+        "<ol>" +
+        data.profile.questions
+          .map((q) => "<li>" + esc(q.text) + "</li>")
+          .join("") +
+        '</ol><p class="muted">A specific answer is still self-report. Missing evidence does not establish inability. Conflicting statements need clarification.</p>';
+      $("role-confirm").addEventListener("change", () => {
+        $("load").disabled = !$("role-confirm").checked || state.loading;
+      });
+      $("case-select").addEventListener("change", (event) => {
+        state.scenario = event.target.value;
+        state.error = false;
+        renderInput();
+      });
+      $("load").addEventListener("click", load);
+      $("preview-loading").addEventListener("click", () => {
+        state.loading = true;
+        state.error = false;
+        render();
+      });
+      $("preview-error").addEventListener("click", () => {
+        state.error = true;
+        state.loading = false;
+        render();
+      });
+      $("status-area").addEventListener("click", (event) => {
+        if (
+          event.target.id === "cancel-loading" ||
+          event.target.id === "dismiss-error"
+        ) {
+          state.loading = false;
+          state.error = false;
+          render();
+          $("load").focus();
+        }
+      });
+      $("start-over").addEventListener("click", () => {
+        if (
+          !confirm("Discard this authored review and choose another scenario?")
+        )
+          return;
+        state.mode = "input";
+        state.draft = null;
+        state.active = null;
+        state.checked = {};
+        state.reviewedAt = null;
+        render();
+        $("case-select").focus();
+      });
+      $("cards").addEventListener("click", (event) => {
+        const target = event.target.closest("button");
+        if (!target) return;
+        if (target.dataset.source) {
+          const [key, index, j] = target.dataset.source.split(",");
+          state.active = { key, index: Number(index), button: target.id };
+          renderSource();
+          const turn =
+            state.draft.criteria[key].claims[index].citations[j].turnId;
+          $("turn-" + turn).focus({ preventScroll: true });
+          $("turn-" + turn).scrollIntoView({ block: "nearest" });
+        }
+        if (target.dataset.edit) openEditor(target.dataset.edit);
+        if (target.dataset.remove) {
+          const [key, index] = target.dataset.remove.split(",");
+          (state.removed[key] ??= []).push({
+            index: Number(index),
+            claim: state.draft.criteria[key].claims.splice(Number(index), 1)[0],
+          });
+          state.active = null;
+          invalidate(key);
+          renderCards();
+          $("edit-" + key).focus();
+          announce(
+            "Claim removed. Check the evidence status before reviewing."
+          );
+        }
+        if (target.dataset.restore) {
+          const key = target.dataset.restore,
+            item = state.removed[key].pop();
+          state.draft.criteria[key].claims.splice(item.index, 0, item.claim);
+          state.active = null;
+          invalidate(key);
+          renderCards();
+          $("edit-" + key).focus();
+        }
+      });
+      $("cards").addEventListener("change", (event) => {
+        if (event.target.dataset.check) {
+          state.checked[event.target.dataset.check] = event.target.checked;
+          state.reviewedAt = null;
+          event.target
+            .closest("article")
+            .classList.toggle("checked", event.target.checked);
+          updateFooter();
+          announce(
+            keys.filter((k) => state.checked[k]).length +
+              " of 4 criteria checked."
+          );
+        }
+      });
+      $("return-claim").addEventListener("click", () => {
+        if (state.active) $(state.active.button)?.focus();
+      });
+      function openEditor(key) {
+        editing = key;
+        const e = state.draft.criteria[key];
+        $("editor-heading").textContent =
+          "Edit " +
+          key +
+          " · " +
+          data.profile.criteria.find((c) => c.id === key).label;
+        $("edit-fields").innerHTML =
+          '<div class="stack"><label class="field">Evidence status<select name="status">' +
+          Object.entries(labels)
+            .map(
+              ([value, label]) =>
+                '<option value="' +
+                value +
+                '" ' +
+                (value === e.status ? "selected" : "") +
+                ">" +
+                label +
+                "</option>"
+            )
+            .join("") +
+          "</select></label>" +
+          e.claims
+            .map(
+              (c, i) =>
+                '<label class="field edit-claim">Claim ' +
+                (i + 1) +
+                ' · up to 350 characters<textarea name="claim-' +
+                i +
+                '" maxlength="350" required>' +
+                esc(c.text) +
+                '</textarea><span class="small muted">Sources: ' +
+                c.citations.map((v) => esc(v.turnId)).join(", ") +
+                "</span></label>"
+            )
+            .join("") +
+          '<label class="field">What remains unclear · up to 500 characters<textarea name="limitation" maxlength="500" required>' +
+          esc(e.limitation) +
+          '</textarea></label><label class="field">Follow-up · up to 350 characters<textarea name="followUp" maxlength="350" required>' +
+          esc(e.followUp) +
+          "</textarea></label></div>";
+        $("edit-error").hidden = true;
+        $("editor").showModal();
+      }
+      $("cancel-edit").addEventListener("click", () => {
+        $("editor").close();
+      });
+      $("editor").addEventListener("close", () => {
+        $("edit-" + editing)?.focus();
+      });
+      $("edit-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const fields = new FormData(event.target),
+          entry = structuredClone(state.draft.criteria[editing]);
+        entry.status = fields.get("status");
+        entry.limitation = fields.get("limitation");
+        entry.followUp = fields.get("followUp");
+        entry.claims.forEach((claim, i) => {
+          claim.text = fields.get("claim-" + i);
+        });
+        if (!validEntry(entry)) {
+          $("edit-error").textContent =
+            "Keep nonblank fields and valid sources. A status other than Not established needs evidence; a conflict needs two candidate turns.";
+          $("edit-error").hidden = false;
+          return;
+        }
+        state.draft.criteria[editing] = entry;
+        invalidate(editing);
+        renderCards();
+        $("editor").close();
+        announce("Changes saved. This criterion needs to be checked again.");
+      });
+      $("reviewer-id").addEventListener("input", (event) => {
+        state.reviewer = event.target.value;
+        if (state.reviewedAt) state.reviewedAt = null;
+        updateFooter();
+      });
+      $("reviewer-note").addEventListener("input", (event) => {
+        state.note = event.target.value;
+        invalidate(null);
+        keys.forEach((k) => {
+          $("checked-" + k).checked = false;
+          $("card-" + k).classList.remove("checked");
+        });
+        updateFooter();
+      });
+      $("mark-reviewed").addEventListener("click", () => {
+        if (
+          keys.some(
+            (k) => !state.checked[k] || !validEntry(state.draft.criteria[k])
+          ) ||
+          !state.reviewer.trim()
+        )
+          return;
+        state.reviewedAt = new Date().toISOString();
+        updateFooter();
+        announce("Authored brief marked reviewed. Export is available.");
+      });
+      function exportPayload() {
+        return {
+          exportVersion: "phase2-wireframe-example-v1",
+          sourceType: "authored_example",
+          notice:
+            "Authored Phase 2 interaction example. No live model call or human timing study.",
+          input: input(),
+          role: data.profile,
+          model: null,
+          generatedAtUtc: null,
+          usage: null,
+          originalDraft: state.original,
+          reviewedDraft: state.draft,
+          revision: state.revision,
+          checked: state.checked,
+          reviewerId: state.reviewer,
+          reviewerNote: state.note,
+          reviewedAt: state.reviewedAt,
+        };
+      }
+      function download(kind) {
+        if (!state.reviewedAt) return;
+        const payload = exportPayload();
+        const text =
+          kind === "json"
+            ? JSON.stringify(payload, null, 2)
+            : [
+                "AUTHORED WIREFRAME · No live AI response",
+                "Case: " + input().transcriptId,
+                "Reviewed by: " +
+                  state.reviewer +
+                  " | Revision: " +
+                  state.revision,
+                "Reviewed at: " + state.reviewedAt,
+                "",
+                ...keys.flatMap((key) => {
+                  const e = state.draft.criteria[key];
+                  return [
+                    key + " · " + labels[e.status],
+                    ...e.claims.flatMap((c) => [
+                      c.text,
+                      ...c.citations.map(
+                        (q) => "  " + q.turnId + ": " + q.quote
+                      ),
+                    ]),
+                    "Unclear: " + e.limitation,
+                    "Follow-up: " + e.followUp,
+                    "",
+                  ];
+                }),
+                "Reviewer note: " + state.note,
+              ].join("\n");
+        const url = URL.createObjectURL(
+          new Blob([text], {
+            type: kind === "json" ? "application/json" : "text/plain",
+          })
+        );
+        const a = document.createElement("a");
+        a.href = url;
+        a.download =
+          input().transcriptId +
+          "-authored-r" +
+          state.revision +
+          "." +
+          (kind === "json" ? "json" : "txt");
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      $("export-json").addEventListener("click", () => download("json"));
+      $("export-text").addEventListener("click", () => download("text"));
+      window.addEventListener("resize", () => {
+        if (state.draft) placeSource();
+      });
+      window.addEventListener("beforeunload", (event) => {
+        if (state.draft && state.revision > 1) {
+          event.preventDefault();
+          event.returnValue = "";
+        }
+      });
+      render();
+    </script>
+  </body>
+</html>

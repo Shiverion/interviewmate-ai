@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "criteria": {
+    "R1": {
+      "status": "specific_evidence",
+      "claims": [
+        {
+          "text": "Reports implementing React filters and result-request/display behavior.",
+          "citations": [
+            {
+              "turnId": "P1-A-T02",
+              "quote": "I implemented the React filter controls and the component that requested and displayed results."
+            }
+          ]
+        },
+        {
+          "text": "Describes a sequence check that applied only the latest response.",
+          "citations": [
+            {
+              "turnId": "P1-A-T04",
+              "quote": "I added a request sequence number and only applied a response if its number matched the latest request."
+            }
+          ]
+        },
+        {
+          "text": "Distinguishes personal result-state work from a shared table maintained by another engineer.",
+          "citations": [
+            {
+              "turnId": "P1-A-T14",
+              "quote": "I owned the filter and result-state code; another engineer maintained the table's shared rendering component, and backend owned the query service."
+            }
+          ]
+        }
+      ],
+      "limitation": "Self-reported implementation; behavior on clearing filters or unmounting is not established.",
+      "followUp": "What should happen to pending requests when the filters are cleared or the component unmounts?"
+    },
+    "R2": {
+      "status": "specific_evidence",
+      "claims": [
+        {
+          "text": "Describes reproducing stale results and comparing response completion order.",
+          "citations": [
+            {
+              "turnId": "P1-A-T06",
+              "quote": "I reproduced it by throttling the browser network and changing the query twice."
+            },
+            {
+              "turnId": "P1-A-T06",
+              "quote": "I compared the query values and completion order in the network panel, then logged which response updated state."
+            }
+          ]
+        }
+      ],
+      "limitation": "This account does not independently establish the production effect or rule out other defects.",
+      "followUp": "What observation would distinguish response-order overwriting from incorrectly filtered server results?"
+    },
+    "R3": {
+      "status": "specific_evidence",
+      "claims": [
+        {
+          "text": "Describes a component assertion preserving the second query after out-of-order responses.",
+          "citations": [
+            {
+              "turnId": "P1-A-T08",
+              "quote": "It resolved the second request first, then the first, and checked that the table still displayed the second query's rows."
+            }
+          ]
+        },
+        {
+          "text": "Reports mocked checks without real API/authentication coverage or a browser regression for this case.",
+          "citations": [
+            {
+              "turnId": "P1-A-T10",
+              "quote": "The component test used mocked responses, so it did not cover the real API or authentication."
+            },
+            {
+              "turnId": "P1-A-T10",
+              "quote": "We had no automated browser regression for this request-order case."
+            }
+          ]
+        }
+      ],
+      "limitation": "Real integration behavior and browser coverage remain unestablished by the described checks.",
+      "followUp": "Which integration assertion would reveal an API-contract mismatch for this search flow?"
+    },
+    "R4": {
+      "status": "specific_evidence",
+      "claims": [
+        {
+          "text": "Reports using labeled native inputs and checking the filters with a keyboard.",
+          "citations": [
+            {
+              "turnId": "P1-A-T12",
+              "quote": "I used native inputs with associated labels and checked the filter controls using only the keyboard."
+            }
+          ]
+        },
+        {
+          "text": "States that the result announcement has not been tested with a screen reader.",
+          "citations": [
+            {
+              "turnId": "P1-A-T12",
+              "quote": "I have not tested how that announcement behaves with a screen reader"
+            }
+          ]
+        }
+      ],
+      "limitation": "The announcement behavior with assistive technology remains unverified.",
+      "followUp": "How would you check loading and result announcements during repeated searches with a screen reader?"
+    }
+  }
+}

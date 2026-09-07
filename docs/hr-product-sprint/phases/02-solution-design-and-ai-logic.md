@@ -1,80 +1,72 @@
 # Phase 2: solution design and AI logic
 
-Status: **Planned — detailed design has not started; Phase 1 inputs are ready.**
+Status: **Complete — design package and authored wireframe ready for Phase 3.**
 
-Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Started: 2026-09-07. Updated/completed: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](01-discovery-and-ux.md) · [Sprint index](../README.md) · [Next phase](03-prototype-build.md)
 
-## Objective and inputs
+## Outcome
 
-Translate Phase 1's provisional transcript-to-review-brief concept into an inspectable UX and AI behavior specification. Carry forward the desk-research limitation; no direct user validation has occurred.
+Defined InterviewMate Review Brief as four evidence-based criterion entries with traceable candidate quotations, explicit limitations, reviewer corrections and a reviewed export. [D02](../decisions/002-review-brief-design.md) records the selected architecture: one structured server-side generation, deterministic checks and human review, with no numeric hiring score.
 
-Inputs: the [Phase 1 report](01-discovery-and-ux.md), [source register](../research/source-register.md), existing [evaluator](../../../src/app/api/evaluate/route.ts), [report page](<../../../src/app/(recruiter)/interviews/[sessionId]/page.tsx>), and [interview configuration](../../../src/components/dashboard/CreateInterviewModal.tsx).
+The [clickable wireframe](../design/wireframe.html) uses authored examples to illustrate the experience. The live API/product flow remains Phase 3 work. Recruiter validation, human timing and model-quality evaluation remain outstanding.
 
-The completed [D01 decision](../decisions/001-sprint-scope.md), [practice role/questions](../evaluation/practice/reviewer-packet.md), [reference notes](../evaluation/practice/reference-notes.md), and [current-product capability baseline](../evaluation/current-product-baseline.md) are concrete starting materials. Finalize the provisional criteria and behavior here; they have not been calibrated by a recruiter. Human review time remains unmeasured.
+## Deliverables and reading order
 
-## Planned deliverables
-
-- A workflow/wireframe covering role confirmation, input, generation, source review, correction, and export.
-- One provisional frontend-role framework with four observable job criteria, evidence anchors, and five shared core questions.
-- AI input/output specification, prompt version, and model configuration recorded explicitly.
-- Example good, sparse, conflicting, and failed outputs, marked as authored examples until generated.
-- A draft synthetic case matrix with expected behavior written before implementation tuning.
-
-## Proposed design decisions to resolve
-
-| Decision | Starting position | What Phase 2 must specify |
+| Read | Artifact | What is specified |
 |---|---|---|
-| Input | Transcript + agreed role criteria; resume optional background | Accepted format, speaker/turn IDs, limits, missing speaker handling |
-| Primary output | Review brief organized by criterion | Source quotes, interpretation, unknowns, follow-ups, review status |
-| Evidence | Every factual candidate claim is traceable | Exact matching rules and how to handle a valid quote used misleadingly |
-| Rating | Prefer qualitative evidence status initially | Any retained score needs observable anchors and code-calculated aggregation |
-| Human control | Draft stays editable until marked reviewed | Correction/removal behavior and version history |
-| Failure behavior | Clear error and retry states | Empty/malformed transcript, missing criteria, invalid output, timeout, unavailable key |
-| Conversation | Reuse existing interview if stable | Shared-question behavior and boundaries for follow-ups |
+| 1 | [Design package and wireframe](../design/README.md) | Complete artifact index, authored examples and how to run checks |
+| 2 | [UX and interaction specification](../design/ux-spec.md) | Input, source inspection, edits, review states, export, errors and responsive/accessibility behavior |
+| 3 | [Role and evidence rubric](../design/role-rubric.md) | Four provisional criteria, anchors, five shared questions and no score/ranking |
+| 4 | [AI/data contract](../design/ai-contract.md) and [exact prompt](../design/prompts/review-brief-v1.md) | Request/output shape, validation, model configuration, provenance, failures and review/export state |
+| 5 | [Acceptance plan](../design/acceptance-plan.md) | Software/UX expectations, eight-case evaluation plan, split and fixed readiness rules |
+| 6 | [Phase 3 backlog](../implementation/phase-3-backlog.md) | Six ordered tasks within the eight-hour planning allocation |
 
-## Proposed AI flow
+## Verification and limits
 
-This is a starting design, not implemented behavior or a selected multi-agent architecture.
+| Check | Actual outcome | Boundary |
+|---|---|---|
+| Offline contract checks | **30 passed** | Fixture/schema/source-copy checks and rejection cases; no provider calls |
+| Wireframe interaction rehearsal | **18 passed** across wide/narrow DOM configurations | jsdom with dialog/media/scroll shims; not a real browser accessibility audit |
+| Browser rendering | Wireframe opened in the Codex browser; narrow viewport screenshot inspected | Initial layout inspection, not recruiter usability validation or a full cross-browser walkthrough |
+| Documentation links | **291 local links across 36 Markdown files passed** | All documents reachable; no external URL or factual-content validation implied |
+| Source fixture preservation | P1-A/P1-B retain all 28 original turns and the five shared questions | Authored references remain provisional and known to developers |
+| Semantic-overreach control | Authored unsupported claim passes mechanical checks as expected | Demonstrates why quote validity cannot replace human interpretation review |
 
-1. Validate role criteria and transcript shape; identify candidate and interviewer turns.
-2. Ask the model to extract relevant evidence and draft criterion-level interpretations and unknowns.
-3. Validate the output schema and verify each cited quotation exists in the claimed candidate turn.
-4. Reject or mark unsupported output for correction; do not silently replace missing evidence with a score.
-5. Present the draft and its sources for recruiter review and record the reviewed version separately.
+During wireframe review, source IDs were separated from hidden input-preview IDs and the source panel was kept mounted across narrow-layout edits. Interaction checks cover source highlighting/focus return, review gating, edit invalidation, removal/restore, empty evidence, provenance and failure/loading previews.
 
-One structured generation call may be sufficient. Add more calls only if evaluation shows a concrete benefit. Treat transcript text as data even when it contains instructions to change ratings or ignore the task.
+Reproduce the checks from the repository root:
 
-The exact schema, prompt, validation policy, retry limits, model choice, and cost/latency assumptions are **not yet finalized**. Existing Next.js and OpenAI integration are reuse candidates; no new no-code tool is required by the brief.
+```powershell
+node docs/hr-product-sprint/scripts/check-phase-2.cjs
+node docs/hr-product-sprint/scripts/check-phase-2-wireframe.cjs
+node docs/scripts/check-docs.cjs
+```
 
-## UX states to specify
-
-- Empty state with a labeled synthetic example.
-- Valid input ready to generate; missing/invalid input with actionable guidance.
-- Generation in progress, failure, and retry without losing the input.
-- Draft showing evidence, uncertainty, conflicting statements, and follow-ups.
-- Source inspection, edit/remove, reviewed state, and export.
-- AI unavailable: saved examples remain explicitly labeled; never imply a live model ran.
+These results are design-artifact checks, not measured AI accuracy, time savings or candidate-assessment validity.
 
 ## Exit criteria
 
-- [ ] Complete the flow and report wireframe.
-- [ ] Define role criteria, anchors and question set; label lack of practitioner calibration.
-- [ ] Finalize input/output schemas, prompts, provenance and failure behavior.
-- [ ] Decide whether any numeric scores are necessary and specify deterministic aggregation if retained.
-- [ ] Define synthetic cases and expected evidence before tuning.
-- [ ] Map the design to a bounded Phase 3 implementation backlog.
+- [x] Complete the flow and report wireframe.
+- [x] Define four role criteria, evidence anchors and shared questions; label lack of practitioner calibration.
+- [x] Finalize v1 input/output shape, prompt, provenance and failure/retry rules.
+- [x] Select qualitative evidence status without numeric scores or hiring recommendations.
+- [x] Freeze synthetic scenario expectations and readiness rules before live tuning.
+- [x] Map the design to a bounded Phase 3 implementation backlog.
 
 ## Open items and next action
 
-Which criteria fit the provisional role; how to distinguish conflicting from missing evidence; which reviewer actions are essential; whether Firebase persistence is required for the synthetic demo; whether the existing voice flow is reliable enough to include.
+Start Phase 3 with a verified local page outside the recruiter gates, then implement the versioned generation/review contract. The pinned model's availability and output quality must be tested with real calls; no API key or Firebase round trip was used for Phase 2.
 
-Next action when this phase begins: use D01 and the practice materials to specify the role framework and review journey before finalizing the AI contract.
+Human timing still awaits an available reviewer. C01–C08 evaluation inputs/reference labels must be authored and versioned before tuning; the planned withheld cases do not exist yet. Broader browser/accessibility checks and practitioner calibration remain future work.
 
 ## Progress log
 
 | Date | Work completed | Evidence / consequence |
 |---|---|---|
 | 2026-09-07 | Created Phase 2 tracker and starting questions | Planning only; no completed wireframes or final AI contract |
-| 2026-09-07 | Received Phase 1 decision, practice packet and capability baseline | Detailed design remains planned; no completed UX/AI contract claimed |
+| 2026-09-07 | Received Phase 1 decision, practice packet and capability baseline | Detailed design remained planned |
+| 2026-09-07 | Defined D02, rubric/profile, prompt, executable contract, authored examples, UX states and acceptance plan | Versioned design choices and Phase 3 backlog; no live AI results |
+| 2026-09-08 | Built the authored interactive wireframe and corrected source-panel/ID behavior | Source inspection, edits and review/export eligibility demonstrated with authored content |
+| 2026-09-08 | Passed 30 contract checks and 18 DOM interaction checks; inspected browser rendering | Design package complete; Phase 3 implementation and Phase 4 evaluation remain outstanding |

@@ -2,7 +2,7 @@
 
 InterviewMate is a Next.js/Firebase application for creating AI interview sessions and reviewing candidate transcripts and reports.
 
-The current five-day HR sprint explores a **recruiter-reviewed first-screen brief**: a draft organized by role criteria, with source quotations, missing evidence and recruiter corrections. Phase 1 desk research is complete; Phases 2–5 are planned. Human review time and the proposed AI workflow have not been evaluated yet.
+The current five-day HR sprint explores a **recruiter-reviewed first-screen brief**: a draft organized by role criteria, with source quotations, missing evidence and recruiter corrections. Phase 1 discovery and [Phase 2 design](docs/hr-product-sprint/design/README.md) are complete; Phases 3–5 are planned. An authored clickable wireframe is available. Live AI behavior and human review time have not been evaluated yet.
 
 ## Start here
 

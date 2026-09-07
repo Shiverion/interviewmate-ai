@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "P2-SPARSE",
+  "transcriptVersion": "p2-authored-v1",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "S-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. What did you implement?"
+    },
+    {
+      "id": "S-T02",
+      "speaker": "candidate",
+      "text": "I implemented a React search input that sent the current query to our API and displayed either results or an error."
+    },
+    {
+      "id": "S-T03",
+      "speaker": "interviewer",
+      "text": "What did you investigate when someone reported stale results?"
+    },
+    {
+      "id": "S-T04",
+      "speaker": "candidate",
+      "text": "I tried reloading once. I did not reproduce the stale results."
+    }
+  ]
+}

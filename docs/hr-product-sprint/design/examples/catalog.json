@@ -1,0 +1,42 @@
+{
+  "version": "p2-authored-v1",
+  "provenance": "Authored by the project AI assistant for Phase 2 contract and wireframe exploration. No model calls or human evaluation.",
+  "examples": [
+    {
+      "id": "specific",
+      "request": "practice-a.request.json",
+      "draft": "practice-a.draft.json",
+      "mechanicalValid": true,
+      "expectedSemanticReview": "Qualified self-report with testing/accessibility limits; provisional author expectation."
+    },
+    {
+      "id": "conflicting",
+      "request": "practice-b.request.json",
+      "draft": "practice-b.draft.json",
+      "mechanicalValid": true,
+      "expectedSemanticReview": "Retain both ownership accounts; no dishonesty inference."
+    },
+    {
+      "id": "sparse",
+      "request": "sparse.request.json",
+      "draft": "sparse.draft.json",
+      "mechanicalValid": true,
+      "expectedSemanticReview": "R3 and R4 not established; do not invent a weakness."
+    },
+    {
+      "id": "invalid-citation",
+      "request": "practice-a.request.json",
+      "draft": "invalid-citation.draft.json",
+      "mechanicalValid": false,
+      "expectedIssue": "WRONG_SPEAKER",
+      "expectedSemanticReview": "Block from the normal brief UI; interviewer words do not support a candidate claim."
+    },
+    {
+      "id": "unsupported-claim",
+      "request": "practice-a.request.json",
+      "draft": "unsupported-claim.draft.json",
+      "mechanicalValid": true,
+      "expectedSemanticReview": "Must fail human support review despite exact quotation; universal production competence is not established."
+    }
+  ]
+}

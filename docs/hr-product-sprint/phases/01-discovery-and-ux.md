@@ -2,7 +2,7 @@
 
 Status: **Desk-research package complete; human timing baseline pending.**
 
-Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Next phase](02-solution-design-and-ai-logic.md)
 
@@ -44,7 +44,7 @@ The [source audit](../evaluation/current-product-baseline.md) ran successfully; 
 
 - Human timing is **not measured**; the [study guide](../evaluation/manual-study-guide.md) is ready when a human reviewer is available.
 - Real workflow fit and provisional role criteria still need practitioner validation.
-- Phase 2 will specify screens, schemas, prompts, review states and acceptance rules. Detailed design has not started.
+- The [Phase 2 package](../design/README.md) now specifies screens, schemas, prompts, review states and acceptance rules. Product implementation is next in Phase 3.
 
 ## Progress log
 
@@ -57,5 +57,5 @@ The [source audit](../evaluation/current-product-baseline.md) ran successfully; 
 | 2026-09-07 | Committed sprint documents on `codex/hr-product-sprint` as `0e9eba2` | Six phase/index documents saved; inherited Firebase changes excluded |
 | 2026-09-07 | Prepared full Phase 1 practice and measurement materials and checked source annotations | Two synthetic practice records; no participant session or prototype evaluation run |
 | 2026-09-07 | Executed source inventory and finalized D01 discovery scope | Discovery package ready for Phase 2; human timing explicitly pending |
-
 | 2026-09-07 | Organized research, decisions and evaluation materials into dedicated folders | Progress report now links to canonical artifacts; research conclusions unchanged |
+| 2026-09-08 | Handed discovery into the completed Phase 2 specification | Practitioner validation and human timing remain pending |
