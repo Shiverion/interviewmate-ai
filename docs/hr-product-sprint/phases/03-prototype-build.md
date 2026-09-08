@@ -72,7 +72,7 @@ The repository's pre-existing Firebase configuration/rule edits and local agent 
 
 ## Open items and next action
 
-Configure a server key with access to the pinned model, restart the loopback development server, and explicitly generate a new synthetic attempt. Keep its record alongside the failed attempt and inspect the claims for support. Then begin the planned Phase 4 dataset/evaluation; do not report the software pass rate as model accuracy.
+Configure a server key with access to the pinned model, restart the loopback development server, and explicitly generate a new synthetic attempt. Keep its record alongside the failed attempt and inspect the claims for support. [Phase 4](04-evaluation-and-iteration.md) has now prepared its frozen dataset and runner, but its first live batch also stopped on AI_UNAVAILABLE. Do not report software pass rates as model accuracy.
 
 Human timing and recruiter validation remain pending. A five-minute recorded demo and final case study remain Phase 5 work. No production deployment is included.
 

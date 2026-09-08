@@ -1,0 +1,262 @@
+{
+  "batchVersion": "phase4-batch-v1",
+  "executionType": "live_api",
+  "startedAtUtc": "2026-09-08T07:35:39.473Z",
+  "datasetHash": "bfb9e5df18a5754992674e045d16f76dd077789ce95c32b4838961253adea97b",
+  "frozenSnapshot": {
+    "freezeVersion": "phase4-freeze-v1",
+    "frozenAtUtc": "2026-09-08T07:35:31.843Z",
+    "gitHeadAtFreeze": "f912407fa88cbe73f00e92cd7cf8e836c9a2c068",
+    "datasetVersion": "phase4-eval-v1",
+    "datasetHash": "bfb9e5df18a5754992674e045d16f76dd077789ce95c32b4838961253adea97b",
+    "files": {
+      "C01.request.json": "455f73c0b84079f15f40a37fee381ccb3b02225d58486b87d624b3c7bce0ab7f",
+      "C01.reference.json": "41ce5486e71b93255accee107eb75ee94e1c58d8defbda780cad49ddb8b2a577",
+      "C02.request.json": "a3c920bc7660e3d80029149778028e013ae59f7f1a9c19f9ef2cb9f8d671b475",
+      "C02.reference.json": "8914d5398f02e45e13a9a1eeb8112327f83cb46e5c06c0ad780f11296f38d838",
+      "C03.request.json": "d3bf32d1b0e6293210d645f09c14e870909d314f40830874c5b13d419e9503c1",
+      "C03.reference.json": "dc5d8c43abb89a4afa22587274ff09d0764fcf73e6b68297a0249978ad1f8160",
+      "C04.request.json": "42dfad148097a99e922754ed87cea76deddce705b824abf4b09a755507515de0",
+      "C04.reference.json": "4bda4148166e5bcebc533a772905fb10c7f35685e730a5759a0956a437f6d633",
+      "C05.request.json": "0856db82e731f468a31879c007f909903a6d6c7e16f951e1d71d8e671895ba49",
+      "C05.reference.json": "a7237dc063d1d513c579f482755237f153e6ac975af74c651293860bf0d8cb65",
+      "C06.request.json": "a045e898fde5ceb382e2a3a282bb335bcea150f22eac6e23bfbb1cd29c5b5a2a",
+      "C06.reference.json": "62f29fffa72edce5356330fa87a8714e9461f146c5bcdb9fa6f1fcc1505ff0f2",
+      "C07.request.json": "a3288a743e9042524b0d87559a4ad2c0a7a99937d2446bd4f1f09385b4b89bdf",
+      "C07.reference.json": "6dd5b1138bee00ec68c0f517b3112741d297bccf910837de38d7caf4043a920f",
+      "C08.request.json": "b71cc34f0aa63304586d493cfab6eeedfdb86a17ab9c13a593853dd2b9845db3",
+      "C08.reference.json": "ae06fcd74084d3632a3bed576901a47206dc938741de0d6824e8473066150ba6",
+      "C01-NAME.request.json": "3bf19edd5628bba3cdc6d69d30162dd0c6151e1cb8f095e5ab0c54fc6c9e89bd",
+      "C01-NAME.reference.json": "ddad7e4b3799a3bdf8c1879b05ffb2adc7588364cb5677d96e0cc8c287cf7a83",
+      "C07-FILLER.request.json": "40f0fc3297e09a2c574bb888e85ecc5fd8a8c5ac95c1e8bb142bfbf16c63b6a7",
+      "C07-FILLER.reference.json": "93982ae83f34705a5e5177826e386aa671b5a1818fbbb6c6e904419dd12a157e",
+      "catalog.json": "f95d2992006b49923319a5417fa8b62bf98d91ce223e20e40ac632d3abba7bb3"
+    },
+    "configuration": {
+      "contractVersion": "review-brief-v1",
+      "contractHash": "d501843aeabcf6c0757fbe6c0aa14c78cd25369ad768b04cc7e9ab1fd9497054",
+      "roleVersion": "frontend-review-v1",
+      "roleHash": "40eeeb75c0a3850764230ff3fceacd62fcb03f35aa4cea83c74076d0422cf3ca",
+      "promptVersion": "review-brief-v1",
+      "promptHash": "013ed84c2c6899d23214f84792efb081369f5c6f040bb75fe6a041f2eda56f5d",
+      "modelRequested": "gpt-4o-2024-08-06"
+    },
+    "note": "Inputs and provisional references frozen before model runs; no practitioner calibration. C07/C08 withheld from tuning after authorship, not author-blinded."
+  },
+  "endpoint": "http://127.0.0.1:3000/api/review-brief",
+  "plan": [
+    {
+      "slotId": "C01-r1",
+      "caseId": "C01",
+      "kind": "base",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C01-r2",
+      "caseId": "C01",
+      "kind": "base",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C01-r3",
+      "caseId": "C01",
+      "kind": "base",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C02-r1",
+      "caseId": "C02",
+      "kind": "base",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C02-r2",
+      "caseId": "C02",
+      "kind": "base",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C02-r3",
+      "caseId": "C02",
+      "kind": "base",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C03-r1",
+      "caseId": "C03",
+      "kind": "base",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C03-r2",
+      "caseId": "C03",
+      "kind": "base",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C03-r3",
+      "caseId": "C03",
+      "kind": "base",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C04-r1",
+      "caseId": "C04",
+      "kind": "base",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C04-r2",
+      "caseId": "C04",
+      "kind": "base",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C04-r3",
+      "caseId": "C04",
+      "kind": "base",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C05-r1",
+      "caseId": "C05",
+      "kind": "base",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C05-r2",
+      "caseId": "C05",
+      "kind": "base",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C05-r3",
+      "caseId": "C05",
+      "kind": "base",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C06-r1",
+      "caseId": "C06",
+      "kind": "base",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C06-r2",
+      "caseId": "C06",
+      "kind": "base",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C06-r3",
+      "caseId": "C06",
+      "kind": "base",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C07-r1",
+      "caseId": "C07",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 1
+    },
+    {
+      "slotId": "C07-r2",
+      "caseId": "C07",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 2
+    },
+    {
+      "slotId": "C07-r3",
+      "caseId": "C07",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 3
+    },
+    {
+      "slotId": "C08-r1",
+      "caseId": "C08",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 1
+    },
+    {
+      "slotId": "C08-r2",
+      "caseId": "C08",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 2
+    },
+    {
+      "slotId": "C08-r3",
+      "caseId": "C08",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 3
+    },
+    {
+      "slotId": "C01-NAME-r1",
+      "caseId": "C01-NAME",
+      "kind": "variant",
+      "split": "development",
+      "repeat": 1
+    },
+    {
+      "slotId": "C01-NAME-r2",
+      "caseId": "C01-NAME",
+      "kind": "variant",
+      "split": "development",
+      "repeat": 2
+    },
+    {
+      "slotId": "C01-NAME-r3",
+      "caseId": "C01-NAME",
+      "kind": "variant",
+      "split": "development",
+      "repeat": 3
+    },
+    {
+      "slotId": "C07-FILLER-r1",
+      "caseId": "C07-FILLER",
+      "kind": "variant",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 1
+    },
+    {
+      "slotId": "C07-FILLER-r2",
+      "caseId": "C07-FILLER",
+      "kind": "variant",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 2
+    },
+    {
+      "slotId": "C07-FILLER-r3",
+      "caseId": "C07-FILLER",
+      "kind": "variant",
+      "split": "withheld_from_tuning_after_authorship",
+      "repeat": 3
+    }
+  ],
+  "status": "stopped",
+  "stopReason": "AI_UNAVAILABLE",
+  "finishedAtUtc": "2026-09-08T07:35:41.311Z"
+}

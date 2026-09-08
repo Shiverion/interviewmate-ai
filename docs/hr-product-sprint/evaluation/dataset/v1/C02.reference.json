@@ -1,0 +1,113 @@
+{
+  "referenceVersion": "phase4-reference-v1",
+  "caseId": "C02",
+  "transcriptVersion": "phase4-eval-v1",
+  "split": "development",
+  "authorship": "Project AI assistant; provisional author judgments, not practitioner calibration or independent ground truth.",
+  "scenario": "Fluent but vague and team-centered account",
+  "criteria": {
+    "R1": {
+      "expectedStatus": "limited_evidence",
+      "rationale": "Helped arrange filters but did not explain a personal data-flow mechanism.",
+      "permissibleClaims": [
+        {
+          "summary": "Helped arrange filters but did not explain a personal data-flow mechanism.",
+          "support": [
+            {
+              "turnId": "C02-T02",
+              "quote": "Our dashboard was a great team effort. I helped arrange the filters and attended the React discussions. The senior engineer handled the data layer. I cannot describe the state or request sequence because I did not work on that part."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C02-R1-U1",
+          "description": "Personal implementation mechanism is not established."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R2": {
+      "expectedStatus": "limited_evidence",
+      "rationale": "Suggested caching after trying the page, without diagnostic observations.",
+      "permissibleClaims": [
+        {
+          "summary": "Suggested caching after trying the page, without diagnostic observations.",
+          "support": [
+            {
+              "turnId": "C02-T04",
+              "quote": "A customer mentioned old rows. I tried the page once and suggested it could be caching because that sounded familiar. I did not capture a trace or investigate which response was shown."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C02-R2-U1",
+          "description": "The suggested caching cause and any fix are unverified."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R3": {
+      "expectedStatus": "limited_evidence",
+      "rationale": "Observed a download and a green team pipeline without knowing assertions or checking contents.",
+      "permissibleClaims": [
+        {
+          "summary": "Observed a download and a green team pipeline without knowing assertions or checking contents.",
+          "support": [
+            {
+              "turnId": "C02-T06",
+              "quote": "I clicked Export and saw a file download. The team's pipeline was green. I did not inspect the file contents or know which assertions the suite contained."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C02-R3-U1",
+          "description": "Downloaded contents and relevant test coverage are unknown."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R4": {
+      "expectedStatus": "not_established",
+      "rationale": "Explicitly reports no personal accessibility work or checks.",
+      "permissibleClaims": [
+        {
+          "summary": "Explicitly reports no personal accessibility work or checks.",
+          "support": [
+            {
+              "turnId": "C02-T08",
+              "quote": "We used an established component library. I did not add accessibility behavior or perform accessibility checks myself; I assumed the library covered it."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C02-R4-U1",
+          "description": "Library use does not establish personal accessibility work."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not turn missing or future-only evidence into a negative judgment of overall ability."
+      ]
+    }
+  },
+  "globalProhibitions": [
+    "No candidate score, ranking or hiring recommendation.",
+    "No inference about protected traits, personality or generic confidence.",
+    "No claim based only on an interviewer or unknown-speaker turn."
+  ],
+  "expectedConflicts": [],
+  "unknownSpeakerTurnIds": []
+}

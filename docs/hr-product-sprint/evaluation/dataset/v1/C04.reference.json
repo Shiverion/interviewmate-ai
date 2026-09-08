@@ -1,0 +1,126 @@
+{
+  "referenceVersion": "phase4-reference-v1",
+  "caseId": "C04",
+  "transcriptVersion": "phase4-eval-v1",
+  "split": "development",
+  "authorship": "Project AI assistant; provisional author judgments, not practitioner calibration or independent ground truth.",
+  "scenario": "Incompatible accounts about ownership of the same implementation",
+  "criteria": {
+    "R1": {
+      "expectedStatus": "conflicting_evidence",
+      "rationale": "Gives incompatible personal-ownership accounts for the same helper and form-state implementation; preserve both.",
+      "permissibleClaims": [
+        {
+          "summary": "Gives incompatible personal-ownership accounts for the same helper and form-state implementation; preserve both.",
+          "support": [
+            {
+              "turnId": "C04-T02",
+              "quote": "I wrote the validation helper and the form-state handling for the bulk-edit drawer myself. Changing a field updated the draft object, and Submit sent that object to the existing endpoint. I am referring to the version in the last release."
+            },
+            {
+              "turnId": "C04-T10",
+              "quote": "To clarify the same last-release drawer: another engineer wrote both the validation helper and the form-state handling. I did not edit either of those parts. I wrote the component tests. I cannot reconcile that with my earlier ownership description without checking the change history."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C04-R1-U1",
+          "description": "The two ownership accounts remain unresolved; do not choose one or infer deception."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not resolve incompatible accounts by choosing one, or infer intent/deception."
+      ]
+    },
+    "R2": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Identified a response-shape mismatch from a payload and handler comparison.",
+      "permissibleClaims": [
+        {
+          "summary": "Identified a response-shape mismatch from a payload and handler comparison.",
+          "support": [
+            {
+              "turnId": "C04-T04",
+              "quote": "I investigated why validation errors disappeared. In the network panel I saw the endpoint return an errors array while the UI handler read an error string. I compared that payload with the handler and identified a shape mismatch. I have no production monitoring result after the change."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C04-R2-U1",
+          "description": "No production monitoring or outcome is established."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R3": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Wrote mocked component tests with visible-error assertions.",
+      "permissibleClaims": [
+        {
+          "summary": "Wrote mocked component tests with visible-error assertions.",
+          "support": [
+            {
+              "turnId": "C04-T06",
+              "quote": "I wrote component tests for an empty selection, a successful response and an errors-array response. The error test asserted that each returned message stayed visible. The requests were mocked, so these checks did not establish backend compatibility."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C04-R3-U1",
+          "description": "Mocked tests do not establish real backend compatibility."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R4": {
+      "expectedStatus": "limited_evidence",
+      "rationale": "Added visible labels without establishing association or accessible behavior.",
+      "permissibleClaims": [
+        {
+          "summary": "Added visible labels without establishing association or accessible behavior.",
+          "support": [
+            {
+              "turnId": "C04-T08",
+              "quote": "I added visible text labels to two form controls. I did not inspect their programmatic association or try keyboard or assistive-technology behavior."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C04-R4-U1",
+          "description": "Accessible behavior and label association remain unverified."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    }
+  },
+  "globalProhibitions": [
+    "No candidate score, ranking or hiring recommendation.",
+    "No inference about protected traits, personality or generic confidence.",
+    "No claim based only on an interviewer or unknown-speaker turn."
+  ],
+  "expectedConflicts": [
+    {
+      "criterion": "R1",
+      "turnIds": [
+        "C04-T02",
+        "C04-T10"
+      ],
+      "checkpoint": "Keep both incompatible accounts visible without resolving them."
+    }
+  ],
+  "unknownSpeakerTurnIds": []
+}

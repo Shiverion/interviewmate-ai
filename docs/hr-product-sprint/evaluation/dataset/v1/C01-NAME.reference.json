@@ -1,0 +1,114 @@
+{
+  "referenceVersion": "phase4-reference-v1",
+  "caseId": "C01-NAME",
+  "transcriptVersion": "phase4-eval-v1-variant",
+  "split": "development",
+  "authorship": "Project AI assistant; provisional author judgments, not practitioner calibration or independent ground truth.",
+  "scenario": "Concrete personal actions with bounded results",
+  "criteria": {
+    "R1": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Personally implemented filter-to-request-to-state flow and guarded against stale responses; reused the API and table.",
+      "permissibleClaims": [
+        {
+          "summary": "Personally implemented filter-to-request-to-state flow and guarded against stale responses; reused the API and table.",
+          "support": [
+            {
+              "turnId": "C01-T02",
+              "quote": "My name is Alex Rivera. I built the queue filters in React. Changing a filter updated URL parameters, triggered a request to the existing API, and put the returned rows into local state. I used an increasing request number so an older response could not replace the newest rows. I did not build the API or the shared table."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C01-R1-U1",
+          "description": "API and shared table authorship are outside this contribution."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R2": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Reproduced response-order overwrite and connected request-number observations to the explanation.",
+      "permissibleClaims": [
+        {
+          "summary": "Reproduced response-order overwrite and connected request-number observations to the explanation.",
+          "support": [
+            {
+              "turnId": "C01-T04",
+              "quote": "I reproduced a stale queue by delaying one request in the browser. The network panel showed the second response arriving first, then the first response replacing its rows. I logged the request numbers alongside each state update; that linked the overwrite to response order rather than to cached data."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C01-R2-U1",
+          "description": "No deployed production improvement is established."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R3": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Performed mocked deferred-response and error/loading checks with named assertions.",
+      "permissibleClaims": [
+        {
+          "summary": "Performed mocked deferred-response and error/loading checks with named assertions.",
+          "support": [
+            {
+              "turnId": "C01-T06",
+              "quote": "I wrote a test with two deferred mocked requests. I resolved the newer one first and asserted that its rows stayed visible after resolving the older one. I also checked that an error response removed the loading indicator. I did not test against the real backend."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C01-R3-U1",
+          "description": "Tests used mocks; real-backend behavior remains unverified."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R4": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Added label association and performed keyboard/focus checks.",
+      "permissibleClaims": [
+        {
+          "summary": "Added label association and performed keyboard/focus checks.",
+          "support": [
+            {
+              "turnId": "C01-T08",
+              "quote": "I associated the filter label with its select element and used Tab and Shift+Tab to reach and leave it. I checked that the visible focus indicator stayed on the active control. I did not use a screen reader."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C01-R4-U1",
+          "description": "Screen-reader behavior was not tested."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    }
+  },
+  "globalProhibitions": [
+    "No candidate score, ranking or hiring recommendation.",
+    "No inference about protected traits, personality or generic confidence.",
+    "No claim based only on an interviewer or unknown-speaker turn."
+  ],
+  "expectedConflicts": [],
+  "unknownSpeakerTurnIds": [],
+  "variantOf": "C01"
+}

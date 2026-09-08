@@ -25,11 +25,11 @@ Frozen design expectations: 2026-09-07, `review-brief-v1` / `frontend-review-v1`
 | A15 | Local page without Firebase, or production access | Local synthetic path loads without recruiter gates; production page/API unavailable |
 | A16 | Keyboard, 320px viewport, long source text, 200% zoom | Source inspection, edits, checks and export remain reachable without hidden context or a keyboard trap |
 
-The offline [contract checks](../scripts/check-phase-2.cjs) exercise data rules and authored fixtures now. UI, lifecycle, transport limits and live-provider checks are Phase 3 work; a passing contract script cannot satisfy them.
+The offline [contract checks](../scripts/check-phase-2.cjs) exercise data rules and authored fixtures now. The [Phase 3 report](../phases/03-prototype-build.md) records UI/lifecycle/transport checks and the failed provider smoke attempt. The [Phase 4 report](../phases/04-evaluation-and-iteration.md) records the new dataset and run coverage. A passing contract script cannot satisfy model-quality gates.
 
 ## Phase 4 dataset and split
 
-Create eight new synthetic transcripts and reference judgments before model tuning. P1-A/P1-B and every Phase 2 example are practice/development material. The scenario descriptions below are public plans; the final C07/C08 input/reference contents do not exist yet and must be withheld from prompt tuning once authored. This is not independent or practitioner-blinded evaluation.
+Create eight new synthetic transcripts and reference judgments before model tuning. P1-A/P1-B and every Phase 2 example are practice/development material. The scenario descriptions below were frozen before final input/reference authorship. The [Phase 4 v1 dataset](../evaluation/dataset/README.md) now contains those records; C07/C08 must remain withheld from prompt tuning after authorship. This is not independent or practitioner-blinded evaluation.
 
 | Case | Assignment | Input scenario | Reference behavior to freeze before runs |
 |---|---|---|---|

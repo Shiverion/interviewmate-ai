@@ -1,0 +1,110 @@
+{
+  "attemptVersion": "phase4-attempt-v1",
+  "executionType": "live_api",
+  "slot": {
+    "slotId": "C01-r1",
+    "caseId": "C01",
+    "kind": "base",
+    "split": "development",
+    "repeat": 1
+  },
+  "datasetHash": "bfb9e5df18a5754992674e045d16f76dd077789ce95c32b4838961253adea97b",
+  "inputHash": "455f73c0b84079f15f40a37fee381ccb3b02225d58486b87d624b3c7bce0ab7f",
+  "referenceHash": "41ce5486e71b93255accee107eb75ee94e1c58d8defbda780cad49ddb8b2a577",
+  "startedAtUtc": "2026-09-08T07:35:39.474Z",
+  "httpStatus": 503,
+  "responseText": "{\"ok\":false,\"attemptId\":\"93a14e2a-0990-471b-8875-3762b2f8d971\",\"error\":{\"code\":\"AI_UNAVAILABLE\",\"message\":\"The server key or requested model is unavailable. Check the local configuration.\",\"retryable\":true,\"issues\":[]}}",
+  "responseBody": {
+    "ok": false,
+    "attemptId": "93a14e2a-0990-471b-8875-3762b2f8d971",
+    "error": {
+      "code": "AI_UNAVAILABLE",
+      "message": "The server key or requested model is unavailable. Check the local configuration.",
+      "retryable": true,
+      "issues": []
+    }
+  },
+  "outcome": {
+    "accepted": false,
+    "code": "AI_UNAVAILABLE"
+  },
+  "serverRecord": {
+    "attemptId": "93a14e2a-0990-471b-8875-3762b2f8d971",
+    "startedAtUtc": "2026-09-08T07:35:40.649Z",
+    "input": {
+      "schemaVersion": "review-brief-v1",
+      "roleVersion": "frontend-review-v1",
+      "transcriptId": "C01",
+      "transcriptVersion": "phase4-eval-v1",
+      "synthetic": true,
+      "turns": [
+        {
+          "id": "C01-T01",
+          "speaker": "interviewer",
+          "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+        },
+        {
+          "id": "C01-T02",
+          "speaker": "candidate",
+          "text": "My name is Maya Chen. I built the queue filters in React. Changing a filter updated URL parameters, triggered a request to the existing API, and put the returned rows into local state. I used an increasing request number so an older response could not replace the newest rows. I did not build the API or the shared table."
+        },
+        {
+          "id": "C01-T03",
+          "speaker": "interviewer",
+          "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+        },
+        {
+          "id": "C01-T04",
+          "speaker": "candidate",
+          "text": "I reproduced a stale queue by delaying one request in the browser. The network panel showed the second response arriving first, then the first response replacing its rows. I logged the request numbers alongside each state update; that linked the overwrite to response order rather than to cached data."
+        },
+        {
+          "id": "C01-T05",
+          "speaker": "interviewer",
+          "text": "How did you check the change and decide it was ready for release?"
+        },
+        {
+          "id": "C01-T06",
+          "speaker": "candidate",
+          "text": "I wrote a test with two deferred mocked requests. I resolved the newer one first and asserted that its rows stayed visible after resolving the older one. I also checked that an error response removed the loading indicator. I did not test against the real backend."
+        },
+        {
+          "id": "C01-T07",
+          "speaker": "interviewer",
+          "text": "What accessibility work or checks did you perform on this interface?"
+        },
+        {
+          "id": "C01-T08",
+          "speaker": "candidate",
+          "text": "I associated the filter label with its select element and used Tab and Shift+Tab to reach and leave it. I checked that the visible focus indicator stayed on the active control. I did not use a screen reader."
+        },
+        {
+          "id": "C01-T09",
+          "speaker": "interviewer",
+          "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+        },
+        {
+          "id": "C01-T10",
+          "speaker": "candidate",
+          "text": "Another engineer reviewed my changes. We had not deployed them when I left the project, so I cannot claim a production improvement. I would next verify real API timing and screen-reader announcements."
+        }
+      ]
+    },
+    "inputHash": "455f73c0b84079f15f40a37fee381ccb3b02225d58486b87d624b3c7bce0ab7f",
+    "provenance": {
+      "contractVersion": "review-brief-v1",
+      "contractHash": "d501843aeabcf6c0757fbe6c0aa14c78cd25369ad768b04cc7e9ab1fd9497054",
+      "roleVersion": "frontend-review-v1",
+      "roleHash": "40eeeb75c0a3850764230ff3fceacd62fcb03f35aa4cea83c74076d0422cf3ca",
+      "promptVersion": "review-brief-v1",
+      "promptHash": "013ed84c2c6899d23214f84792efb081369f5c6f040bb75fe6a041f2eda56f5d"
+    },
+    "modelRequested": "gpt-4o-2024-08-06",
+    "outcome": {
+      "code": "AI_UNAVAILABLE"
+    },
+    "rawOutput": null
+  },
+  "serverRecordAvailable": true,
+  "clientElapsedMs": 1835
+}

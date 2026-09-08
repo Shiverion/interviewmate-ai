@@ -1,0 +1,113 @@
+{
+  "referenceVersion": "phase4-reference-v1",
+  "caseId": "C07",
+  "transcriptVersion": "phase4-eval-v1",
+  "split": "withheld_from_tuning_after_authorship",
+  "authorship": "Project AI assistant; provisional author judgments, not practitioner calibration or independent ground truth.",
+  "scenario": "Concrete evidence with cautious language",
+  "criteria": {
+    "R1": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Describes personal debounced request/state flow and a request-number guard while limiting endpoint ownership.",
+      "permissibleClaims": [
+        {
+          "summary": "Describes personal debounced request/state flow and a request-number guard while limiting endpoint ownership.",
+          "support": [
+            {
+              "turnId": "C07-T02",
+              "quote": "Um, I think the clearest example is the queue search. I personally connected the input change to a debounced request and stored the returned rows in state. I attached a request number and ignored a response if its number was no longer current. As far as I remember, the endpoint itself was unchanged and belonged to another team."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C07-R1-U1",
+          "description": "Endpoint ownership is not part of the personal contribution."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R2": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Reproduced response-order overwrite and logged the older write, while bounding the explanation.",
+      "permissibleClaims": [
+        {
+          "summary": "Reproduced response-order overwrite and logged the older write, while bounding the explanation.",
+          "support": [
+            {
+              "turnId": "C07-T04",
+              "quote": "Uh, I may not remember the exact delay, but I reproduced old results by holding the first response in the browser. I saw the second response render before the first arrived, then logged a later state write from the older request. That supports response order as the explanation for the reproduced issue, not every production complaint."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C07-R2-U1",
+          "description": "Reproduction does not explain every production complaint or establish impact."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R3": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Performed reverse-order and rejected-request mocked checks with specific assertions.",
+      "permissibleClaims": [
+        {
+          "summary": "Performed reverse-order and rejected-request mocked checks with specific assertions.",
+          "support": [
+            {
+              "turnId": "C07-T06",
+              "quote": "Um, I wrote a mocked-request test that resolved responses in reverse order and asserted that the newer rows remained. I also rejected a mocked request and asserted that the retry button appeared. I did not connect these tests to the real service."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C07-R3-U1",
+          "description": "Real-service behavior is not established by mocked checks."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R4": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Checked keyboard activation and visible focus, with screen-reader behavior explicitly untested.",
+      "permissibleClaims": [
+        {
+          "summary": "Checked keyboard activation and visible focus, with screen-reader behavior explicitly untested.",
+          "support": [
+            {
+              "turnId": "C07-T08",
+              "quote": "I added a descriptive label to the retry button and checked that Enter activated it after tabbing to it. I could see the focus indicator. I am not sure how its loading announcement behaves with a screen reader because I did not test one."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C07-R4-U1",
+          "description": "Screen-reader announcement behavior remains unknown."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    }
+  },
+  "globalProhibitions": [
+    "No candidate score, ranking or hiring recommendation.",
+    "No inference about protected traits, personality or generic confidence.",
+    "No claim based only on an interviewer or unknown-speaker turn."
+  ],
+  "expectedConflicts": [],
+  "unknownSpeakerTurnIds": []
+}

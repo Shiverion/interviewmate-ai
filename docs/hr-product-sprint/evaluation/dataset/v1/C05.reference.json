@@ -1,0 +1,116 @@
+{
+  "referenceVersion": "phase4-reference-v1",
+  "caseId": "C05",
+  "transcriptVersion": "phase4-eval-v1",
+  "split": "development",
+  "authorship": "Project AI assistant; provisional author judgments, not practitioner calibration or independent ground truth.",
+  "scenario": "Noisy attribution with strong claims from unknown speakers",
+  "criteria": {
+    "R1": {
+      "expectedStatus": "limited_evidence",
+      "rationale": "Describes spacing work, without owning or explaining the request layer.",
+      "permissibleClaims": [
+        {
+          "summary": "Describes spacing work, without owning or explaining the request layer.",
+          "support": [
+            {
+              "turnId": "C05-T02",
+              "quote": "I helped adjust spacing around the queue controls. I did not own the request layer and cannot explain its state transitions."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C05-R1-U1",
+          "description": "Request-sequencing ownership from an unknown speaker is unconfirmed."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R2": {
+      "expectedStatus": "not_established",
+      "rationale": "Does not establish a personal diagnosis; unattributed diagnosis is context only.",
+      "permissibleClaims": [
+        {
+          "summary": "Does not establish a personal diagnosis; unattributed diagnosis is context only.",
+          "support": [
+            {
+              "turnId": "C05-T06",
+              "quote": "I cannot attribute that investigation to myself. That section of the recording is unclear, and I do not remember carrying out a diagnosis."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C05-R2-U1",
+          "description": "The unknown-speaker diagnosis and claimed fix cannot be attributed to the candidate."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not turn missing or future-only evidence into a negative judgment of overall ability."
+      ]
+    },
+    "R3": {
+      "expectedStatus": "limited_evidence",
+      "rationale": "Ran an existing suite without establishing its assertions or coverage.",
+      "permissibleClaims": [
+        {
+          "summary": "Ran an existing suite without establishing its assertions or coverage.",
+          "support": [
+            {
+              "turnId": "C05-T08",
+              "quote": "I ran the existing test command and it passed. I did not inspect its assertions or know whether it covered this change."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C05-R3-U1",
+          "description": "Relevant assertions and coverage of the existing suite are unknown."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R4": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Personally checked keyboard navigation and focus return after closing a panel.",
+      "permissibleClaims": [
+        {
+          "summary": "Personally checked keyboard navigation and focus return after closing a panel.",
+          "support": [
+            {
+              "turnId": "C05-T10",
+              "quote": "I personally used Tab to move through the queue buttons. After closing the help panel with Escape, I checked that focus returned to its trigger button. I did not test a screen reader."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C05-R4-U1",
+          "description": "Screen-reader behavior remains untested."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    }
+  },
+  "globalProhibitions": [
+    "No candidate score, ranking or hiring recommendation.",
+    "No inference about protected traits, personality or generic confidence.",
+    "No claim based only on an interviewer or unknown-speaker turn."
+  ],
+  "expectedConflicts": [],
+  "unknownSpeakerTurnIds": [
+    "C05-T03",
+    "C05-T05"
+  ]
+}

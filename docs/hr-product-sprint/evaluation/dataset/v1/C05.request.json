@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "C05",
+  "transcriptVersion": "phase4-eval-v1",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "C05-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+    },
+    {
+      "id": "C05-T02",
+      "speaker": "candidate",
+      "text": "I helped adjust spacing around the queue controls. I did not own the request layer and cannot explain its state transitions."
+    },
+    {
+      "id": "C05-T03",
+      "speaker": "unknown",
+      "text": "I implemented all the request sequencing and the stale-response guard in the queue."
+    },
+    {
+      "id": "C05-T04",
+      "speaker": "interviewer",
+      "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+    },
+    {
+      "id": "C05-T05",
+      "speaker": "unknown",
+      "text": "I traced the production defect to an out-of-order response and verified the fix."
+    },
+    {
+      "id": "C05-T06",
+      "speaker": "candidate",
+      "text": "I cannot attribute that investigation to myself. That section of the recording is unclear, and I do not remember carrying out a diagnosis."
+    },
+    {
+      "id": "C05-T07",
+      "speaker": "interviewer",
+      "text": "How did you check the change and decide it was ready for release?"
+    },
+    {
+      "id": "C05-T08",
+      "speaker": "candidate",
+      "text": "I ran the existing test command and it passed. I did not inspect its assertions or know whether it covered this change."
+    },
+    {
+      "id": "C05-T09",
+      "speaker": "interviewer",
+      "text": "What accessibility work or checks did you perform on this interface?"
+    },
+    {
+      "id": "C05-T10",
+      "speaker": "candidate",
+      "text": "I personally used Tab to move through the queue buttons. After closing the help panel with Escape, I checked that focus returned to its trigger button. I did not test a screen reader."
+    },
+    {
+      "id": "C05-T11",
+      "speaker": "interviewer",
+      "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+    },
+    {
+      "id": "C05-T12",
+      "speaker": "candidate",
+      "text": "The two unattributed statements should not be treated as mine without confirming the speaker. My checks were limited to the actions I described."
+    }
+  ]
+}

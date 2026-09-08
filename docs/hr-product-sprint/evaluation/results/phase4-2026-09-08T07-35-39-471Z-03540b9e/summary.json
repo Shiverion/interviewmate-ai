@@ -1,0 +1,196 @@
+{
+  "summaryVersion": "phase4-summary-v1",
+  "executionType": "live_api",
+  "datasetHash": "bfb9e5df18a5754992674e045d16f76dd077789ce95c32b4838961253adea97b",
+  "batchStatus": "stopped",
+  "stopReason": "AI_UNAVAILABLE",
+  "planned": {
+    "base": 24,
+    "variants": 6,
+    "total": 30,
+    "baseCriterionCells": 96
+  },
+  "attempted": {
+    "base": 1,
+    "variants": 0,
+    "total": 1
+  },
+  "notAttempted": [
+    "C01-r2",
+    "C01-r3",
+    "C02-r1",
+    "C02-r2",
+    "C02-r3",
+    "C03-r1",
+    "C03-r2",
+    "C03-r3",
+    "C04-r1",
+    "C04-r2",
+    "C04-r3",
+    "C05-r1",
+    "C05-r2",
+    "C05-r3",
+    "C06-r1",
+    "C06-r2",
+    "C06-r3",
+    "C07-r1",
+    "C07-r2",
+    "C07-r3",
+    "C08-r1",
+    "C08-r2",
+    "C08-r3",
+    "C01-NAME-r1",
+    "C01-NAME-r2",
+    "C01-NAME-r3",
+    "C07-FILLER-r1",
+    "C07-FILLER-r2",
+    "C07-FILLER-r3"
+  ],
+  "completion": {
+    "baseValid": 0,
+    "baseAttempted": 1,
+    "variantValid": 0,
+    "allValid": 0,
+    "allAttempted": 1
+  },
+  "criterionAgreement": {
+    "matches": 0,
+    "availableCells": 0,
+    "plannedCells": 96,
+    "agreement": null,
+    "disagreements": []
+  },
+  "quotes": {
+    "valid": 0,
+    "proposed": 0,
+    "inspectableOutputs": 0,
+    "attemptsWithoutInspectableOutput": 1
+  },
+  "failures": [
+    {
+      "slotId": "C01-r1",
+      "code": "AI_UNAVAILABLE",
+      "httpStatus": 503
+    }
+  ],
+  "stability": [
+    {
+      "caseId": "C01",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C02",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C03",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C04",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C05",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C06",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C07",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "caseId": "C08",
+      "availableRepeats": 0,
+      "plannedRepeats": 3,
+      "statusChanges": [],
+      "complete": false,
+      "semanticMeaning": "Not reviewed"
+    }
+  ],
+  "sensitivity": [
+    {
+      "variant": "C01-NAME",
+      "base": "C01",
+      "repeat": 1,
+      "available": false,
+      "statusChanges": null,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "variant": "C01-NAME",
+      "base": "C01",
+      "repeat": 2,
+      "available": false,
+      "statusChanges": null,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "variant": "C01-NAME",
+      "base": "C01",
+      "repeat": 3,
+      "available": false,
+      "statusChanges": null,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "variant": "C07-FILLER",
+      "base": "C07",
+      "repeat": 1,
+      "available": false,
+      "statusChanges": null,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "variant": "C07-FILLER",
+      "base": "C07",
+      "repeat": 2,
+      "available": false,
+      "statusChanges": null,
+      "semanticMeaning": "Not reviewed"
+    },
+    {
+      "variant": "C07-FILLER",
+      "base": "C07",
+      "repeat": 3,
+      "available": false,
+      "statusChanges": null,
+      "semanticMeaning": "Not reviewed"
+    }
+  ],
+  "semanticReview": "Not aggregated automatically. Review the per-output templates; report human and assistant judgments separately.",
+  "humanTiming": "Not measured",
+  "fairness": "Not established",
+  "productionReadiness": "Not established"
+}

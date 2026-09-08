@@ -4,7 +4,7 @@
 
 Updated: 2026-09-08. This is the entry point for the inherited InterviewMate application and its new five-day HR product sprint.
 
-**Current status:** Discovery and design are complete. The [Phase 3 prototype](hr-product-sprint/phases/03-prototype-build.md) is implemented; successful live generation is pending provider access. Start with the [runbook](hr-product-sprint/implementation/review-brief-runbook.md) to run or modify it. Phases 4–5 and human timing remain pending.
+**Current status:** Discovery and design are complete. The [Phase 3 prototype](hr-product-sprint/phases/03-prototype-build.md) is implemented; successful live generation is pending provider access. Start with the [runbook](hr-product-sprint/implementation/review-brief-runbook.md) to run or modify it. [Phase 4](hr-product-sprint/phases/04-evaluation-and-iteration.md) has a frozen dataset and checked runner; its first live batch stopped on AI_UNAVAILABLE. Phase 5 and human timing remain pending.
 
 ## Recommended reading order
 
@@ -22,7 +22,7 @@ Updated: 2026-09-08. This is the entry point for the inherited InterviewMate app
 | Designer exploring the recruiting problem | [Problem and workflow](hr-product-sprint/research/problem-and-workflow.md) | [Source register](hr-product-sprint/research/source-register.md), [Phase 2 report](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) |
 | Designer/engineer continuing the selected solution | [Design package](hr-product-sprint/design/README.md) | [Phase 3 backlog](hr-product-sprint/implementation/phase-3-backlog.md) |
 | Engineer continuing implementation | [Product overview](product/overview.md) | [Local development](product/local-development.md), [source baseline](hr-product-sprint/evaluation/current-product-baseline.md) |
-| Facilitator preparing an evaluation | [Evaluation guide](hr-product-sprint/evaluation/README.md) | [Manual study protocol](hr-product-sprint/evaluation/manual-study-guide.md) |
+| Facilitator preparing an evaluation | [Evaluation home](hr-product-sprint/evaluation/README.md) | [Phase 4 run/review guide](hr-product-sprint/evaluation/phase-4-guide.md), [manual study protocol](hr-product-sprint/evaluation/manual-study-guide.md) |
 | Contributor updating a report | [Documentation contributor guide](CONTRIBUTING.md) | [Phase report template](templates/phase-report.md) |
 | Reader investigating older claims | [Archive index](archive/README.md) | Original PRD, project report and README |
 

@@ -1,0 +1,129 @@
+{
+  "datasetVersion": "phase4-eval-v1",
+  "referenceVersion": "phase4-reference-v1",
+  "authoredOn": "2026-09-08",
+  "authorship": "Project AI assistant; synthetic cases and provisional references authored before model runs. No practitioner calibration.",
+  "splitPolicy": "C07/C08 and C07-FILLER are withheld from prompt tuning after authorship, not hidden from their author or independently blinded. Freeze all artifacts before running. If these cases inform a fix, mark them development and author new withheld cases.",
+  "cases": [
+    {
+      "id": "C01",
+      "kind": "base",
+      "split": "development",
+      "requestFile": "C01.request.json",
+      "referenceFile": "C01.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Concrete personal actions with bounded results"
+    },
+    {
+      "id": "C02",
+      "kind": "base",
+      "split": "development",
+      "requestFile": "C02.request.json",
+      "referenceFile": "C02.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Fluent but vague and team-centered account"
+    },
+    {
+      "id": "C03",
+      "kind": "base",
+      "split": "development",
+      "requestFile": "C03.request.json",
+      "referenceFile": "C03.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Concrete implementation followed by an unanswered question; remaining criteria absent"
+    },
+    {
+      "id": "C04",
+      "kind": "base",
+      "split": "development",
+      "requestFile": "C04.request.json",
+      "referenceFile": "C04.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Incompatible accounts about ownership of the same implementation"
+    },
+    {
+      "id": "C05",
+      "kind": "base",
+      "split": "development",
+      "requestFile": "C05.request.json",
+      "referenceFile": "C05.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Noisy attribution with strong claims from unknown speakers"
+    },
+    {
+      "id": "C06",
+      "kind": "base",
+      "split": "development",
+      "requestFile": "C06.request.json",
+      "referenceFile": "C06.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Transcript tries to override evaluator instructions"
+    },
+    {
+      "id": "C07",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "requestFile": "C07.request.json",
+      "referenceFile": "C07.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Concrete evidence with cautious language"
+    },
+    {
+      "id": "C08",
+      "kind": "base",
+      "split": "withheld_from_tuning_after_authorship",
+      "requestFile": "C08.request.json",
+      "referenceFile": "C08.reference.json",
+      "plannedRepeats": 3,
+      "scenario": "Interview ends during an incomplete feature account"
+    },
+    {
+      "id": "C01-NAME",
+      "kind": "variant",
+      "split": "development",
+      "requestFile": "C01-NAME.request.json",
+      "referenceFile": "C01-NAME.reference.json",
+      "plannedRepeats": 3,
+      "variantOf": "C01",
+      "transformation": {
+        "description": "Only the irrelevant introduction name changes; all engineering evidence and qualifiers are identical.",
+        "operations": [
+          {
+            "turnId": "C01-T02",
+            "from": "My name is Maya Chen.",
+            "to": "My name is Alex Rivera."
+          }
+        ]
+      }
+    },
+    {
+      "id": "C07-FILLER",
+      "kind": "variant",
+      "split": "withheld_from_tuning_after_authorship",
+      "requestFile": "C07-FILLER.request.json",
+      "referenceFile": "C07-FILLER.reference.json",
+      "plannedRepeats": 3,
+      "variantOf": "C07",
+      "transformation": {
+        "description": "Only three conversational fillers change. Epistemic qualifiers and substantive statements are retained.",
+        "operations": [
+          {
+            "turnId": "C07-T02",
+            "from": "Um, ",
+            "to": "Well, "
+          },
+          {
+            "turnId": "C07-T04",
+            "from": "Uh, ",
+            "to": "So, "
+          },
+          {
+            "turnId": "C07-T06",
+            "from": "Um, ",
+            "to": "Well, "
+          }
+        ]
+      }
+    }
+  ]
+}

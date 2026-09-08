@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "C07-FILLER",
+  "transcriptVersion": "phase4-eval-v1-variant",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "C07-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+    },
+    {
+      "id": "C07-T02",
+      "speaker": "candidate",
+      "text": "Well, I think the clearest example is the queue search. I personally connected the input change to a debounced request and stored the returned rows in state. I attached a request number and ignored a response if its number was no longer current. As far as I remember, the endpoint itself was unchanged and belonged to another team."
+    },
+    {
+      "id": "C07-T03",
+      "speaker": "interviewer",
+      "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+    },
+    {
+      "id": "C07-T04",
+      "speaker": "candidate",
+      "text": "So, I may not remember the exact delay, but I reproduced old results by holding the first response in the browser. I saw the second response render before the first arrived, then logged a later state write from the older request. That supports response order as the explanation for the reproduced issue, not every production complaint."
+    },
+    {
+      "id": "C07-T05",
+      "speaker": "interviewer",
+      "text": "How did you check the change and decide it was ready for release?"
+    },
+    {
+      "id": "C07-T06",
+      "speaker": "candidate",
+      "text": "Well, I wrote a mocked-request test that resolved responses in reverse order and asserted that the newer rows remained. I also rejected a mocked request and asserted that the retry button appeared. I did not connect these tests to the real service."
+    },
+    {
+      "id": "C07-T07",
+      "speaker": "interviewer",
+      "text": "What accessibility work or checks did you perform on this interface?"
+    },
+    {
+      "id": "C07-T08",
+      "speaker": "candidate",
+      "text": "I added a descriptive label to the retry button and checked that Enter activated it after tabbing to it. I could see the focus indicator. I am not sure how its loading announcement behaves with a screen reader because I did not test one."
+    },
+    {
+      "id": "C07-T09",
+      "speaker": "interviewer",
+      "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+    },
+    {
+      "id": "C07-T10",
+      "speaker": "candidate",
+      "text": "I am cautious about claiming more than my reproduction and local checks. I did not measure production impact. I would confirm the real-service behavior and screen-reader announcement next."
+    }
+  ]
+}

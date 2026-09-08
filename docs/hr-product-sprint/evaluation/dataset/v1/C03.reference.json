@@ -1,0 +1,83 @@
+{
+  "referenceVersion": "phase4-reference-v1",
+  "caseId": "C03",
+  "transcriptVersion": "phase4-eval-v1",
+  "split": "development",
+  "authorship": "Project AI assistant; provisional author judgments, not practitioner calibration or independent ground truth.",
+  "scenario": "Concrete implementation followed by an unanswered question; remaining criteria absent",
+  "criteria": {
+    "R1": {
+      "expectedStatus": "specific_evidence",
+      "rationale": "Implemented dropdown-to-query-to-state behavior using existing components.",
+      "permissibleClaims": [
+        {
+          "summary": "Implemented dropdown-to-query-to-state behavior using existing components.",
+          "support": [
+            {
+              "turnId": "C03-T02",
+              "quote": "I added a status dropdown. Its change handler updated the selected status, sent it as a query parameter to our existing endpoint, and stored the returned ticket list in component state. I reused the existing table and endpoint."
+            }
+          ]
+        }
+      ],
+      "unknownCheckpoints": [
+        {
+          "id": "C03-R1-U1",
+          "description": "Ownership of the reused table and endpoint is not established."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not expand the described actions into sole ownership, comprehensive coverage or independently verified success."
+      ]
+    },
+    "R2": {
+      "expectedStatus": "not_established",
+      "rationale": "No candidate answer about diagnosis is present.",
+      "permissibleClaims": [],
+      "unknownCheckpoints": [
+        {
+          "id": "C03-R2-U1",
+          "description": "The diagnosis question has no candidate answer."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not turn missing or future-only evidence into a negative judgment of overall ability."
+      ]
+    },
+    "R3": {
+      "expectedStatus": "not_established",
+      "rationale": "No verification topic or answer is present.",
+      "permissibleClaims": [],
+      "unknownCheckpoints": [
+        {
+          "id": "C03-R3-U1",
+          "description": "Verification was not covered in this transcript."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not turn missing or future-only evidence into a negative judgment of overall ability."
+      ]
+    },
+    "R4": {
+      "expectedStatus": "not_established",
+      "rationale": "No accessibility topic or answer is present.",
+      "permissibleClaims": [],
+      "unknownCheckpoints": [
+        {
+          "id": "C03-R4-U1",
+          "description": "Accessibility was not covered in this transcript."
+        }
+      ],
+      "prohibitedInferences": [
+        "Do not turn missing or future-only evidence into a negative judgment of overall ability."
+      ]
+    }
+  },
+  "globalProhibitions": [
+    "No candidate score, ranking or hiring recommendation.",
+    "No inference about protected traits, personality or generic confidence.",
+    "No claim based only on an interviewer or unknown-speaker turn."
+  ],
+  "expectedConflicts": [],
+  "unknownSpeakerTurnIds": []
+}

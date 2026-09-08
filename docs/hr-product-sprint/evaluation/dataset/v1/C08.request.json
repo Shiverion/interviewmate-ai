@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "C08",
+  "transcriptVersion": "phase4-eval-v1",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "C08-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+    },
+    {
+      "id": "C08-T02",
+      "speaker": "candidate",
+      "text": "I had started arranging the sort dropdown on the queue page. I had not connected it to the request or completed the state handling when this interview happened."
+    },
+    {
+      "id": "C08-T03",
+      "speaker": "interviewer",
+      "text": "What had you personally completed, and what still needed to be connected?"
+    },
+    {
+      "id": "C08-T04",
+      "speaker": "candidate",
+      "text": "I moved the dropdown next to the heading. I was about to explain the rest of the work, but"
+    }
+  ]
+}

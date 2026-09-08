@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "C03",
+  "transcriptVersion": "phase4-eval-v1",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "C03-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+    },
+    {
+      "id": "C03-T02",
+      "speaker": "candidate",
+      "text": "I added a status dropdown. Its change handler updated the selected status, sent it as a query parameter to our existing endpoint, and stored the returned ticket list in component state. I reused the existing table and endpoint."
+    },
+    {
+      "id": "C03-T03",
+      "speaker": "interviewer",
+      "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+    }
+  ]
+}
