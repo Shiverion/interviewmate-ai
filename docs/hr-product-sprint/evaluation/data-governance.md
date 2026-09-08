@@ -16,6 +16,8 @@ Review state is lost on refresh unless exported. Exports/reference packets are u
 
 ## Future learning loop: not implemented
 
+The separate candidate interview room now records [session-integrity metadata](../implementation/session-integrity.md) after a candidate notice: times, durations, counts and structured context. These are session-linked advisory records, not anonymous analytics or training data. That guide documents browser limitations, persistence and production authorization gaps.
+
 Aggregate issue categories, create synthetic examples demonstrating recurring problems, review them, and evaluate prompt/model changes on a separate set. Reviewer corrections require calibration and are not automatically correct training labels. Past hiring outcomes are not unquestioned ground truth.
 
 Fine-tuning, real candidate reuse, and provider fallback are separate future decisions. Before real-data deployment, specify purpose/lawful basis, candidate notice, access controls, retention/deletion, processing regions, provider policies, relevant cross-border transfers, and handling of data-subject requests for stored data and derived models. Interview processing does not automatically authorize training reuse.

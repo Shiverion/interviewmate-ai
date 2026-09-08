@@ -1,0 +1,29 @@
+{
+  "recordedOn": "2026-09-08",
+  "scope": "Deterministic session-integrity software verification; not cheating-detection accuracy or live Firebase verification.",
+  "policyVersion": "session-integrity-v1",
+  "checks": {
+    "jest": { "passed": 84, "suites": 8, "newGuardrailChecks": 19 },
+    "cypress": {
+      "passed": 4,
+      "spec": "cypress/e2e/integrity.cy.ts",
+      "browser": "Electron",
+      "coverage": ["notice and actual interview start gate", "three/five thresholds without termination", "candidate context and export", "Indonesian notice and mobile layout"],
+      "signals": "simulated browser visibility/focus events"
+    },
+    "applicationTypecheck": "passed",
+    "cypressTypecheck": "passed",
+    "scopedEslint": "passed",
+    "productionBuild": "passed",
+    "rehearsalHttp": { "development": 200, "production": 404 }
+  },
+  "limitations": [
+    "Firebase completion saving was tested with mocked writes; live authorization and persistence remain unverified.",
+    "No real-candidate false-positive, cheating-detection, or multilingual usability rate was measured.",
+    "Three/five thresholds are provisional; interruptions are not proof of AI use or misconduct.",
+    "Client-reported records can be incomplete, cleared or modified; no anti-tamper guarantee.",
+    "Pre-existing Firebase configuration and rule changes were not modified or deployed.",
+    "Existing optional PDF/canvas build warnings remain.",
+    "No AI API calls, score changes, automatic termination or training pipeline were added."
+  ]
+}

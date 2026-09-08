@@ -59,6 +59,12 @@ Meaningful checks cover byte limits, malformed/duplicate/no-candidate requests, 
 
 The repository's pre-existing Firebase configuration/rule edits and local agent work were left untouched. Inherited permission, candidate-entry and voice observations remain documented in the [source baseline](../evaluation/current-product-baseline.md) and [local development guide](../../product/local-development.md).
 
+## Candidate session-integrity extension
+
+Added [deterministic guardrails](../implementation/session-integrity.md) to the actual interview room: pre-start notice, active-only visibility/focus monitoring, a 10-second grace period, warnings at three counted events and human-review suggestion at five, without termination or score penalties. Candidates can provide structured context. Recruiter report display/export and a separate completion-save attempt are implemented; live Firebase persistence and anti-tamper guarantees are not established. The local rehearsal requires no AI key. This is separate from the frozen synthetic review-brief experiment.
+
+[Verification record](../implementation/verification/2026-09-08-session-integrity-checks.json): 84 Jest checks passed across eight suites, including 19 guardrail checks; four guardrail browser checks passed. Build and scoped lint passed. The rehearsal returned 200 in development and 404 in production.
+
 ## Exit criteria
 
 - [x] Core feature runs with clearly labelled synthetic data.

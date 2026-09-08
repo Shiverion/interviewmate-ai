@@ -6,6 +6,8 @@ import LottieAvatar from "@/components/interview/LottieAvatar";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { getOpenAIKey } from "@/lib/keys/store";
 import { isFirebaseReady } from "@/lib/firebase/config";
+import { useSessionIntegrity } from "@/lib/integrity/useSessionIntegrity";
+import { IntegrityNotice, IntegrityPanel } from "@/components/interview/SessionIntegrity";
 import dynamic from "next/dynamic";
 
 const CodeEditor = dynamic(() => import("@/components/interview/CodeEditor"), { ssr: false });
@@ -67,6 +69,7 @@ export default function InterviewRoomPage() {
   const codeDiff = _sessionContext?.codeDiff ?? "";
   const isDemoSession = !!sessionId && sessionId.startsWith("demo-");
   const hasVisualPanel = visualPanel !== "none" && status === "active";
+  const integrity = useSessionIntegrity(sessionId || "standalone-interview", status, sessionId);
 
   // Attach local stream to video element PIP when it becomes available
   useEffect(() => {
@@ -199,8 +202,11 @@ export default function InterviewRoomPage() {
             </div>
           )}
 
+          <IntegrityNotice language={_sessionContext?.preferredLanguage}/>
+
           <button
             onClick={connect}
+            disabled={integrity.record?.acknowledgedAt == null}
             className="w-full gradient-primary text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-primary-500/25 hover:-translate-y-0.5 transition-transform"
           >
             Start Interview
@@ -223,6 +229,7 @@ export default function InterviewRoomPage() {
   if (status === "completed") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 text-center">
+        <IntegrityPanel language={_sessionContext?.preferredLanguage}/>
         <div className="max-w-2xl w-full glass-card p-8 md:p-10 space-y-6 relative overflow-hidden">
           {isEvaluating ? (
             <>
@@ -324,6 +331,7 @@ export default function InterviewRoomPage() {
 
   return (
     <div className="relative flex flex-col h-[calc(100vh-4rem)] bg-[var(--background)] overflow-hidden">
+      <IntegrityPanel language={_sessionContext?.preferredLanguage}/>
       {/* Background gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none" />
 

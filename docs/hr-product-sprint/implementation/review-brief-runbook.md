@@ -6,6 +6,8 @@ Updated: 2026-09-08. The local web workflow is implemented. Successful live gene
 
 ## Start locally
 
+The candidate interview room now has separate [lightweight session-integrity guardrails](session-integrity.md). Use its no-AI rehearsal to test tab-away events, warnings and candidate context; these events do not enter review-brief scoring or prompts.
+
 From the repository root, use Node.js 20.9.0 or newer and the existing lockfile:
 
 ```powershell

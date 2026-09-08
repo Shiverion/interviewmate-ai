@@ -6,6 +6,8 @@ import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { IntegrityReportPanel } from "@/components/interview/SessionIntegrity";
+import { reportText } from "@/lib/integrity/policy";
 
 export default function CandidateReportPage() {
     const params = useParams();
@@ -139,6 +141,7 @@ export default function CandidateReportPage() {
             txt += `\nATS SUMMARY:\n${ats.summary}\n\n`;
         }
 
+        txt += reportText(sessionData.session_integrity) + "\n";
         txt += `--- RAW TRANSCRIPT ---\n\n`;
 
         if (!final_transcript || final_transcript.length === 0) {
@@ -235,6 +238,7 @@ export default function CandidateReportPage() {
             </div>
 
             {/* ATS Pre-Screen Score */}
+            <IntegrityReportPanel value={sessionData.session_integrity}/>
             {sessionData?.ats_score && (
                 <div className="mb-8 space-y-4">
                     <h2 className="text-2xl font-bold font-heading flex items-center gap-2">
