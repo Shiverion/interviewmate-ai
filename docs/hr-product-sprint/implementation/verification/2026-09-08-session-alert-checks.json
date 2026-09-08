@@ -1,0 +1,20 @@
+{
+  "recordedOn": "2026-09-08",
+  "scope": "Candidate return-to-page pop-up and optional local alert sound",
+  "checks": {
+    "jest": { "passed": 89, "suites": 9, "newAlertChecks": 5 },
+    "cypress": { "passed": 5, "spec": "cypress/e2e/integrity.cy.ts", "browser": "Electron", "signals": "simulated visibility/focus events" },
+    "applicationTypecheck": "passed",
+    "cypressTypecheck": "passed",
+    "scopedEslint": "passed",
+    "productionBuild": "passed"
+  },
+  "limitations": [
+    "Unit tests mock AudioContext; browser checks verify sound controls, not human-perceived audibility.",
+    "Real tab-switch behavior, assistive-technology experience and sound pickup in a voice interview require human checks.",
+    "Pop-ups appear after a qualifying return; no detection of other tabs' contents, AI usage, or intent.",
+    "Interview audio and timer continue while the nonmodal reminder is displayed.",
+    "No changes to scoring, existing thresholds, Firebase saving, or model evaluation.",
+    "Existing optional PDF/canvas build warnings remain."
+  ]
+}

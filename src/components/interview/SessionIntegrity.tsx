@@ -7,6 +7,7 @@ import {
   type IntegrityReport,
 } from "@/lib/integrity/policy";
 import { useIntegrityStore } from "@/lib/integrity/store";
+import IntegrityAlert from "./IntegrityAlert";
 
 export function IntegrityNotice({ language = "" }: { language?: string }) {
   const { record, acknowledge } = useIntegrityStore();
@@ -33,6 +34,11 @@ export function IntegrityNotice({ language = "" }: { language?: string }) {
         {id
           ? "Tiga kejadian memunculkan peringatan; lima menyarankan peninjauan manusia. Kehilangan fokus saja tidak menambah hitungan. Sesi tidak otomatis dihentikan dan skor tidak dikurangi. Kejadian bukan bukti kecurangan; Anda bisa memberikan konteks."
           : "Three events trigger a warning; five suggest human review. Focus loss alone does not increase this count. Your session is not automatically ended and scores are not reduced. Events are not proof of cheating; you can provide context."}
+      </p>
+      <p className="text-[var(--muted)]">
+        {id
+          ? "Pengingat pop-up muncul saat Anda kembali setelah kejadian yang dihitung. Suara singkat dapat diaktifkan selama sesi. Wawancara dan waktunya tetap berjalan saat pengingat muncul."
+          : "A pop-up reminder appears when you return after a counted event. You can enable a short alert sound during the session. The interview and timer keep running while the reminder is displayed."}
       </p>
       <p className="text-[var(--muted)]">
         {id
@@ -94,6 +100,7 @@ export function IntegrityPanel({ language = "" }: { language?: string }) {
             : message}
         </p>
       </div>
+      {record.active && <IntegrityAlert language={language} />}
       {storageUnavailable && (
         <p role="status">
           {id

@@ -33,6 +33,7 @@ describe("lightweight session-integrity rehearsal", () => {
     start();
     away(2000);
     cy.contains("Hidden-page events: 0").should("be.visible");
+    cy.get('[aria-label="Interview page reminder"]').should("not.exist");
   });
   it("gates the actual interview start on the candidate notice", () => {
     cy.visit("http://127.0.0.1:3000/interview", {
@@ -47,9 +48,16 @@ describe("lightweight session-integrity rehearsal", () => {
   });
   it("warns at three, flags at five, and still allows the candidate to continue", () => {
     start();
-    for (let i = 0; i < 3; i++) away();
+    for (let i = 0; i < 3; i++) {
+      away();
+      cy.contains("Your interview page was hidden").should("be.visible");
+      cy.contains("button", "Got it, continue").click();
+    }
     cy.contains("Repeated page-away events").should("be.visible");
-    for (let i = 0; i < 2; i++) away();
+    for (let i = 0; i < 2; i++) {
+      away();
+      cy.contains("button", "Got it, continue").click();
+    }
     cy.contains("Human review suggested").should("be.visible");
     cy.contains("Rehearsal status:").should("contain", "active");
     cy.contains("button", "Finish rehearsal").should("not.be.disabled");
@@ -74,9 +82,33 @@ describe("lightweight session-integrity rehearsal", () => {
     cy.contains("button", "Start local rehearsal").click();
     cy.tick(10000);
     away();
+    cy.contains("Halaman wawancara sempat tersembunyi").should("be.visible");
+    cy.contains("button", "Mengerti, lanjutkan").click();
     cy.contains("Kejadian halaman tersembunyi: 1").should("be.visible");
     cy.document().then((doc) =>
       expect(doc.documentElement.scrollWidth).to.be.at.most(360)
     );
+  });
+  it("supports optional sound, keyboard dismissal and a fresh reminder", () => {
+    start();
+    cy.contains("button", "Enable & test alert sound").click();
+    cy.contains("button", "Mute alert sound").should(
+      "have.attr",
+      "aria-pressed",
+      "true"
+    );
+    away();
+    cy.get('[aria-label="Interview page reminder"]').should("be.visible");
+    cy.get("body").type("{esc}");
+    cy.get('[aria-label="Interview page reminder"]').should("not.exist");
+    cy.contains("button", "Mute alert sound").click();
+    away();
+    cy.get('[aria-label="Interview page reminder"]').should(
+      "contain",
+      "Recorded events: 2"
+    );
+    cy.contains("button", "Got it, continue").click();
+    cy.contains("button", "Finish rehearsal").click();
+    cy.get('[aria-label="Interview page reminder"]').should("not.exist");
   });
 });

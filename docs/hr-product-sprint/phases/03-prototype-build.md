@@ -65,6 +65,8 @@ Added [deterministic guardrails](../implementation/session-integrity.md) to the 
 
 [Verification record](../implementation/verification/2026-09-08-session-integrity-checks.json): 84 Jest checks passed across eight suites, including 19 guardrail checks; four guardrail browser checks passed. Build and scoped lint passed. The rehearsal returned 200 in development and 404 in production.
 
+The alert follow-up adds a dismissible English/Indonesian pop-up for each new counted event and an optional local chime with preview/mute. The interview remains active. See [alert behavior and manual checks](../implementation/session-integrity.md#return-to-page-alerts).
+
 ## Exit criteria
 
 - [x] Core feature runs with clearly labelled synthetic data.

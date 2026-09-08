@@ -33,6 +33,14 @@ A compact in-session panel displays counts, warnings and **Review events and add
 
 Explanations are available while monitoring is active. At completion the report is read-only and can be exported as JSON. This guardrail never calls interview termination or passes its data into AI evaluation prompts. Existing interview duration/completion behavior remains independent.
 
+### Return-to-page alerts
+
+Each new counted hidden-page event shows a dismissible corner pop-up when the candidate returns. It says **Your interview page was hidden**, gives the count, and escalates its message at three/five events. It does not assert that another tab, AI tool, or rule violation was detected. English and Indonesian are supported. Quick switches and focus-only context do not trigger the pop-up. Dismissal leaves the event record intact; restored history and candidate context edits do not replay alerts.
+
+The card has a blurred backdrop, without a full-screen blur or modal lock. It announces itself to assistive technology without moving keyboard focus and can be dismissed with its button or Escape. The interview audio and timer continue, as stated in the notice and pop-up; dismissal is not a resume action.
+
+Candidates may choose **Enable & test alert sound** during the active session. This plays a short, quiet preview and enables one 240 ms chime per new counted event. Sound starts off and can be muted; it is not persisted or included in recruiter reports. Audio is generated locally without an extra API or file. Browser/device restrictions can prevent playback, in which case a visual message appears and pop-ups remain available. User-gesture activation follows [MDN Web Audio best practices](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices), checked 2026-09-08. Use headphones when trying it in a voice interview to reduce speaker-to-microphone pickup; actual audio audibility and interference still need a human check.
+
 ## Recruiter experience and persistence
 
 The existing candidate report includes **Session integrity · human review**, with counts, the event timeline and candidate context. Its transcript/report text export also includes the advisory summary. A missing or invalid record is shown as unavailable, not as proof of compliance.
@@ -54,6 +62,7 @@ Keep these records under interview access/retention controls because they are as
 5. Repeat until three events: expect a warning. At five: expect a human-review suggestion and an active session.
 6. Add a context category, finish the rehearsal, and export the record.
 7. Separately try a quick switch, moving the cursor out of the page, and a visible-window focus loss. Cursor movement should do nothing; focus-only context should not increase the counted events.
+8. Enable and test the alert sound, then repeat a qualifying tab switch. Expect one pop-up and one short chime on return. Dismiss with the button or Escape; the count should remain. Mute sound and repeat to check the visual-only behavior.
 
 The rehearsal uses the same hook, policy, storage and panels as the interview room. Its route returns 404 in production. The actual interview room's guardrail remains enabled when that room runs; its existing AI/Firebase requirements still apply. Rehearsal counts persist in the tab so reload is not presented as a way to reset them.
 
@@ -65,12 +74,15 @@ Human follow-up: try real tab switching in the browsers candidates will use, per
 - [Browser record store](../../../src/lib/integrity/store.ts): persistence, acknowledgment, candidate context and visible storage/sync status.
 - [Session hook](../../../src/lib/integrity/useSessionIntegrity.ts): active-only listeners, cleanup and completion saving.
 - [Candidate and recruiter panels](../../../src/components/interview/SessionIntegrity.tsx).
+- [Return-to-page pop-up and optional local chime](../../../src/components/interview/IntegrityAlert.tsx).
 - [Interview room integration](../../../src/app/(public)/interview/page.tsx) and [recruiter report integration](../../../src/app/(recruiter)/interviews/[sessionId]/page.tsx).
 - [Rehearsal page](../../../src/app/review-brief/integrity-demo/page.tsx).
 
 Change thresholds in POLICY with a new policy version, corresponding notice text, boundary tests, and a documented rationale. Preserve historical reports and do not compare counts from different policies as equivalent.
 
 ## Verification
+
+[Alert follow-up results](verification/2026-09-08-session-alert-checks.json): 89 Jest checks across nine suites, all five guardrail browser scenarios, app/Cypress type checks, scoped lint and production build passed. Audible playback with a real microphone session remains a manual check.
 
 [Recorded results](verification/2026-09-08-session-integrity-checks.json): all 84 Jest checks passed (19 guardrail checks), four guardrail browser checks passed, and production build/scoped lint passed. The rehearsal returned 200 in development and 404 in production.
 
