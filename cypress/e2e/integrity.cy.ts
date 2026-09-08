@@ -46,6 +46,18 @@ describe("lightweight session-integrity rehearsal", () => {
     cy.contains("label", "I have read the session rules").find("input").check();
     cy.contains("button", "Start Interview").should("not.be.disabled");
   });
+  it("shows the return alert even when the browser has not restored page focus", () => {
+    start();
+    cy.document().then((doc) => {
+      (doc.hasFocus as Cypress.Agent<sinon.SinonStub>).returns(false);
+    });
+    away();
+    cy.get('[aria-label="Interview page reminder"]').should("be.visible");
+    cy.contains("Recorded events: 1").should("be.visible");
+    cy.contains("button", "Got it, continue").click();
+    cy.window().trigger("focus");
+    cy.get('[aria-label="Interview page reminder"]').should("not.exist");
+  });
   it("warns at three, flags at five, and still allows the candidate to continue", () => {
     start();
     for (let i = 0; i < 3; i++) {

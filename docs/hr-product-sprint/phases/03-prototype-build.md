@@ -67,6 +67,8 @@ Added [deterministic guardrails](../implementation/session-integrity.md) to the 
 
 The alert follow-up adds a dismissible English/Indonesian pop-up for each new counted event and an optional local chime with preview/mute. The interview remains active. See [alert behavior and manual checks](../implementation/session-integrity.md#return-to-page-alerts).
 
+The return-visibility fix removes the keyboard-focus prerequisite for closing a hidden interval. The rehearsal also shows monitoring off, a ten-second countdown, and readiness; [Phase 4](04-evaluation-and-iteration.md#session-integrity-software-verification) records the reproduced regression and verification limits.
+
 ## Exit criteria
 
 - [x] Core feature runs with clearly labelled synthetic data.

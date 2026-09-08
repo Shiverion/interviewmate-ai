@@ -132,6 +132,19 @@ export function observe(
   if (!state.active) return state;
   // Event-based duration measurement avoids relying on background timer scheduling.
   if (!hidden && focused) return closeEpisode(state, now);
+  if (!hidden && state.episode?.hiddenSince != null) {
+    // A selected tab can be visible while keyboard focus stays in browser chrome.
+    // Finish its hidden interval now; subsequent focus-only time is separate context.
+    const returned = closeEpisode(state, now);
+    return {
+      ...returned,
+      episode: {
+        startedAt: Math.max(now, state.graceUntil),
+        hiddenSince: null,
+        hiddenMs: 0,
+      },
+    };
+  }
   const e = state.episode ?? {
     startedAt: Math.max(now, state.graceUntil),
     hiddenSince: null,

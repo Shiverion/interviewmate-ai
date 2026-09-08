@@ -51,6 +51,15 @@ test("long visible focus loss is context only, never a warning count", () => {
   expect(s.count).toBe(0);
   expect(s.focusCount).toBe(1);
 });
+test("returning to a visible tab reports the hidden event before keyboard focus returns", () => {
+  let s = observe(running(), true, false, 11000);
+  s = observe(s, false, false, 14500);
+  expect(s.count).toBe(1);
+  expect(s.events[0].hiddenMs).toBe(3500);
+  s = observe(s, false, true, 14600);
+  expect(s.events).toHaveLength(1);
+  expect(s.count).toBe(1);
+});
 test("brief hidden time does not borrow duration from long focus loss", () => {
   let s = observe(running(), false, false, 11000);
   s = observe(s, true, false, 25000);

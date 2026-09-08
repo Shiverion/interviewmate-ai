@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSessionIntegrity } from "@/lib/integrity/useSessionIntegrity";
 import {
   IntegrityNotice,
@@ -13,6 +13,16 @@ export default function IntegrityRehearsal() {
   const [status, setStatus] = useState("setup");
   const [language, setLanguage] = useState("English");
   const integrity = useSessionIntegrity("demo-integrity-rehearsal", status);
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (status !== "active") return;
+    const timer = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, [status]);
+  const graceSeconds = Math.max(
+    0,
+    Math.ceil(((integrity.record?.graceUntil ?? 0) - now) / 1000)
+  );
   return (
     <main className="max-w-3xl mx-auto p-5 space-y-5">
       <Link href="/review-brief" className="underline">
@@ -37,6 +47,16 @@ export default function IntegrityRehearsal() {
       <IntegrityNotice language={language} />
       <p role="status">
         Rehearsal status: <strong>{status}</strong>
+      </p>
+      <p
+        role="status"
+        className="rounded-xl border border-[var(--border)] p-3 font-medium"
+      >
+        {status !== "active"
+          ? "Monitoring is off. Start the rehearsal to test tab switching."
+          : now === 0 || graceSeconds > 0
+            ? `Getting ready — ${now === 0 ? 10 : graceSeconds} seconds of startup grace remaining.`
+            : "Monitoring ready. Leave this tab for at least 3 seconds; the alert appears when you return."}
       </p>
       <p>
         After starting, allow 10 seconds for the startup grace period. Switch to
