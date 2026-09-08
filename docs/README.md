@@ -4,7 +4,7 @@
 
 Updated: 2026-09-08. This is the entry point for the inherited InterviewMate application and its new five-day HR product sprint.
 
-**Current status:** Phase 1 discovery and Phase 2 design are complete, with human timing still pending. Phases 3–5 are planned. The authored wireframe illustrates the review flow; the live AI/product workflow has not been built or evaluated yet.
+**Current status:** Discovery and design are complete. The [Phase 3 prototype](hr-product-sprint/phases/03-prototype-build.md) is implemented; successful live generation is pending provider access. Start with the [runbook](hr-product-sprint/implementation/review-brief-runbook.md) to run or modify it. Phases 4–5 and human timing remain pending.
 
 ## Recommended reading order
 
@@ -39,7 +39,7 @@ docs/
     decisions/                    Scope choices and their rationale
     research/                     Sources, workflow hypotheses and illustration
     design/                       UX/AI spec, rubric, prompt and authored wireframe
-    implementation/               Ordered engineering backlog
+    implementation/               Build backlog, runbook and verification records
     evaluation/
       README.md                   Materials and result status
       practice/                   Participant packet and separate reference notes

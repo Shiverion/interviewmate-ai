@@ -2,7 +2,7 @@
 
 [Documentation home](../README.md) · [Product overview](overview.md) · [Phase 3 tracker](../hr-product-sprint/phases/03-prototype-build.md)
 
-Updated: 2026-09-07. These instructions describe the repository configuration and known checks. They are not a verified end-to-end demo runbook yet.
+Updated: 2026-09-08. The [review-brief runbook](../hr-product-sprint/implementation/review-brief-runbook.md) owns the verified local synthetic workflow. The inherited live interview/Firebase flow is still unverified.
 
 ## Prerequisites and environment
 
@@ -29,22 +29,24 @@ For the inherited Firebase flow, enable Email/Password and Google authentication
 
 ```powershell
 npm ci
-npm run dev
+npm run dev -- --hostname 127.0.0.1
 ```
 
-Open [localhost:3000](http://localhost:3000). `npm ci` uses the committed lockfile. See the next section before treating startup as a verified demo path.
+Open [the review workspace](http://127.0.0.1:3000/review-brief) for the sprint prototype. Firebase is optional for this route. `npm ci` uses the committed lockfile; implementation checks used the existing installed dependencies.
 
-If default Turbopack startup fails with the previously observed Tailwind root-resolution issue, this alternative can help investigate:
+Phase 3 pins Turbopack and output tracing to this repository. Default startup now passes. If another environment encounters a bundler problem, this alternative remains available for investigation:
 
 ```powershell
 npm run dev -- --webpack
 ```
 
-Webpack started during the prior review, but the browser walkthrough was not completed successfully. This is a troubleshooting option, not a confirmed fix.
+The Phase 3 verified path uses default Turbopack. This Webpack alternative was not reverified.
 
 ## Known verification state
 
-Recorded during the initial product review on 2026-09-07; these checks were not rerun for the documentation reorganization.
+Current Phase 3 checks: 36 Jest tests pass; application/Cypress TypeScript and scoped new-feature lint pass; the production build passes with inherited optional canvas/PDF warnings. The local review page works with Firebase API key blank. Production page/API return 404. Seven browser tests pass with authored/mocked data. The actual provider attempt failed with AI_UNAVAILABLE; successful live generation remains pending. See the [Phase 3 verification record](../hr-product-sprint/phases/03-prototype-build.md#verification-record) for boundaries and the [runbook](../hr-product-sprint/implementation/review-brief-runbook.md) for commands.
+
+Historical observations below were recorded on 2026-09-07 and are retained for context. Phase 3 resolves the startup root, duplicate test discovery and matcher-type issues. Full legacy lint and the inherited interview flow remain outside the completed checks.
 
 | Check | Observed state | Follow-up |
 |---|---|---|

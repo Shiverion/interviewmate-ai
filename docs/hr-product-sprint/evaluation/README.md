@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Phase 4 plan](../phases/04-evaluation-and-iteration.md)
 
-Updated: 2026-09-07. **Preparation is complete for a human practice task; no human session or new live AI-quality evaluation has occurred.** The completed source inventory is a separate engineering baseline.
+Updated: 2026-09-07. **Preparation is complete for a human practice task; no human session or new live AI-quality evaluation has occurred.** The completed source inventory is a separate engineering baseline. The [Phase 3 implementation record](../phases/03-prototype-build.md#verification-record) includes software checks and one failed real provider attempt; it is not an AI-quality evaluation.
 
 ## Choose the right path
 

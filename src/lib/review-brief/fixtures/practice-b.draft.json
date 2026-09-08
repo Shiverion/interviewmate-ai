@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "criteria": {
+    "R1": {
+      "status": "conflicting_evidence",
+      "claims": [
+        {
+          "text": "Gives conflicting accounts of ownership of the same result-table and export implementation.",
+          "citations": [
+            {
+              "turnId": "P1-B-T02",
+              "quote": "I wrote the result-table component and export logic myself."
+            },
+            {
+              "turnId": "P1-B-T14",
+              "quote": "Another engineer wrote both the result-table component and the export logic; I did not modify those files."
+            }
+          ]
+        }
+      ],
+      "limitation": "Personal ownership of that implementation needs clarification; neither account resolves the conflict alone.",
+      "followUp": "Which result-table or export behaviors did you personally change, and which were implemented by your teammate?"
+    },
+    "R2": {
+      "status": "limited_evidence",
+      "claims": [
+        {
+          "text": "Reports proposing caching as a possible cause without capturing a trace or comparing response order.",
+          "citations": [
+            {
+              "turnId": "P1-B-T06",
+              "quote": "I told the backend engineer it might be cached data because I had seen caching cause something similar elsewhere."
+            },
+            {
+              "turnId": "P1-B-T06",
+              "quote": "I did not capture a network trace or compare response order."
+            }
+          ]
+        }
+      ],
+      "limitation": "The reported cause and effect of the later change are not established by this investigation account.",
+      "followUp": "What evidence would distinguish cached data from responses arriving out of order?"
+    },
+    "R3": {
+      "status": "limited_evidence",
+      "claims": [
+        {
+          "text": "Reports seeing rows and a downloaded file, and not adding a test for this change.",
+          "citations": [
+            {
+              "turnId": "P1-B-T08",
+              "quote": "The table displayed rows and a file downloaded."
+            },
+            {
+              "turnId": "P1-B-T08",
+              "quote": "I did not add a test for this change."
+            }
+          ]
+        }
+      ],
+      "limitation": "Relevant regression coverage and whether export contents matched the filters remain unestablished.",
+      "followUp": "Which assertion would verify that exported contents match the selected filters?"
+    },
+    "R4": {
+      "status": "not_established",
+      "claims": [
+        {
+          "text": "Explicitly reports not doing a keyboard-only or screen-reader check on this screen.",
+          "citations": [
+            {
+              "turnId": "P1-B-T12",
+              "quote": "I did not do a keyboard-only pass or use a screen reader on this screen."
+            }
+          ]
+        }
+      ],
+      "limitation": "Completed accessibility verification is not established; a library assumption or future plan cannot establish it.",
+      "followUp": "What keyboard interaction and expected focus behavior would you check first?"
+    }
+  }
+}

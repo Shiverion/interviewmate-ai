@@ -44,14 +44,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTheme((prev) => (prev === "dark" ? "light" : "dark"));
     };
 
-    // Prevent flash of wrong theme
-    if (!mounted) {
-        return <div style={{ visibility: "hidden" }}>{children}</div>;
-    }
-
+    // Keep the same subtree while hydration applies the saved theme. Replacing
+    // the wrapper with a provider remounts children and can reset early input.
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
-            {children}
+            <div style={{ visibility: mounted ? "visible" : "hidden" }}>{children}</div>
         </ThemeContext.Provider>
     );
 }

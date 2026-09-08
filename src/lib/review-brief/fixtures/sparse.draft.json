@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "criteria": {
+    "R1": {
+      "status": "specific_evidence",
+      "claims": [
+        {
+          "text": "Reports implementing a React input-to-API flow with results and error display.",
+          "citations": [
+            {
+              "turnId": "S-T02",
+              "quote": "I implemented a React search input that sent the current query to our API and displayed either results or an error."
+            }
+          ]
+        }
+      ],
+      "limitation": "Self-report only; request concurrency and implementation details remain unestablished.",
+      "followUp": "How should the interface handle a second query before the first request finishes?"
+    },
+    "R2": {
+      "status": "limited_evidence",
+      "claims": [
+        {
+          "text": "Reports trying one reload without reproducing the reported symptom.",
+          "citations": [
+            {
+              "turnId": "S-T04",
+              "quote": "I tried reloading once. I did not reproduce the stale results."
+            }
+          ]
+        }
+      ],
+      "limitation": "The cause of stale results is not established.",
+      "followUp": "What sequence and observations would help reproduce the stale results?"
+    },
+    "R3": {
+      "status": "not_established",
+      "claims": [],
+      "limitation": "Testing choices and release checks are not established in this transcript.",
+      "followUp": "Which checks would you describe for the implemented search flow?"
+    },
+    "R4": {
+      "status": "not_established",
+      "claims": [],
+      "limitation": "Accessibility work is not established in this transcript.",
+      "followUp": "What accessibility work or checks did you perform on the search controls?"
+    }
+  }
+}

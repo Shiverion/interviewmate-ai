@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "P1-B",
+  "transcriptVersion": "p1-practice-v1",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "P1-B-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+    },
+    {
+      "id": "P1-B-T02",
+      "speaker": "candidate",
+      "text": "I worked on an issue-search screen for an operations dashboard. It had React filters, a table, and an export action. I wrote the result-table component and export logic myself. A user selected the filters and the page called our existing API, then showed the returned items. We wanted it to feel responsive, and the team discussed loading and error handling. I remember using our shared request helper rather than writing a separate networking layer. I cannot explain the helper's internals now. The backend engineer supplied the endpoint and most of the response shape."
+    },
+    {
+      "id": "P1-B-T03",
+      "speaker": "interviewer",
+      "text": "What happened when the inputs changed again before the previous request finished?"
+    },
+    {
+      "id": "P1-B-T04",
+      "speaker": "candidate",
+      "text": "I think the request helper dealt with that, but I did not check whether it cancelled earlier requests or just kept the latest result. We discussed a delay after typing. I do not remember whether that delay was already in the shared filter component or added for this screen. I would need to look at the code to answer accurately."
+    },
+    {
+      "id": "P1-B-T05",
+      "speaker": "interviewer",
+      "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+    },
+    {
+      "id": "P1-B-T06",
+      "speaker": "candidate",
+      "text": "Someone reported that old issues appeared after changing a filter. I opened the page and tried a few searches, but the problem did not occur while I was watching. I told the backend engineer it might be cached data because I had seen caching cause something similar elsewhere. I did not capture a network trace or compare response order. They made a change later, and the ticket was closed. I remember seeing the screen behave normally afterward. I cannot say whether their change fixed the reported cause or whether the same steps were used to check it."
+    },
+    {
+      "id": "P1-B-T07",
+      "speaker": "interviewer",
+      "text": "How did you check the change and decide it was ready for release?"
+    },
+    {
+      "id": "P1-B-T08",
+      "speaker": "candidate",
+      "text": "I used the screen in the test environment, changed a few filters, and tried an export. The table displayed rows and a file downloaded. I do not remember which filter combinations I used or whether I checked the file contents against the table. The team's automated checks were green, and a reviewer approved the pull request. I did not add a test for this change. Quality assurance also looked at the screen, but I was not present for that check and cannot tell you which cases they covered. The release decision was made by the team lead."
+    },
+    {
+      "id": "P1-B-T09",
+      "speaker": "interviewer",
+      "text": "What did those checks leave untested or uncertain?"
+    },
+    {
+      "id": "P1-B-T10",
+      "speaker": "candidate",
+      "text": "I cannot identify a regression test for rapid filter changes, an empty result, or an API error. Those cases may exist in the suite, but I have not inspected them. The green result told me that the checks which ran passed; it did not tell me whether they exercised this particular screen or the reported defect."
+    },
+    {
+      "id": "P1-B-T11",
+      "speaker": "interviewer",
+      "text": "What accessibility work or checks did you perform on this interface?"
+    },
+    {
+      "id": "P1-B-T12",
+      "speaker": "candidate",
+      "text": "We used the team's component library and the design had labels for the controls. I assumed the library handled most accessibility behavior. I did not do a keyboard-only pass or use a screen reader on this screen. I remember discussing a loading message, but I do not know whether it was announced or only visible. I would first check whether I can reach and operate the filters without a mouse, then ask someone with more experience to help inspect focus and announcements. That is what I would do next, not something I completed during the project."
+    },
+    {
+      "id": "P1-B-T13",
+      "speaker": "interviewer",
+      "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+    },
+    {
+      "id": "P1-B-T14",
+      "speaker": "candidate",
+      "text": "Another engineer wrote both the result-table component and the export logic; I did not modify those files. My changes were the filter labels and the page layout. I joined the discussions, but I cannot reconstruct every implementation choice. Next I would review the request helper with that engineer, reproduce the reported stale-result sequence, and identify which tests actually cover it before suggesting another fix."
+    }
+  ]
+}

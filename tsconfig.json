@@ -5,6 +5,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "types": ["node", "jest", "@testing-library/jest-dom"],
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -30,5 +31,12 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".claude",
+    "cypress",
+    "cypress.config.ts",
+    "tmp",
+    ".review-brief-runs"
+  ]
 }

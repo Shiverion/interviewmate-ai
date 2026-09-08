@@ -57,7 +57,7 @@ These results are design-artifact checks, not measured AI accuracy, time savings
 
 ## Open items and next action
 
-Start Phase 3 with a verified local page outside the recruiter gates, then implement the versioned generation/review contract. The pinned model's availability and output quality must be tested with real calls; no API key or Firebase round trip was used for Phase 2.
+The [Phase 3 report](03-prototype-build.md) now records the implemented local page and generation/review contract. Its successful live generation verification is pending provider access. No API key or Firebase round trip was used for Phase 2; retain that distinction from subsequent implementation checks.
 
 Human timing still awaits an available reviewer. C01–C08 evaluation inputs/reference labels must be authored and versioned before tuning; the planned withheld cases do not exist yet. Broader browser/accessibility checks and practitioner calibration remain future work.
 
@@ -70,3 +70,5 @@ Human timing still awaits an available reviewer. C01–C08 evaluation inputs/ref
 | 2026-09-07 | Defined D02, rubric/profile, prompt, executable contract, authored examples, UX states and acceptance plan | Versioned design choices and Phase 3 backlog; no live AI results |
 | 2026-09-08 | Built the authored interactive wireframe and corrected source-panel/ID behavior | Source inspection, edits and review/export eligibility demonstrated with authored content |
 | 2026-09-08 | Passed 30 contract checks and 18 DOM interaction checks; inspected browser rendering | Design package complete; Phase 3 implementation and Phase 4 evaluation remain outstanding |
+
+| 2026-09-08 | Linked the implemented Phase 3 workflow | Design artifacts remain authored references; live provider verification is tracked in Phase 3 |

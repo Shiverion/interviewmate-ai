@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [Phase 2 progress](../phases/02-solution-design-and-ai-logic.md) · [D02 design decision](../decisions/002-review-brief-design.md)
 
-Version: `review-brief-v1`. Updated: 2026-09-08. These are engineering-ready design artifacts and authored examples. The live product flow and model behavior remain Phase 3/4 work.
+Version: `review-brief-v1`. Updated: 2026-09-08. These are engineering-ready design artifacts and authored examples. The [Phase 3 runtime](../implementation/review-brief-runbook.md) now implements the local product flow; successful live generation is pending provider access and model-quality evaluation remains Phase 4 work.
 
 ## Read and explore
 
@@ -18,7 +18,7 @@ Version: `review-brief-v1`. Updated: 2026-09-08. These are engineering-ready des
 
 ## Machine-readable artifacts
 
-The [role profile](role-profile.json) is the canonical criterion/question configuration. The [executable contract](review-brief-contract.cjs) defines Zod shapes and cross-field citation checks; it runs offline and is not yet imported by the application.
+The [role profile](role-profile.json) is the canonical criterion/question configuration. The [executable contract](review-brief-contract.cjs) defines Zod shapes and cross-field citation checks; it remains an offline design reference. The application uses a TypeScript port with the same validation rules. The runbook records the runtime copies and how to keep them aligned.
 
 The [example catalog](examples/catalog.json) records provenance and expected mechanical/semantic outcomes for three inputs and five authored drafts:
 

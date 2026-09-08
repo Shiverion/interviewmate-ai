@@ -53,7 +53,7 @@ function createSafeProxy<T extends object>(name: string, target: T | undefined):
     return new Proxy({} as T, {
         get(_, prop) {
             // Handle symbols and common standard properties gracefully
-            if (typeof prop === 'symbol' || prop === 'then' || prop === 'asPromise') {
+            if (typeof prop === 'symbol' || prop === 'then' || prop === 'asPromise' || prop === '$$typeof') {
                 return undefined;
             }
 

@@ -2,7 +2,7 @@
 
 [Phase 3 report](../phases/03-prototype-build.md) · [Design package](../design/README.md) · [D02](../decisions/002-review-brief-design.md)
 
-Updated: 2026-09-07. Status: ready to implement; no tasks below are complete. Eight-hour allocation is a plan, not recorded effort.
+Updated: 2026-09-08. B01–B05 are implemented. B06 software verification is complete with seven browser tests; its successful live generation demonstration remains pending provider access. The [runbook](review-brief-runbook.md) owns setup and source locations, and the [Phase 3 report](../phases/03-prototype-build.md#verification-record) owns actual results. Eight-hour allocation is a plan, not recorded effort.
 
 ## Build sequence
 
@@ -36,4 +36,4 @@ Run focused tests, relevant type/lint checks and one fresh-session browser walkt
 
 If voice or persistence threatens the core path, keep it deferred as D01/D02 already specify. If startup stabilization exceeds its allocation, record the specific blocker and revise the remaining allocation explicitly. Avoid adding resume ranking, full user management, dashboard polish or public deployment.
 
-Phase 3 completion requires the core workflow and its validation evidence. The Phase 2 clickable wireframe and offline contract checks are inputs, not proof that this backlog has been implemented.
+Phase 3 completion requires the core workflow and its validation evidence. The first real provider attempt returned AI_UNAVAILABLE; a successful live API demonstration is still open. Authored and mocked checks must remain labelled as such.

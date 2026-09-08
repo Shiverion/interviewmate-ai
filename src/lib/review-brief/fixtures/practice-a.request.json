@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "review-brief-v1",
+  "roleVersion": "frontend-review-v1",
+  "transcriptId": "P1-A",
+  "transcriptVersion": "p1-practice-v1",
+  "synthetic": true,
+  "turns": [
+    {
+      "id": "P1-A-T01",
+      "speaker": "interviewer",
+      "text": "Describe a frontend feature you worked on. How did data move from a user action to the interface, and what did you implement?"
+    },
+    {
+      "id": "P1-A-T02",
+      "speaker": "candidate",
+      "text": "I worked on the order-search screen in an operations dashboard. I implemented the React filter controls and the component that requested and displayed results. The text input held the current search value; after a short delay, an effect sent the filters to our existing API. The component showed loading, empty, and error states separately. I also put the selected filters into the URL so another team member could open the same view. The API contract already existed. I agreed the parameter names with a backend engineer rather than changing the endpoint myself."
+    },
+    {
+      "id": "P1-A-T03",
+      "speaker": "interviewer",
+      "text": "What happened when the inputs changed again before the previous request finished?"
+    },
+    {
+      "id": "P1-A-T04",
+      "speaker": "candidate",
+      "text": "Originally, either response could update the result state. I added a request sequence number and only applied a response if its number matched the latest request. I also aborted the earlier request when starting another, but kept the sequence check because cancellation alone was not the behavior I wanted the interface to depend on."
+    },
+    {
+      "id": "P1-A-T05",
+      "speaker": "interviewer",
+      "text": "Walk me through a user-facing defect you investigated. What did you observe, and how did you decide what was causing it?"
+    },
+    {
+      "id": "P1-A-T06",
+      "speaker": "candidate",
+      "text": "A support colleague said the table sometimes showed orders for an earlier search. I reproduced it by throttling the browser network and changing the query twice. The request for the first query finished after the second and replaced its results. I compared the query values and completion order in the network panel, then logged which response updated state. That gave me a specific explanation to test. I made the sequence-check change and repeated those steps. I did not find a backend filtering issue in that reproduction, although that does not rule out every possible backend defect."
+    },
+    {
+      "id": "P1-A-T07",
+      "speaker": "interviewer",
+      "text": "How did you check the change and decide it was ready for release?"
+    },
+    {
+      "id": "P1-A-T08",
+      "speaker": "candidate",
+      "text": "I added a component test with two mocked requests. It resolved the second request first, then the first, and checked that the table still displayed the second query's rows. I also checked the empty and failed response states. I manually repeated rapid input changes in the browser. Another frontend engineer reviewed the change, and quality assurance ran our existing search checklist. Those checks supported releasing it to the test environment and then through our normal release process. I did not measure whether the change reduced support tickets afterward."
+    },
+    {
+      "id": "P1-A-T09",
+      "speaker": "interviewer",
+      "text": "What did those checks leave untested or uncertain?"
+    },
+    {
+      "id": "P1-A-T10",
+      "speaker": "candidate",
+      "text": "The component test used mocked responses, so it did not cover the real API or authentication. We had no automated browser regression for this request-order case. I would add that if we saw repeated integration failures, and I would want to check whether navigating away during a request produces confusing error messages."
+    },
+    {
+      "id": "P1-A-T11",
+      "speaker": "interviewer",
+      "text": "What accessibility work or checks did you perform on this interface?"
+    },
+    {
+      "id": "P1-A-T12",
+      "speaker": "candidate",
+      "text": "I used native inputs with associated labels and checked the filter controls using only the keyboard. I verified that focus remained in the search field when results changed and that the clear-filter button had an understandable name. I added a status message for loading and the result count. I have not tested how that announcement behaves with a screen reader, so I cannot claim that part works well. I would ask a colleague familiar with assistive technology to review it and help me check for repeated announcements while typing."
+    },
+    {
+      "id": "P1-A-T13",
+      "speaker": "interviewer",
+      "text": "Looking back, what were the limits of your ownership or evidence, and what would you investigate or ask for help with next?"
+    },
+    {
+      "id": "P1-A-T14",
+      "speaker": "candidate",
+      "text": "I owned the filter and result-state code; another engineer maintained the table's shared rendering component, and backend owned the query service. My evidence is the reproduction and checks I described, not a measured production improvement. Next I would verify the screen-reader announcements and add a browser regression around the real request flow. I would also ask support whether their original symptom returned."
+    }
+  ]
+}

@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         if (!isFirebaseReady()) {
-            console.error("[AuthProvider] Firebase initialization skipped. Ensure NEXT_PUBLIC_FIREBASE_API_KEY is configured in your environment variables.");
+            console.warn("[AuthProvider] Firebase initialization skipped. Authentication is unavailable until NEXT_PUBLIC_FIREBASE_API_KEY is configured.");
             setLoading(false);
             return;
         }
