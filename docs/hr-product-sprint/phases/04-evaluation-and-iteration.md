@@ -1,6 +1,6 @@
 # Phase 4: evaluation and iteration
 
-Status: **In progress — dataset and harness complete; live model evaluation blocked by provider access.**
+Status: **In progress — English-first comparison implemented; live provider access and human review pending.**
 
 Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
@@ -91,7 +91,15 @@ Use the [manual study guide](../evaluation/manual-study-guide.md) if a willing r
 
 ## Open items and next action
 
-Restore server `OPENAI_API_KEY` access to the pinned model and restart the local development server. Run a new bounded check or batch using the guide; preserve this failed batch. Then conduct semantic review and report actual denominators before calling Phase 4 complete.
+### English-first implementation verification
+
+[Recorded software checks](../implementation/verification/2026-09-08-english-first-checks.json): 65 distinct Jest checks passed (63 in the full suite, followed by a 13-check state rerun including two new ranking checks); 12 Cypress browser checks passed, including five benchmark tests. App/Cypress type checks, scoped ESLint, production build, and documentation links passed. Actual production GET page / GET API / POST API checks returned 404. The legacy 27-check harness and frozen dataset checks still pass. Optional inherited PDF/canvas build warnings remain.
+
+These use authored mock provider responses. No live comparison, human reference approval, multilingual pass rate, hiring accuracy, or training improvement is claimed.
+
+The [English-first comparison workspace](../evaluation/english-first-pilot.md) adds OpenAI/Gemini/DeepSeek adapters, reference approval, shuffled output review, separate language results, and export/import. English v1 is unchanged; three Indonesian adaptations need human meaning checks. This is a new experiment, not a replacement for the failed v1 batch. Configure a working provider privately, review C01, and perform one smoke run before expanding coverage. The [governance record](../evaluation/data-governance.md) documents the synthetic-only input boundary and deferred training/transcription work.
+
+For the legacy CLI experiment, restore server `OPENAI_API_KEY` access to its pinned model and restart the development server. For the new multi-provider workspace, follow the pilot guide above. Preserve the failed batch, conduct human semantic review, and report actual denominators before calling Phase 4 complete.
 
 A final case study can already explain the scope, design, implementation and honest access limitation. Successful live AI, AI-quality measurements, human timing and the five-minute video remain unresolved deliverable work; no Phase 5 completion is implied.
 
@@ -105,3 +113,4 @@ A final case study can already explain the scope, design, implementation and hon
 | 2026-09-08 | Authored eight base cases, two exact variants and provisional references; froze them before API calls | 69 base transcript turns, 32 base criterion judgments and 32 base uncertainty checkpoints |
 | 2026-09-08 | Implemented and checked the evaluation runner and summaries | 27 software checks passed; mocked outcomes remain explicitly separate |
 | 2026-09-08 | Attempted the first real Phase 4 batch | C01-r1 returned 503 / AI_UNAVAILABLE; retained failure, zero generated drafts and 29 unattempted slots |
+| 2026-09-08 | Implemented English-first three-provider benchmark and a separate Indonesian extension | Reference approval, shuffled review, gated ranking, export/import, setup guide and governance record; software checks pass, live and human judgments pending |

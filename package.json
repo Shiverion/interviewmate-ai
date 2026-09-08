@@ -11,6 +11,7 @@
     "e2e": "cypress run"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.121",
     "@ai-sdk/openai": "^3.0.37",
     "@monaco-editor/react": "^4.7.0",
     "ai": "^6.0.105",

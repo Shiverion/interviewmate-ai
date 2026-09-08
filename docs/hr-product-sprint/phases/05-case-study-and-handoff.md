@@ -52,7 +52,7 @@ Never describe saved output as a live model response. If using a replay for reco
 
 | Required deliverable | Location | Status |
 |---|---|---|
-| Runnable prototype / interactive workflow | Not yet selected | Pending Phase 3 |
+| Runnable prototype / interactive workflow | [Review runbook](../implementation/review-brief-runbook.md), [benchmark workspace](../evaluation/english-first-pilot.md) | Implemented locally; successful live generation pending |
 | Case study and engineering handoff Markdown | To be produced here or linked as a final artifact | Pending Phases 1-4 |
 | Five-minute Loom or screen-recorded video | No recording yet | Pending verified demonstration |
 
@@ -67,7 +67,7 @@ Never describe saved output as a live model response. If using a replay for reco
 
 ## Open items and next action
 
-The final prototype, measured evaluation results and recording do not exist yet. When Phases 2–4 provide them, assemble the case study from the linked evidence, verify the handoff instructions, and record the demonstrated workflow. Update the submission register with actual artifact locations.
+The local review prototype and English-first benchmark workspace now exist. Successful live model evaluation, human judgments, the final case study and recording remain pending. Use the [setup/reviewer guide](../evaluation/english-first-pilot.md) and [governance record](../evaluation/data-governance.md) as handoff inputs. Assemble the final artifacts from measured evidence and record the verified workflow.
 
 ## Progress log
 

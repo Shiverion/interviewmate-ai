@@ -50,6 +50,8 @@ export type Dependencies = {
   generate: (input: ReviewInput, signal: AbortSignal) => Promise<ModelResult>;
   record: (record: RunRecord) => Promise<void>;
   timeoutMs?: number;
+  modelRequested?: string;
+  unavailableMessage?: string;
 };
 export const inputHash = (input: ReviewInput) =>
   createHash("sha256").update(JSON.stringify(input)).digest("hex");
@@ -160,7 +162,8 @@ export function createHandler(deps: Dependencies) {
         new GenerationFailure(
           "AI_UNAVAILABLE",
           503,
-          "Configure OPENAI_API_KEY on the local server, then restart it.",
+          deps.unavailableMessage ??
+            "Configure OPENAI_API_KEY on the local server, then restart it.",
           true
         )
       );
@@ -172,7 +175,7 @@ export function createHandler(deps: Dependencies) {
       input,
       inputHash: hash,
       provenance: deps.provenance,
-      modelRequested: MODEL,
+      modelRequested: deps.modelRequested ?? MODEL,
     };
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -242,7 +245,7 @@ export function createHandler(deps: Dependencies) {
         generatedAtUtc: new Date().toISOString(),
         sourceType: "live_model",
         inputHash: hash,
-        modelRequested: MODEL,
+        modelRequested: deps.modelRequested ?? MODEL,
         modelReturned: result.modelReturned,
         latencyMs: Date.now() - started,
         usage: result.usage,

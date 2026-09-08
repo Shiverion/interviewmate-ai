@@ -277,6 +277,7 @@ export default function ReviewBrief({
         <Link href="/">
           InterviewMate <span> / Review workspace</span>
         </Link>
+        <Link href="/review-brief/evaluation">Compare evaluation models →</Link>
         <span className={styles.tag}>LOCAL PROTOTYPE · SYNTHETIC DATA</span>
       </header>
       <div className={styles.intro}>

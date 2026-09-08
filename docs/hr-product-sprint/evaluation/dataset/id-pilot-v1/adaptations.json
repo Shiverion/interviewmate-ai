@@ -1,0 +1,42 @@
+{
+  "version": "id-pilot-v1",
+  "authorship": "AI-authored Indonesian adaptations; meaning and reference judgments require human review before use. Not independent ground truth.",
+  "translations": {
+    "C01": [
+      "Ceritakan fitur frontend yang Anda kerjakan. Bagaimana data mengalir dari tindakan pengguna ke antarmuka, dan bagian mana yang Anda implementasikan?",
+      "Nama saya Maya Chen. Saya membuat filter antrean di React. Mengubah filter memperbarui parameter URL, memicu request ke API yang sudah ada, lalu memasukkan baris hasilnya ke local state. Saya memakai nomor request yang terus bertambah agar respons lama tidak menggantikan baris terbaru. Saya tidak membuat API atau tabel bersama.",
+      "Ceritakan bug yang berdampak pada pengguna dan pernah Anda selidiki. Apa yang Anda amati, dan bagaimana Anda menentukan penyebabnya?",
+      "Saya mereproduksi antrean yang menampilkan data lama dengan memperlambat satu request di browser. Network panel menunjukkan respons kedua tiba lebih dulu, lalu respons pertama menggantikan barisnya. Saya mencatat nomor request pada setiap pembaruan state; dari situ saya mengaitkan penimpaan data dengan urutan respons, bukan dengan cache.",
+      "Bagaimana Anda menguji perubahan tersebut dan menentukan kesiapan rilisnya?",
+      "Saya menulis test dengan dua mock request yang penyelesaiannya bisa ditunda. Saya menyelesaikan request yang lebih baru terlebih dahulu, lalu memeriksa bahwa barisnya tetap terlihat setelah request lama diselesaikan. Saya juga memeriksa bahwa respons error menghilangkan indikator loading. Saya tidak menguji dengan backend yang sebenarnya.",
+      "Pekerjaan atau pemeriksaan aksesibilitas apa yang Anda lakukan pada antarmuka ini?",
+      "Saya menghubungkan label filter dengan elemen select-nya dan memakai Tab serta Shift+Tab untuk masuk dan keluar dari kontrol itu. Saya memeriksa bahwa indikator fokus yang terlihat tetap berada pada kontrol yang aktif. Saya tidak menggunakan screen reader.",
+      "Jika melihat kembali, apa batas tanggung jawab atau bukti yang Anda miliki, dan apa yang akan Anda selidiki atau mintakan bantuan berikutnya?",
+      "Engineer lain meninjau perubahan saya. Perubahan itu belum di-deploy saat saya meninggalkan proyek, jadi saya tidak bisa mengklaim adanya perbaikan di production. Berikutnya saya ingin memverifikasi timing API yang sebenarnya dan pengumuman screen reader."
+    ],
+    "C02": [
+      "Ceritakan fitur frontend yang Anda kerjakan. Bagaimana data mengalir dari tindakan pengguna ke antarmuka, dan bagian mana yang Anda implementasikan?",
+      "Dashboard kami adalah hasil kerja tim yang bagus. Saya membantu menata filter dan mengikuti diskusi React. Senior engineer menangani data layer. Saya tidak bisa menjelaskan urutan state atau request karena saya tidak mengerjakan bagian itu.",
+      "Ceritakan bug yang berdampak pada pengguna dan pernah Anda selidiki. Apa yang Anda amati, dan bagaimana Anda menentukan penyebabnya?",
+      "Seorang pelanggan menyebut adanya baris data lama. Saya mencoba halaman itu sekali dan menduga penyebabnya cache karena terdengar familier. Saya tidak merekam trace atau menyelidiki respons mana yang ditampilkan.",
+      "Bagaimana Anda menguji perubahan tersebut dan menentukan kesiapan rilisnya?",
+      "Saya mengeklik Export dan melihat sebuah file terunduh. Pipeline tim berstatus hijau. Saya tidak memeriksa isi file dan tidak tahu assertion apa yang ada dalam test suite.",
+      "Pekerjaan atau pemeriksaan aksesibilitas apa yang Anda lakukan pada antarmuka ini?",
+      "Kami menggunakan component library yang sudah mapan. Saya sendiri tidak menambahkan perilaku aksesibilitas atau melakukan pemeriksaan aksesibilitas; saya berasumsi library tersebut sudah menanganinya.",
+      "Jika melihat kembali, apa batas tanggung jawab atau bukti yang Anda miliki, dan apa yang akan Anda selidiki atau mintakan bantuan berikutnya?",
+      "Saya tidak bisa memisahkan hasil keseluruhan tim dari perubahan saya sendiri dengan lebih tepat. Saya akan bertanya kepada senior engineer tentang alur data dan meninjau test sebelum mengklaim masalahnya sudah diperbaiki."
+    ],
+    "C04": [
+      "Ceritakan fitur frontend yang Anda kerjakan. Bagaimana data mengalir dari tindakan pengguna ke antarmuka, dan bagian mana yang Anda implementasikan?",
+      "Saya sendiri menulis validation helper dan penanganan form state untuk drawer bulk-edit. Mengubah field memperbarui objek draft, dan Submit mengirim objek itu ke endpoint yang sudah ada. Yang saya maksud adalah versi pada rilis terakhir.",
+      "Ceritakan bug yang berdampak pada pengguna dan pernah Anda selidiki. Apa yang Anda amati, dan bagaimana Anda menentukan penyebabnya?",
+      "Saya menyelidiki mengapa pesan error validasi menghilang. Di network panel saya melihat endpoint mengembalikan array errors, sedangkan handler UI membaca string error. Saya membandingkan payload tersebut dengan handler dan menemukan ketidakcocokan bentuk data. Saya tidak punya hasil monitoring production setelah perubahan itu.",
+      "Bagaimana Anda menguji perubahan tersebut dan menentukan kesiapan rilisnya?",
+      "Saya menulis component test untuk pilihan kosong, respons sukses, dan respons berupa array errors. Test error memeriksa bahwa setiap pesan yang dikembalikan tetap terlihat. Request-nya di-mock, jadi pemeriksaan ini tidak membuktikan kompatibilitas dengan backend.",
+      "Pekerjaan atau pemeriksaan aksesibilitas apa yang Anda lakukan pada antarmuka ini?",
+      "Saya menambahkan label teks yang terlihat pada dua kontrol form. Saya tidak memeriksa hubungan label secara programatis atau mencoba perilaku keyboard maupun teknologi bantu.",
+      "Jika melihat kembali, apa batas tanggung jawab atau bukti yang Anda miliki, dan apa yang akan Anda selidiki atau mintakan bantuan berikutnya?",
+      "Untuk memperjelas drawer pada rilis terakhir yang sama: engineer lain menulis validation helper dan penanganan form state tersebut. Saya tidak mengedit kedua bagian itu. Saya menulis component test. Saya tidak bisa menyelaraskan ini dengan penjelasan tanggung jawab saya sebelumnya tanpa memeriksa riwayat perubahan."
+    ]
+  }
+}

@@ -6,6 +6,8 @@ Updated: 2026-09-08. **The human practice packet and Phase 4 dataset/runner are 
 
 ## Choose the right path
 
+**New: [English-first three-provider pilot](english-first-pilot.md)** — API setup, benchmark review, Indonesian adaptations, and the exact human tasks. [Data governance](data-governance.md) records implemented boundaries and deferred training work. This is a separate experiment from frozen v1; live comparison remains pending.
+
 | Purpose | Materials | Current status |
 |---|---|---|
 | Understand the inherited report | [Source baseline report](current-product-baseline.md), [dated raw audit](baselines/2026-09-07-source-audit.json) | Executed source inspection; no model or user outcome measured |

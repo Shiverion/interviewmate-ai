@@ -1,0 +1,46 @@
+{
+  "recordedOn": "2026-09-08",
+  "scope": "English-first evaluation workspace software verification; no live provider-quality or human-review result.",
+  "benchmarkDatasetHash": "7d52af4af38acfa95c0873e0d1e4578fbea4f54fafa5976694a95f5dcf89cbf0",
+  "cases": {
+    "englishBase": 8,
+    "englishVariants": 2,
+    "indonesianAdaptations": 3,
+    "humanApproved": 0
+  },
+  "checks": {
+    "jest": {
+      "distinctPassed": 65,
+      "detail": "Full suite: 63 passed. Added two ranking checks; targeted state suite: 13 passed, including both new checks."
+    },
+    "cypress": {
+      "passed": 12,
+      "benchmark": 5,
+      "existingReviewWorkspace": 7,
+      "transport": "authored mocked responses"
+    },
+    "applicationTypecheck": "passed",
+    "cypressTypecheck": "passed",
+    "scopedEslint": "passed",
+    "productionBuild": "passed",
+    "productionHttp": {
+      "page": 404,
+      "apiGet": 404,
+      "apiPost": 404
+    },
+    "frozenPhase4Checks": {
+      "passed": 27,
+      "freeze": "unchanged; 30 planned legacy runs remain distinct"
+    },
+    "documentationLinks": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "limitations": [
+    "No genuine provider generation attempted in this implementation turn; earlier OpenAI access failure retained.",
+    "Gemini and DeepSeek keys absent; OpenAI key present but working access unverified.",
+    "All reference approvals and human model judgments remain pending.",
+    "Indonesian adaptations require human meaning review.",
+    "Existing optional PDF/canvas build warnings remain.",
+    "No audio recording/transcription comparison, training pipeline, or production deployment implemented."
+  ]
+}
