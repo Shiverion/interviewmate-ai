@@ -68,6 +68,7 @@ export async function benchmarkPost(request: Request) {
       409
     );
   const provider = profiles().find((p) => p.id === selected.data.providerId)!;
+  const suppliedKey = request.headers.get("x-ai-key")?.trim();
   const config = configurationFor(provider.id, item.language);
   const metadata = {
     studyVersion: STUDY_VERSION,
@@ -82,7 +83,7 @@ export async function benchmarkPost(request: Request) {
   };
   const handler = createHandler({
     enabled: true,
-    configured: provider.configured,
+    configured: provider.configured || !!suppliedKey,
     provenance: config.provenance,
     modelRequested: config.model,
     unavailableMessage:
@@ -90,7 +91,15 @@ export async function benchmarkPost(request: Request) {
       provider.keyName +
       " on the server and restart it. Key presence does not prove access.",
     generate: (input, signal) =>
-      generateBenchmark(provider.id, item.language, input, signal),
+      suppliedKey
+        ? generateBenchmark(
+            provider.id,
+            item.language,
+            input,
+            signal,
+            suppliedKey
+          )
+        : generateBenchmark(provider.id, item.language, input, signal),
     async record(record) {
       const directory = path.join(process.cwd(), ".benchmark-runs");
       await mkdir(directory, { recursive: true });

@@ -1,5 +1,7 @@
 # Phase 3: prototype build
 
+2026-09-09 update: keyless dashboard access, three-provider evaluation settings, redesigned workspace and limited reviewer voice are implemented. See the [access runbook](../implementation/reviewer-demo-and-access.md). Real voice acceptance is blocked by the OpenAI server credential returning HTTP 401; Gemini/DeepSeek host credentials are absent.
+
 Status: **In progress — runnable prototype implemented; successful live generation verification pending provider access.**
 
 Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.

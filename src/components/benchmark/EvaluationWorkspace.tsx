@@ -24,6 +24,8 @@ import {
   type ProviderProfile,
 } from "@/lib/benchmark/types";
 import styles from "./evaluation.module.css";
+import { getProviderKey } from "@/lib/keys/store";
+import { useKeys } from "@/components/providers/KeyProvider";
 
 const label = (value: string) => value.replaceAll("_", " ");
 const issueOptions = [
@@ -64,6 +66,7 @@ export default function EvaluationWorkspace({
   datasetHash: string;
   providers: ProviderProfile[];
 }) {
+  const { keys } = useKeys();
   const [study, setStudy] = useState(() => createStudy(datasetHash));
   const [language, setLanguage] = useState<Language>("en");
   const [caseId, setCaseId] = useState("C01");
@@ -141,7 +144,10 @@ export default function EvaluationWorkspace({
         try {
           const res = await fetch("/api/benchmark", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-ai-key": getProviderKey(providerId) || "",
+            },
             signal: controller.signal,
             body: JSON.stringify({
               caseId: item.id,
@@ -402,7 +408,7 @@ export default function EvaluationWorkspace({
                   <small>
                     {p.model}
                     <br />
-                    {p.configured
+                    {keys[p.id] || p.configured
                       ? "Key present · access unverified"
                       : "Missing " + p.keyName}
                   </small>
@@ -413,8 +419,9 @@ export default function EvaluationWorkspace({
           <details>
             <summary>API setup and data destination</summary>
             <p>
-              Set keys in the ignored .env.local file and restart the dev
-              server. Never enter keys here.
+              Connect personal keys in Models & access, or ask the host to
+              configure provider access. Keys are sent only to the selected
+              provider through this app’s server.
             </p>
             <p>
               Each selected provider receives the synthetic transcript, rubric,

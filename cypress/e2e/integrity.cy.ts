@@ -45,18 +45,24 @@ describe("session pauses and technical recovery", () => {
   it("pauses when a visible interview loses focus to another window, without double counting", () => {
     start();
     cy.document().then((doc) => {
-      const focus = doc.hasFocus as unknown as { returns: (v: boolean) => void };
+      const focus = doc.hasFocus as unknown as {
+        returns: (v: boolean) => void;
+      };
       focus.returns(false);
       doc.defaultView!.dispatchEvent(new Event("blur"));
     });
     cy.tick(1000);
     cy.contains("Interview paused").should("be.visible");
-    cy.contains("Your interview page was hidden or lost focus").should("be.visible");
+    cy.contains("Your interview page was hidden or lost focus").should(
+      "be.visible"
+    );
     visible(true);
     cy.tick(1000);
     visible(false);
     cy.document().then((doc) => {
-      const focus = doc.hasFocus as unknown as { returns: (v: boolean) => void };
+      const focus = doc.hasFocus as unknown as {
+        returns: (v: boolean) => void;
+      };
       focus.returns(true);
       doc.defaultView!.dispatchEvent(new Event("focus"));
     });
@@ -167,6 +173,7 @@ describe("session pauses and technical recovery", () => {
     });
     cy.contains("button", "Start Interview").should("be.disabled");
     cy.contains("label", "I have read the session rules").find("input").check();
-    cy.contains("button", "Start Interview").should("not.be.disabled");
+    cy.contains("button", "Start Interview").should("be.disabled");
+    cy.contains("Live voice needs an OpenAI key").should("be.visible");
   });
 });

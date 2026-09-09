@@ -176,7 +176,8 @@ export async function generateBenchmark(
   id: ProviderId,
   language: Language,
   input: ReviewInput,
-  signal: AbortSignal
+  signal: AbortSignal,
+  suppliedKey?: string
 ): Promise<ModelResult> {
   const c = configurationFor(id, language);
   try {
@@ -189,7 +190,8 @@ export async function generateBenchmark(
           redirect: "error",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + process.env.DEEPSEEK_API_KEY,
+            Authorization:
+              "Bearer " + (suppliedKey || process.env.DEEPSEEK_API_KEY),
           },
           body: JSON.stringify({
             model: c.model,
@@ -251,9 +253,11 @@ export async function generateBenchmark(
     }
     const model =
       id === "openai"
-        ? createOpenAI({ apiKey: process.env.OPENAI_API_KEY }).chat(c.model)
+        ? createOpenAI({
+            apiKey: suppliedKey || process.env.OPENAI_API_KEY,
+          }).chat(c.model)
         : createGoogleGenerativeAI({
-            apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+            apiKey: suppliedKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
           })(c.model);
     const result = await generateText({
       model,

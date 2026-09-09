@@ -12,6 +12,8 @@ The user selected desk research because recruiter/hiring-manager access is unava
 
 ## Phase reports
 
+For the latest UI and no-account live demo, start with the [reviewer voice and model-access runbook](implementation/reviewer-demo-and-access.md). It covers keyless navigation, free allowances, credentials, hosting and remaining human checks.
+
 Each phase has one progress report. Detailed artifacts live in the subject folders linked from that report.
 
 | Phase | Report | Status | Intended output |

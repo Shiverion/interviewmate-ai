@@ -1,5 +1,7 @@
 # Phase 5: case study and engineering handoff
 
+2026-09-09 update: the [reviewer access runbook](../implementation/reviewer-demo-and-access.md) now documents the redesigned workspace, free voice architecture, key setup, persistent-server requirement and remaining manual checks. Final case study and recording remain pending successful live evidence.
+
 Status: **Planned — submission artifacts not yet produced.**
 
 Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.

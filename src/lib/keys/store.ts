@@ -4,57 +4,88 @@
  */
 
 const STORAGE_PREFIX = "interviewmate_";
+import { isProvider, type AIProvider } from "@/lib/ai/catalog";
 
 export interface StoredKeys {
-    openai: string | null;
+  openai: string | null;
+  gemini?: string | null;
+  deepseek?: string | null;
 }
 
 function encode(value: string): string {
-    if (typeof window === "undefined") return "";
-    return btoa(encodeURIComponent(value));
+  if (typeof window === "undefined") return "";
+  return btoa(encodeURIComponent(value));
 }
 
 function decode(value: string): string {
-    if (typeof window === "undefined") return "";
-    try {
-        return decodeURIComponent(atob(value));
-    } catch {
-        return "";
-    }
+  if (typeof window === "undefined") return "";
+  try {
+    return decodeURIComponent(atob(value));
+  } catch {
+    return "";
+  }
 }
 
 export function saveOpenAIKey(key: string): void {
-    localStorage.setItem(`${STORAGE_PREFIX}openai`, encode(key.trim()));
+  localStorage.setItem(`${STORAGE_PREFIX}openai`, encode(key.trim()));
 }
 
 export function getOpenAIKey(): string | null {
-    if (typeof window === "undefined") return null;
-    const stored = localStorage.getItem(`${STORAGE_PREFIX}openai`);
-    if (!stored) return null;
-    const decoded = decode(stored).trim();
-    return decoded || null;
+  if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem(`${STORAGE_PREFIX}openai`);
+  if (!stored) return null;
+  const decoded = decode(stored).trim();
+  return decoded || null;
 }
 
 export function getStoredKeys(): StoredKeys {
-    return {
-        openai: getOpenAIKey(),
-    };
+  return {
+    openai: getOpenAIKey(),
+    gemini: getProviderKey("gemini"),
+    deepseek: getProviderKey("deepseek"),
+  };
 }
 
 export function hasAllKeys(): boolean {
-    const keys = getStoredKeys();
-    return keys.openai !== null;
+  const keys = getStoredKeys();
+  return keys.openai !== null;
 }
 
 export function clearAllKeys(): void {
-    localStorage.removeItem(`${STORAGE_PREFIX}openai`);
+  localStorage.removeItem(`${STORAGE_PREFIX}openai`);
+  localStorage.removeItem(`${STORAGE_PREFIX}gemini`);
+  localStorage.removeItem(`${STORAGE_PREFIX}deepseek`);
+}
+
+export function getProviderKey(provider: AIProvider): string | null {
+  if (typeof window === "undefined") return null;
+  const value = localStorage.getItem(`${STORAGE_PREFIX}${provider}`);
+  return value ? decode(value).trim() || null : null;
+}
+export function saveProviderKey(provider: AIProvider, key: string) {
+  if (key.trim())
+    localStorage.setItem(`${STORAGE_PREFIX}${provider}`, encode(key.trim()));
+  else localStorage.removeItem(`${STORAGE_PREFIX}${provider}`);
+}
+export function getEvaluationProvider(): AIProvider {
+  const value =
+    typeof window === "undefined"
+      ? null
+      : localStorage.getItem("interviewmate_evaluation_provider");
+  return isProvider(value) ? value : "openai";
+}
+export function saveEvaluationProvider(provider: AIProvider) {
+  localStorage.setItem("interviewmate_evaluation_provider", provider);
+}
+export function evaluationHeaders() {
+  const provider = getEvaluationProvider();
+  return {
+    "x-ai-provider": provider,
+    "x-ai-key": getProviderKey(provider) || "",
+  };
 }
 
 export function maskKey(key: string, visibleChars: number = 4): string {
-    if (key.length <= visibleChars * 2) return "••••••••";
-    return (
-        key.slice(0, visibleChars) +
-        "••••••••" +
-        key.slice(-visibleChars)
-    );
+  if (key.length <= visibleChars * 2) return "••••••••";
+  return key.slice(0, visibleChars) + "••••••••" + key.slice(-visibleChars);
 }

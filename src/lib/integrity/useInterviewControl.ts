@@ -71,7 +71,18 @@ export function useInterviewControl(
   const control = useControlStore();
   useEffect(() => {
     useControlStore.getState().prepare(key);
-  }, [key]);
+    const state = useControlStore.getState();
+    const deadline =
+      useInterviewStore.getState()._sessionContext?.demoExpiresAt;
+    if (live && deadline && state.record?.phase === "setup")
+      state.save({
+        ...state.record,
+        remainingMs: Math.max(
+          0,
+          Math.min(state.record.remainingMs, deadline - Date.now())
+        ),
+      });
+  }, [key, live]);
   useEffect(() => {
     const c = useControlStore.getState();
     if (status === "active" && c.record?.phase === "setup") c.start();
@@ -102,11 +113,20 @@ export function useInterviewControl(
       if (n.record?.phase !== p.record?.phase) apply();
     });
     const tick = () => {
-      useControlStore.getState().tick(
-        document.hidden || !document.hasFocus(),
-        navigator.onLine,
-        document.hidden ? "page_hidden" : "window_unfocused"
-      );
+      const demoDeadline =
+        useInterviewStore.getState()._sessionContext?.demoExpiresAt;
+      if (live && demoDeadline && Date.now() >= demoDeadline) {
+        useControlStore.getState().complete();
+        apply();
+        return;
+      }
+      useControlStore
+        .getState()
+        .tick(
+          document.hidden || !document.hasFocus(),
+          navigator.onLine,
+          document.hidden ? "page_hidden" : "window_unfocused"
+        );
       apply();
     };
     const timer = window.setInterval(tick, 250);

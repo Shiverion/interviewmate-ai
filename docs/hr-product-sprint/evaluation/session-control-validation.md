@@ -114,11 +114,13 @@ For manual timing, use two seconds to cross the one-second pause threshold, seve
 
 ## Part B — live interview and saved report
 
-### Choose Demo Room first, then Schedule Interview
+### Choose a live demo first, then Schedule Interview
+
+For no-account, host-funded voice, use [Reviewer demo](http://localhost:3000/demo) and its [setup runbook](../implementation/reviewer-demo-and-access.md). It supports B1–B3 within an eight-minute wall-clock funding window that includes pauses; it does not verify scheduled report saving. Dashboard access no longer requires a key. The personal demo steps below remain available.
 
 | Entry point | Use for | What it exercises |
 |---|---|---|
-| Dashboard → Demo Room | First run of B1, B2 and B3 | Real provider/microphone, shared interview room, pauses and browser-local recovery; no scheduled-session/report database save |
+| Dashboard → Demo with my own key | First run of B1, B2 and B3 | Real provider/microphone, shared interview room, pauses and browser-local recovery; no scheduled-session/report database save |
 | Dashboard → Schedule Interview | B4 and B5; later repeat B1–B3 here | Candidate entry link, shared interview room, resume upload, hosted session saving and recruiter report |
 | Review workspace → integrity rehearsal | Part A only | Synthetic questions and simulated connection loss; no live AI or microphone |
 
@@ -126,8 +128,8 @@ Demo Room is a live AI demo, distinct from the no-key integrity rehearsal. Its n
 
 ### First run: set up Demo Room for B1
 
-1. Sign in at [localhost login](http://localhost:3000/login), then open [Settings](http://localhost:3000/settings). In the OpenAI section, configure/save your working key using the key edit control. This browser setup is required by the current live path; the key saved on `127.0.0.1` will not automatically appear here. Keep it private.
-2. Open [Dashboard](http://localhost:3000/dashboard) and choose **Demo Room**.
+1. Sign in at [localhost login](http://localhost:3000/login), then open [Settings](http://localhost:3000/settings). In the OpenAI section, enter your working key and select Save. This browser setup is required by the personal live path; the key saved on `127.0.0.1` will not automatically appear here. Keep it private.
+2. Open [Dashboard](http://localhost:3000/dashboard) and choose **Demo with my own key**.
 3. Use fictional details: candidate **Demo Candidate B1**, position **Frontend Engineer**, job description **Build accessible React interfaces, debug UI issues, and collaborate with designers.** Set language to **English**, number of questions to **5**, level to **Medium**, and mode to **Voice**. Leave custom questions empty for the first connection test.
 4. Upload a fictional CV as a PDF. This field is required in the current form; do not upload a real candidate's CV for this test.
 5. Select **Enter Demo Room**. This opens the existing `/interview` page. Read and acknowledge the new session rules, select **Start Interview**, and allow microphone access. Keep the page focused through connection and the ten-second startup grace.
@@ -150,9 +152,9 @@ If link generation/upload, candidate entry, provider connection or report saving
 
 ### Existing system and UI boundaries
 
-Both Dashboard actions enter the same existing `/interview` room. The dashboard/forms and core conversation UI are reused. New UI includes the rules acknowledgment, enabled sound/mute control, full-screen pause/final-warning/end dialogs, frozen timer, recovery with a replacement question, and session-control information in saved recruiter reports. The rehearsal's diagnostic buttons such as **Simulate connection loss** are not part of the real room.
+Both Dashboard actions enter the shared `/interview` room. The redesigned dashboard and shared candidate styles retain the existing conversation logic. Controls include the rules acknowledgment, enabled sound/mute control, full-screen pause/final-warning/end dialogs, frozen timer, recovery with a replacement question, and session-control information in saved recruiter reports. The rehearsal's diagnostic buttons such as **Simulate connection loss** are not part of the real room.
 
-The current live code still uses OpenAI Realtime with `whisper-1` input transcription and the inherited OpenAI `gpt-4o` automatic evaluation route. The [English-first multi-provider comparison](english-first-pilot.md) and review-brief workspace are separate sprint features; their Gemini/OpenAI/DeepSeek choices are not automatically connected to this live room. These statements describe the inspected code, not a successful live-provider test.
+The live code uses OpenAI Realtime with `whisper-1` input transcription. Settings → Models & access now selects OpenAI, Gemini or DeepSeek for automatic and manual evaluations. The [English-first multi-provider comparison](english-first-pilot.md) remains a separate controlled benchmark. These statements describe implementation, not a successful live-provider test.
 
 These checks need a fictional candidate/session, working microphone permissions, valid OpenAI access in the app's existing key setup, and an isolated configured Firebase project for report saving. Follow [local setup](../../product/local-development.md#prerequisites-and-environment). A server key alone is not established as sufficient for fresh candidate entry. The three-provider evaluation benchmark is a separate workflow and does not verify the live voice connection.
 

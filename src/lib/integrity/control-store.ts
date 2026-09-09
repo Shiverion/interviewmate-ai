@@ -13,7 +13,11 @@ type Store = {
   storageFailed: boolean;
   prepare: (key: string) => void;
   save: (record: Checkpoint) => void;
-  tick: (away: boolean, online: boolean, reason?: "page_hidden" | "window_unfocused") => void;
+  tick: (
+    away: boolean,
+    online: boolean,
+    reason?: "page_hidden" | "window_unfocused"
+  ) => void;
   start: () => void;
   recover: (reason: string) => void;
   complete: () => void;
@@ -42,8 +46,15 @@ export const useControlStore = create<Store>((set, get) => ({
         record = checkpointSchema.parse(JSON.parse(raw));
         if (record.key !== key) throw Error("Wrong session");
         record = recover(record, Date.now(), "browser_reopened");
-        if (record.controlPolicy !== "visibility-and-focus-v2" && !["ended", "completed"].includes(record.phase)) {
-          record = log({ ...record, controlPolicy: "visibility-and-focus-v2" }, "focus_policy_updated", Date.now());
+        if (
+          record.controlPolicy !== "visibility-and-focus-v2" &&
+          !["ended", "completed"].includes(record.phase)
+        ) {
+          record = log(
+            { ...record, controlPolicy: "visibility-and-focus-v2" },
+            "focus_policy_updated",
+            Date.now()
+          );
         }
       }
     } catch {
@@ -74,7 +85,7 @@ export const useControlStore = create<Store>((set, get) => ({
   },
   complete() {
     const s = get().record;
-    if (s && s.phase !== "ended")
+    if (s && !["ended", "completed"].includes(s.phase))
       get().save(log({ ...s, phase: "completed" }, "completed", Date.now()));
   },
 }));
