@@ -114,6 +114,46 @@ For manual timing, use two seconds to cross the one-second pause threshold, seve
 
 ## Part B — live interview and saved report
 
+### Choose Demo Room first, then Schedule Interview
+
+| Entry point | Use for | What it exercises |
+|---|---|---|
+| Dashboard → Demo Room | First run of B1, B2 and B3 | Real provider/microphone, shared interview room, pauses and browser-local recovery; no scheduled-session/report database save |
+| Dashboard → Schedule Interview | B4 and B5; later repeat B1–B3 here | Candidate entry link, shared interview room, resume upload, hosted session saving and recruiter report |
+| Review workspace → integrity rehearsal | Part A only | Synthetic questions and simulated connection loss; no live AI or microphone |
+
+Demo Room is a live AI demo, distinct from the no-key integrity rehearsal. Its normal completion can request an AI evaluation, but it does not create the scheduled record needed to pass B4/B5's hosted-report checks.
+
+### First run: set up Demo Room for B1
+
+1. Sign in at [localhost login](http://localhost:3000/login), then open [Settings](http://localhost:3000/settings). In the OpenAI section, configure/save your working key using the key edit control. This browser setup is required by the current live path; the key saved on `127.0.0.1` will not automatically appear here. Keep it private.
+2. Open [Dashboard](http://localhost:3000/dashboard) and choose **Demo Room**.
+3. Use fictional details: candidate **Demo Candidate B1**, position **Frontend Engineer**, job description **Build accessible React interfaces, debug UI issues, and collaborate with designers.** Set language to **English**, number of questions to **5**, level to **Medium**, and mode to **Voice**. Leave custom questions empty for the first connection test.
+4. Upload a fictional CV as a PDF. This field is required in the current form; do not upload a real candidate's CV for this test.
+5. Select **Enter Demo Room**. This opens the existing `/interview` page. Read and acknowledge the new session rules, select **Start Interview**, and allow microphone access. Keep the page focused through connection and the ten-second startup grace.
+6. Confirm that you hear the interviewer and your spoken answer appears. Then follow **B1** below: finish one answer, wait for the next question, leave for two seconds, and verify pause/media stop/new-question resume.
+7. For B2 and B3, create separate demos named **Demo Candidate B2** and **Demo Candidate B3** with the same settings. Between separate tests, finish/end the current attempt, return to Dashboard and reload it before creating the next demo. This clears the old in-memory live-room state without deleting saved evidence. During a recovery test, keep the same session and do not create another demo.
+
+Use only one active interview at a time in this browser profile: the inherited live-room context stores one current session. For B3, reopen the room you were using in the same profile; do not start another demo in between.
+
+### Second run: create a scheduled session for B4/B5
+
+1. Return to Dashboard after the previous test is finished and reload. Choose **Schedule Interview**.
+2. Reuse the fictional job/CV and use a distinct candidate name, **Demo Candidate B4**. Set language to **English** and number of questions to **5**. Candidate email is optional and can be left empty. Leave optional GitHub/visual-panel fields unused for this first test.
+3. Set **Start Date** to now or a few minutes earlier, and **End Date** to tomorrow. Choose **Audio & Text** so you can inspect answer-input blocking as well as voice.
+4. Select **Generate Link**, then **Copy Link**. Keep the generated `/apply/...` link and session identifier with your test notes. Open it in the same signed-in browser/profile on `localhost` for this initial self-test; this does not validate a signed-out candidate's access.
+5. Choose voice on the candidate entry page if offered, enter the interview, acknowledge the notice and start. Complete B4's three-interruption sequence only after retaining at least one completed answer.
+6. After the session ends, open the matching session in the recruiter's interview list. Compare its answers and session-control information with the downloaded record. Do not switch to the recruiter page during an active interview unless that switch is part of your test.
+7. Create another scheduled session named **Demo Candidate B5** for normal completion after recovery and follow B5 below. Do not reuse the automatically ended B4 session.
+
+If link generation/upload, candidate entry, provider connection or report saving fails, record the exact stage and sanitized error. A successful Demo Room run cannot substitute for a blocked scheduled-session check. The inherited candidate entry also has a wall-clock 30-minute admission limit; its reconciliation with the new paused active-time clock is still outstanding. Record any re-entry expiry separately; short recovery tests do not establish long-outage recovery.
+
+### Existing system and UI boundaries
+
+Both Dashboard actions enter the same existing `/interview` room. The dashboard/forms and core conversation UI are reused. New UI includes the rules acknowledgment, enabled sound/mute control, full-screen pause/final-warning/end dialogs, frozen timer, recovery with a replacement question, and session-control information in saved recruiter reports. The rehearsal's diagnostic buttons such as **Simulate connection loss** are not part of the real room.
+
+The current live code still uses OpenAI Realtime with `whisper-1` input transcription and the inherited OpenAI `gpt-4o` automatic evaluation route. The [English-first multi-provider comparison](english-first-pilot.md) and review-brief workspace are separate sprint features; their Gemini/OpenAI/DeepSeek choices are not automatically connected to this live room. These statements describe the inspected code, not a successful live-provider test.
+
 These checks need a fictional candidate/session, working microphone permissions, valid OpenAI access in the app's existing key setup, and an isolated configured Firebase project for report saving. Follow [local setup](../../product/local-development.md#prerequisites-and-environment). A server key alone is not established as sufficient for fresh candidate entry. The three-provider evaluation benchmark is a separate workflow and does not verify the live voice connection.
 
 Keep keys out of screenshots and result files. If starting the voice session fails, record **Blocked — provider/setup** and the sanitized visible error. Do not mark downstream voice or saving checks passed from rehearsal behavior.
