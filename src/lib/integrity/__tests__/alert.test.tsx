@@ -6,122 +6,120 @@ import {
   waitFor,
 } from "@testing-library/react";
 import IntegrityAlert from "@/components/interview/IntegrityAlert";
-import { useIntegrityStore } from "../store";
-import { initialState, observe, start } from "../policy";
-
+import { useControlStore } from "../control-store";
+import { newCheckpoint, run } from "../session-control";
 beforeEach(() => {
-  useIntegrityStore.setState({
-    record: start({ ...initialState("alert-test"), acknowledgedAt: 1 }, 1000),
+  useControlStore.setState({
+    record: run(newCheckpoint("alert-test"), 100000),
+    storageFailed: false,
+  });
+  HTMLDialogElement.prototype.showModal = jest.fn(function (
+    this: HTMLDialogElement
+  ) {
+    this.setAttribute("open", "");
+  });
+  HTMLDialogElement.prototype.close = jest.fn(function (
+    this: HTMLDialogElement
+  ) {
+    this.removeAttribute("open");
   });
 });
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-function event(hidden = true, duration = 3000) {
+function phase(phase: "paused" | "final_warning" | "ended") {
   act(() => {
-    const record = useIntegrityStore.getState().record!;
-    const at = 20000 + record.sequence * 20000;
-    useIntegrityStore.setState({
-      record: observe(
-        observe(record, hidden, false, at),
-        false,
-        true,
-        at + duration
-      ),
+    const s = useControlStore.getState().record!;
+    useControlStore.setState({
+      record: {
+        ...s,
+        phase,
+        interruptions:
+          phase === "paused" ? 1 : phase === "final_warning" ? 2 : 3,
+      },
     });
   });
 }
-test("only new qualifying hidden events alert; dismissing never clears the record", () => {
-  render(<IntegrityAlert />);
-  event(true, 2999);
-  event(false, 12000);
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  event();
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "Your interview page was hidden"
-  );
-  fireEvent.click(screen.getByText("Got it, continue"));
-  act(() => useIntegrityStore.getState().explain(2, "technical_issue"));
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(useIntegrityStore.getState().record?.count).toBe(1);
-  expect(useIntegrityStore.getState().record?.active).toBe(true);
-  event();
-  expect(screen.getByRole("alert")).toHaveTextContent("Recorded events: 2");
-  fireEvent.keyDown(window, { key: "Escape" });
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+test("full-screen pause is modal and requires explicit resuming", async () => {
+  const resume = jest.fn();
+  render(<IntegrityAlert onResume={resume} />);
+  phase("paused");
+  const modal = screen.getByRole("dialog");
+  expect(modal).toHaveAttribute("aria-modal", "true");
+  expect(screen.getByRole("alert")).toHaveTextContent("Interview paused");
+  const cancel = new Event("cancel", { cancelable: true });
+  fireEvent(modal, cancel);
+  expect(cancel.defaultPrevented).toBe(true);
+  await act(async () => {
+    fireEvent.click(
+      screen.getByText("I understand — resume with a new question")
+    );
+  });
+  expect(resume).toHaveBeenCalledTimes(1);
 });
-test("restored history does not replay alerts and completion suppresses them", () => {
-  event();
+test("final warning explains the penalty and ended sessions cannot resume", () => {
   render(<IntegrityAlert />);
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  event();
-  act(() => useIntegrityStore.getState().finish());
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  phase("final_warning");
+  expect(screen.getByRole("alert")).toHaveTextContent("15 continuous seconds");
+  phase("ended");
+  expect(
+    screen.queryByText("I understand — resume with a new question")
+  ).not.toBeInTheDocument();
+  expect(screen.getByRole("alert")).toHaveTextContent("Interview ended");
 });
-test("Indonesian alert escalates at three and five without terminating", () => {
+test("Indonesian pause and final warning are available", () => {
   render(<IntegrityAlert language="Bahasa Indonesia" />);
-  for (let i = 0; i < 3; i++) event();
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "Batas peringatan tercapai"
-  );
-  for (let i = 0; i < 2; i++) event();
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "Peninjauan manusia disarankan"
-  );
-  expect(useIntegrityStore.getState().record?.active).toBe(true);
+  phase("paused");
+  expect(screen.getByRole("alert")).toHaveTextContent("Wawancara dijeda");
+  phase("final_warning");
+  expect(screen.getByRole("alert")).toHaveTextContent("Peringatan terakhir");
 });
-test("sound requires opt-in, plays once per event, and stops after mute", async () => {
-  const oscillator = {
-    frequency: { value: 0 },
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    start: jest.fn(),
-    stop: jest.fn(),
-    onended: null,
-  };
+test("unsupported audio keeps the visual alert available", () => {
+  render(<IntegrityAlert />);
+  fireEvent.click(screen.getByText("Enable & test alert sound"));
+  expect(screen.getByRole("status")).toHaveTextContent("Sound is unavailable");
+  phase("paused");
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+});
+test("optional sound plays on pause and final warning, and mute suppresses the end sound", async () => {
+  const start = jest.fn(),
+    close = jest.fn(async () => {});
   const audio = {
     state: "running",
     currentTime: 0,
     destination: {},
+    close,
     resume: jest.fn(async () => {}),
-    close: jest.fn(async () => {}),
-    createOscillator: jest.fn(() => oscillator),
-    createGain: jest.fn(() => ({
+    createOscillator: () => ({
+      frequency: { value: 0 },
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      start,
+      stop: jest.fn(),
+    }),
+    createGain: () => ({
       gain: { setValueAtTime: jest.fn(), linearRampToValueAtTime: jest.fn() },
       connect: jest.fn(),
       disconnect: jest.fn(),
-    })),
+    }),
   };
   const original = Object.getOwnPropertyDescriptor(window, "AudioContext");
-  const constructor = jest.fn(() => audio);
   Object.defineProperty(window, "AudioContext", {
     configurable: true,
-    value: constructor,
+    value: jest.fn(() => audio),
   });
   try {
     const view = render(<IntegrityAlert />);
-    event();
-    expect(constructor).not.toHaveBeenCalled();
+    expect(start).not.toHaveBeenCalled();
     fireEvent.click(screen.getByText("Enable & test alert sound"));
-    await waitFor(() => expect(oscillator.start).toHaveBeenCalledTimes(1));
-    event();
-    expect(oscillator.start).toHaveBeenCalledTimes(2);
-    act(() => useIntegrityStore.getState().explain(1, "interruption"));
-    expect(oscillator.start).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(start).toHaveBeenCalledTimes(1));
+    phase("paused");
+    phase("final_warning");
+    expect(start).toHaveBeenCalledTimes(3);
     fireEvent.click(screen.getByText("Mute alert sound"));
-    event();
-    expect(oscillator.start).toHaveBeenCalledTimes(2);
-    expect(audio.close).toHaveBeenCalledTimes(1);
+    phase("ended");
+    expect(start).toHaveBeenCalledTimes(3);
+    expect(close).toHaveBeenCalledTimes(1);
     view.unmount();
   } finally {
     if (original) Object.defineProperty(window, "AudioContext", original);
     else Reflect.deleteProperty(window, "AudioContext");
   }
-});
-test("unsupported audio leaves a usable visual reminder", () => {
-  render(<IntegrityAlert />);
-  fireEvent.click(screen.getByText("Enable & test alert sound"));
-  expect(screen.getByRole("status")).toHaveTextContent("Sound is unavailable");
-  event();
-  expect(screen.getByRole("alert")).toBeInTheDocument();
 });

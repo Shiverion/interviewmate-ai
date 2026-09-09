@@ -14,6 +14,7 @@ export class WebRTCAudioManager {
     private pc: RTCPeerConnection | null = null;
     private dc: RTCDataChannel | null = null;
     private audioEl: HTMLAudioElement | null = null;
+    private closed = false;
 
     constructor(private config: WebRTCManagerConfig) { }
 
@@ -26,9 +27,13 @@ export class WebRTCAudioManager {
      */
     public async connect(localStream: MediaStream): Promise<void> {
         this.pc = new RTCPeerConnection();
+        this.pc.onconnectionstatechange = () => {
+            if (!this.closed && ["failed", "disconnected"].includes(this.pc?.connectionState || "")) this.config.onDisconnect?.();
+        };
 
         // 1. Play the incoming AI audio track securely
         this.pc.ontrack = (e) => {
+            if (this.closed) return;
             if (e.streams && e.streams[0]) {
                 const track = e.track;
                 if (this.config.onTrack) {
@@ -54,6 +59,7 @@ export class WebRTCAudioManager {
 
         // 3. Set up Data Channel for JSON control events
         this.dc = this.pc.createDataChannel("oai-events");
+        this.dc.onclose = () => { if (!this.closed) this.config.onDisconnect?.(); };
         this.dc.onmessage = (e) => {
             if (this.config.onMessage) {
                 try {
@@ -156,6 +162,7 @@ export class WebRTCAudioManager {
      * Gracefully sever connection and clean up audio tags
      */
     public disconnect(): void {
+        this.closed = true;
         if (this.pc) {
             this.pc.close();
             this.pc = null;
@@ -168,9 +175,6 @@ export class WebRTCAudioManager {
             this.audioEl.srcObject = null;
             this.audioEl.remove();
             this.audioEl = null;
-        }
-        if (this.config.onDisconnect) {
-            this.config.onDisconnect();
         }
     }
 }

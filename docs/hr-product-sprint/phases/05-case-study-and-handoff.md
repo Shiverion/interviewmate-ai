@@ -67,6 +67,8 @@ Never describe saved output as a live model response. If using a replay for reco
 
 ## Open items and next action
 
+The [session-control handoff](../implementation/session-integrity.md) documents the latest candidate guardrails, recovery checkpoints, replacement-question bank and test procedure. Before production use, engineers must implement server-owned timing, terminal/restart authorization, question selection, authenticated checkpoint reconciliation, retention/deletion and access isolation. Live WebRTC recovery and equivalence of replacement questions still need human validation. Describe this as a browser prototype in the case study; do not claim tamper-proof enforcement or guaranteed cheating prevention.
+
 The local review prototype and English-first benchmark workspace now exist. Successful live model evaluation, human judgments, the final case study and recording remain pending. Use the [setup/reviewer guide](../evaluation/english-first-pilot.md) and [governance record](../evaluation/data-governance.md) as handoff inputs. Assemble the final artifacts from measured evidence and record the verified workflow.
 
 ## Progress log

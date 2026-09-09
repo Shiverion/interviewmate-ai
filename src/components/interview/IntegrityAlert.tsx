@@ -1,62 +1,68 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { POLICY } from "@/lib/integrity/policy";
-import { useIntegrityStore } from "@/lib/integrity/store";
-
-// A short locally generated tone; no audio file, microphone, or network request.
-function chime(context: AudioContext) {
-  if (context.state !== "running") return false;
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  const now = context.currentTime;
-  oscillator.frequency.value = 660;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.045, now + 0.02);
-  gain.gain.linearRampToValueAtTime(0, now + 0.22);
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.onended = () => {
-    oscillator.disconnect();
-    gain.disconnect();
-  };
-  oscillator.start(now);
-  oscillator.stop(now + 0.24);
-  return true;
-}
+import { useControlStore } from "@/lib/integrity/control-store";
 
 export default function IntegrityAlert({
   language = "",
+  onResume,
+  onNewAttempt,
+  floatingControls = false,
 }: {
   language?: string;
+  onResume?: () => void | Promise<void>;
+  onNewAttempt?: () => void;
+  floatingControls?: boolean;
 }) {
-  const record = useIntegrityStore((s) => s.record);
-  const [alert, setAlert] = useState<{ key: string; count: number } | null>(
-    null
-  );
-  const [sound, setSound] = useState(false);
-  const [soundUnavailable, setSoundUnavailable] = useState(false);
-  const context = useRef<AudioContext | null>(null);
+  const { record, storageFailed } = useControlStore();
+  const [sound, setSound] = useState(false),
+    [soundUnavailable, setSoundUnavailable] = useState(false),
+    [busy, setBusy] = useState(false),
+    [resumeError, setResumeError] = useState(false);
+  const context = useRef<AudioContext | null>(null),
+    dialog = useRef<HTMLDialogElement | null>(null);
   const id = /indones|bahasa|^id$/i.test(language);
-
+  const phase = record?.phase;
+  const isOpen =
+    !!phase && ["paused", "final_warning", "recovery", "ended"].includes(phase);
+  function chime() {
+    const ctx = context.current;
+    if (!ctx || ctx.state !== "running") {
+      setSoundUnavailable(true);
+      return;
+    }
+    const oscillator = ctx.createOscillator(),
+      gain = ctx.createGain(),
+      now = ctx.currentTime;
+    oscillator.frequency.value = 660;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.045, now + 0.02);
+    gain.gain.linearRampToValueAtTime(0, now + 0.22);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gain.disconnect();
+    };
+    oscillator.start(now);
+    oscillator.stop(now + 0.24);
+  }
+  useEffect(() => {
+    if (!isOpen || !dialog.current) return;
+    const element = dialog.current;
+    element.showModal();
+    return () => element.close();
+  }, [isOpen]);
   useEffect(
     () =>
-      useIntegrityStore.subscribe((next, previous) => {
-        const n = next.record,
-          p = previous.record;
-        // React only to new counted events, never to restored history or context edits.
+      useControlStore.subscribe((n, p) => {
         if (
-          !n?.active ||
-          !p ||
-          n.sessionKey !== p.sessionKey ||
-          n.count <= p.count
-        )
-          return;
-        setAlert({ key: n.sessionKey, count: n.count });
-        if (sound) {
+          sound &&
+          n.record?.phase !== p.record?.phase &&
+          ["paused", "final_warning", "ended"].includes(n.record?.phase || "")
+        ) {
           try {
-            if (!context.current || !chime(context.current))
-              setSoundUnavailable(true);
+            chime();
           } catch {
             setSoundUnavailable(true);
           }
@@ -64,16 +70,6 @@ export default function IntegrityAlert({
       }),
     [sound]
   );
-
-  useEffect(() => {
-    if (!alert) return;
-    const dismiss = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setAlert(null);
-    };
-    window.addEventListener("keydown", dismiss);
-    return () => window.removeEventListener("keydown", dismiss);
-  }, [alert]);
-
   useEffect(
     () => () => {
       const current = context.current;
@@ -82,7 +78,6 @@ export default function IntegrityAlert({
     },
     []
   );
-
   function toggleSound() {
     setSoundUnavailable(false);
     if (sound) {
@@ -96,93 +91,203 @@ export default function IntegrityAlert({
       const current = context.current ?? new AudioContext();
       context.current = current;
       setSound(true);
-      // Resume directly from the button gesture to respect browser autoplay rules.
       void current
         .resume()
         .then(() => {
-          if (context.current === current && !chime(current))
-            setSoundUnavailable(true);
+          if (context.current === current) chime();
         })
-        .catch(() => {
-          if (context.current === current) setSoundUnavailable(true);
-        });
+        .catch(() => setSoundUnavailable(true));
     } catch {
       setSoundUnavailable(true);
     }
   }
-
-  if (!record?.active) return null;
-  const visible = alert?.key === record.sessionKey ? alert : null;
+  if (!record || phase === "setup" || phase === "completed") return null;
+  const title =
+    phase === "ended"
+      ? id
+        ? "Wawancara dihentikan"
+        : "Interview ended"
+      : phase === "recovery"
+        ? id
+          ? "Sesi perlu disambungkan kembali"
+          : "Reconnect your interview"
+        : phase === "final_warning"
+          ? id
+            ? "Peringatan terakhir — wawancara dijeda"
+            : "Final warning — interview paused"
+          : id
+            ? "Wawancara dijeda"
+            : "Interview paused";
+  const soundButton = (
+    <button
+      type="button"
+      onClick={toggleSound}
+      aria-pressed={sound}
+      className={
+        (floatingControls && !isOpen
+          ? "fixed bottom-4 right-4 z-50 bg-slate-950 text-white "
+          : "") + "mt-3 rounded border px-3 py-2"
+      }
+    >
+      {sound
+        ? id
+          ? "Matikan suara peringatan"
+          : "Mute alert sound"
+        : id
+          ? "Aktifkan & coba suara peringatan"
+          : "Enable & test alert sound"}
+    </button>
+  );
   return (
     <>
-      <button
-        type="button"
-        onClick={toggleSound}
-        aria-pressed={sound}
-        className="mt-2 rounded border border-[var(--border)] px-3 py-2"
-      >
-        {sound
-          ? id
-            ? "Matikan suara peringatan"
-            : "Mute alert sound"
-          : id
-            ? "Aktifkan & coba suara peringatan"
-            : "Enable & test alert sound"}
-      </button>
-      {soundUnavailable && (
-        <p role="status">
-          {id
-            ? "Suara tidak tersedia. Peringatan visual tetap aktif."
-            : "Sound is unavailable. Visual alerts remain active."}
-        </p>
+      {!isOpen && soundButton}
+      {!isOpen && soundUnavailable && (
+        <p role="status">Sound is unavailable. Visual alerts remain active.</p>
       )}
-      {visible &&
+      {isOpen &&
         createPortal(
-          <aside
+          <dialog
+            ref={dialog}
+            onCancel={(e) => e.preventDefault()}
+            aria-modal="true"
             aria-label={
               id ? "Pengingat halaman wawancara" : "Interview page reminder"
             }
-            className="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-[26rem] z-[100] max-h-[75vh] overflow-y-auto rounded-2xl border-2 border-amber-500 bg-[var(--background)]/95 backdrop-blur-md p-5 shadow-2xl text-[var(--foreground)]"
+            className="fixed inset-0 m-0 h-dvh w-screen max-h-none max-w-none overflow-y-auto border-0 bg-slate-950/70 p-4 text-white backdrop-blur-xl backdrop:bg-transparent"
           >
-            <div role="alert" aria-atomic="true">
-              <h2 className="text-lg font-semibold">
-                {id
-                  ? "Halaman wawancara sempat tersembunyi"
-                  : "Your interview page was hidden"}
-              </h2>
-              <p className="mt-2 text-sm">
-                {id
-                  ? "Harap tetap di halaman wawancara. Perpindahan tab, meminimalkan jendela, atau mengunci layar dapat memicu pengingat ini."
-                  : "Please stay on the interview page. Switching tabs, minimizing the window, or locking the screen can trigger this reminder."}
-              </p>
-              <p className="mt-2 text-sm font-medium">
-                {id ? "Kejadian tercatat" : "Recorded events"}: {visible.count}.{" "}
-                {visible.count >= POLICY.reviewAt
-                  ? id
-                    ? "Peninjauan manusia disarankan."
-                    : "Human review suggested."
-                  : visible.count >= POLICY.warningAt
-                    ? id
-                      ? "Batas peringatan tercapai."
-                      : "Warning threshold reached."
-                    : id
-                      ? "Ini pengingat awal."
-                      : "This is an early reminder."}
-              </p>
-              <p className="mt-2 text-sm">
-                {id
-                  ? "Wawancara dan waktunya tetap berjalan. Ini bukan bukti kecurangan; Anda dapat menambahkan konteks di catatan sesi."
-                  : "Your interview and its timer are still running. This is not proof of cheating; you can add context in the session record."}
-              </p>
+            <div className="flex min-h-full items-center justify-center py-6">
+              <div className="w-full max-w-3xl rounded-3xl border border-amber-400/70 bg-slate-950/95 p-6 shadow-2xl sm:p-12">
+                <div role="alert" aria-atomic="true">
+                  <h2 className="text-3xl sm:text-5xl font-semibold leading-tight">
+                    {title}
+                  </h2>
+                  <p className="mt-6 text-base sm:text-xl">
+                    {id
+                      ? "Sisa waktu disimpan. Mikrofon, respons AI, dan pengiriman jawaban dihentikan selama jeda."
+                      : "Your remaining time is saved. Microphone capture, AI responses, and answer submission stop during the pause."}
+                  </p>
+                  <p className="mt-5 text-xl text-amber-300">
+                    {id ? "Gangguan halaman" : "Page interruptions"}:{" "}
+                    {record.interruptions} / 3 ·{" "}
+                    {id ? "Pemulihan teknis" : "Technical recoveries"}:{" "}
+                    {record.recoveries}
+                  </p>
+                  {phase === "final_warning" && (
+                    <p className="mt-4 text-lg font-semibold">
+                      {id
+                        ? "Gangguan ketiga atau meninggalkan halaman selama 15 detik berturut-turut akan mengakhiri wawancara secara otomatis."
+                        : "A third interruption or 15 continuous seconds away will automatically end the interview."}
+                    </p>
+                  )}
+                  {phase === "paused" && (
+                    <p className="mt-4">
+                      {id
+                        ? "Halaman wawancara tersembunyi. Gangguan kedua atau 6 detik berturut-turut memicu peringatan terakhir."
+                        : "Your interview page was hidden. A second interruption or six continuous seconds away triggers the final warning."}
+                    </p>
+                  )}
+                  <p className="mt-4">
+                    {phase === "ended"
+                      ? id
+                        ? "Jawaban disimpan untuk peninjauan manusia. Hubungi perekrut; tidak ada pengurangan skor atau keputusan perekrutan otomatis."
+                        : "Answers are retained for human review. Contact your recruiter; no score deduction or hiring decision is applied automatically."
+                      : id
+                        ? "Saat melanjutkan, pertanyaan yang terputus akan diganti. Jawaban sebelumnya tetap disimpan; pertanyaan yang dibatalkan tidak dinilai."
+                        : "On resuming, the interrupted question will be replaced. Earlier answers are retained; the retired question is excluded from evaluation."}
+                  </p>
+                </div>
+                {storageFailed && (
+                  <p role="status" className="mt-4 text-amber-300">
+                    {id
+                      ? "Penyimpanan tidak tersedia. Unduh catatan sebelum menutup halaman."
+                      : "Saving is unavailable. Download your record before closing this page."}
+                  </p>
+                )}
+                {phase !== "ended" && (
+                  <button
+                    type="button"
+                    disabled={
+                      busy ||
+                      [
+                        "checkpoint_unavailable",
+                        "replacement_bank_exhausted",
+                      ].includes(record.reason)
+                    }
+                    onClick={async () => {
+                      setBusy(true);
+                      setResumeError(false);
+                      try {
+                        await onResume?.();
+                      } catch {
+                        setResumeError(true);
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                    className="mt-8 w-full rounded-xl bg-amber-400 px-6 py-4 text-lg font-semibold text-black disabled:opacity-40"
+                  >
+                    {busy
+                      ? id
+                        ? "Menyambungkan…"
+                        : "Reconnecting…"
+                      : id
+                        ? "Saya mengerti — lanjut dengan pertanyaan baru"
+                        : "I understand — resume with a new question"}
+                  </button>
+                )}
+                {[
+                  "checkpoint_unavailable",
+                  "replacement_bank_exhausted",
+                ].includes(record.reason) && (
+                  <p className="mt-3">
+                    {id
+                      ? "Hubungi perekrut untuk melanjutkan sesi ini."
+                      : "Contact your recruiter to continue this session."}
+                  </p>
+                )}
+                {resumeError && (
+                  <p role="status">
+                    {id
+                      ? "Belum tersambung. Periksa koneksi lalu coba lagi."
+                      : "Reconnection failed. Check your connection and try again."}
+                  </p>
+                )}
+                {soundButton}
+                {soundUnavailable && (
+                  <p role="status">
+                    {id
+                      ? "Suara tidak tersedia. Peringatan visual tetap aktif."
+                      : "Sound is unavailable. Visual alerts remain active."}
+                  </p>
+                )}
+                <button
+                  className="ml-3 mt-3 rounded border px-3 py-2"
+                  onClick={() => {
+                    const url = URL.createObjectURL(
+                      new Blob([JSON.stringify(record, null, 2)], {
+                        type: "application/json",
+                      })
+                    );
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "interview-recovery.json";
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                  }}
+                >
+                  {id ? "Unduh catatan" : "Download saved record"}
+                </button>
+                {onNewAttempt && (
+                  <button
+                    className="ml-3 mt-3 rounded border px-3 py-2"
+                    onClick={onNewAttempt}
+                  >
+                    New rehearsal
+                  </button>
+                )}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setAlert(null)}
-              className="mt-4 rounded-lg bg-amber-500 px-4 py-2 font-semibold text-black"
-            >
-              {id ? "Mengerti, lanjutkan" : "Got it, continue"}
-            </button>
-          </aside>,
+          </dialog>,
           document.body
         )}
     </>

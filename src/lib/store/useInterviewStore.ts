@@ -47,7 +47,7 @@ export interface InterviewContext {
 }
 
 interface InterviewState {
-    status: "setup" | "connecting" | "active" | "completed" | "error";
+    status: "setup" | "connecting" | "active" | "paused" | "completed" | "error";
     avatarState: AvatarState;
     transcript: Array<{ role: "user" | "assistant"; text: string }>;
     activeDeltaMessage: string;
@@ -64,9 +64,11 @@ interface InterviewState {
     // Subtitle Sync Helpers
     _subtitleBuffer: string;
     _isDrainingSubtitle: boolean;
+    _resumeInstructions?: string;
+    interrupt: () => void;
 
     // Actions
-    setStatus: (status: "setup" | "connecting" | "active" | "completed" | "error") => void;
+    setStatus: (status: "setup" | "connecting" | "active" | "paused" | "completed" | "error") => void;
     setAvatarState: (state: AvatarState) => void;
     addTranscriptLine: (role: "user" | "assistant", text: string) => void;
     toggleMic: () => void;
@@ -82,6 +84,7 @@ interface InterviewState {
 // Typing constant (chars per interval)
 const CHARS_PER_TICK = 1;
 const TICK_MS = 77; // ~13 characters per second - user requested sweet spot
+let connectionEpoch = 0;
 
 export const useInterviewStore = create<InterviewState>()(
     persist(
@@ -114,6 +117,7 @@ export const useInterviewStore = create<InterviewState>()(
             }),
 
             connect: async () => {
+                const epoch = ++connectionEpoch;
                 set({ status: "connecting", error: null });
                 try {
                     // 1. Get BYOK api key
@@ -263,6 +267,9 @@ STRICT INSTRUCTIONS:
                             autoGainControl: true
                         }
                     });
+                    if (epoch !== connectionEpoch) { localStream.getTracks().forEach(t => t.stop()); return; }
+                    localStream.getAudioTracks().forEach(t => { t.enabled = !get().isMicMuted; });
+                    set({ localStream });
 
                     // 4. Initialize WebRTC Manager
                     let currentAssistantMessage = "";
@@ -270,6 +277,7 @@ STRICT INSTRUCTIONS:
                     const manager = new WebRTCAudioManager({
                         ephemeralToken: ephemeralToken,
                         onMessage: (type, payload) => {
+                            if (epoch !== connectionEpoch) return;
                             const sessionCtx = get()._sessionContext;
 
                             if (type === "user_started_speaking") {
@@ -291,6 +299,7 @@ STRICT INSTRUCTIONS:
                                 if (!get()._isDrainingSubtitle) {
                                     set({ _isDrainingSubtitle: true });
                                     const drain = () => {
+                                        if (epoch !== connectionEpoch) return;
                                         const state = get();
                                         if (state._subtitleBuffer.length === 0) {
                                             set({ _isDrainingSubtitle: false });
@@ -312,6 +321,7 @@ STRICT INSTRUCTIONS:
                             } else if (type === "transcript_done") {
                                 // We wait for the buffer to drain before fully finalizing
                                 const waitAndFinalize = () => {
+                                    if (epoch !== connectionEpoch) return;
                                     if (get()._subtitleBuffer.length > 0) {
                                         setTimeout(waitAndFinalize, TICK_MS);
                                     } else {
@@ -354,18 +364,20 @@ STRICT INSTRUCTIONS:
                                 manager.sendEvent({
                                     type: "response.create",
                                     response: {
-                                        instructions: greetingPrompt
+                                        instructions: get()._resumeInstructions || greetingPrompt
                                     }
                                 });
                             }
                         },
                         onDisconnect: () => {
-                            set({ status: "completed", avatarState: "idle" });
+                            if (epoch === connectionEpoch) get().interrupt();
                         }
                     });
 
                     // 5. Connect!
+                    set({ manager });
                     await manager.connect(localStream);
+                    if (epoch !== connectionEpoch) { manager.disconnect(); localStream.getTracks().forEach(t => t.stop()); return; }
 
                     // 6. Update global state
                     set({
@@ -376,13 +388,22 @@ STRICT INSTRUCTIONS:
                     });
 
                 } catch (err: any) {
+                    if (epoch !== connectionEpoch) return;
                     console.error("Failed to connect interview:", err);
-                    set({ status: "error", error: err.message || "Connection failed" });
-                    get().disconnect(); // ensure cleanup
+                    get().interrupt();
+                    set({ error: err.message || "Connection failed" });
                 }
             },
 
+            interrupt: () => {
+                ++connectionEpoch;
+                const { manager, localStream } = get();
+                set({ status: "paused", manager: null, localStream: null, avatarState: "idle", _isDrainingSubtitle: false });
+                manager?.disconnect();
+                localStream?.getTracks().forEach(t => t.stop());
+            },
             disconnect: () => {
+                ++connectionEpoch;
                 const { manager, localStream } = get();
                 if (manager) manager.disconnect();
                 if (localStream) {
@@ -392,16 +413,19 @@ STRICT INSTRUCTIONS:
             },
 
             endInterview: () => {
+                const epoch = connectionEpoch;
                 const sessionCtx = get()._sessionContext;
                 if (sessionCtx?.sessionId) {
                     console.log("[STORE] endInterview triggered. Waiting for subtitle drain...");
                     const isDemoSession = sessionCtx.sessionId.startsWith("demo-");
                     const monitorDrainAndFinish = () => {
+                        if (epoch !== connectionEpoch) return;
                         if (get()._subtitleBuffer.length > 0 || get()._isDrainingSubtitle) {
                             setTimeout(monitorDrainAndFinish, 500);
                         } else {
                             console.log("[STORE] Subtitles drained. Terminating in 2.5s...");
                             setTimeout(() => {
+                                if (epoch !== connectionEpoch) return;
                                 if (isDemoSession) {
                                     get().disconnect();
                                     return;
@@ -429,13 +453,14 @@ STRICT INSTRUCTIONS:
 
             sendTextMessage: (text: string) => {
                 const { manager } = get();
-                if (manager) {
+                if (manager && get().status === "active") {
                     manager.sendTextMessage(text);
                     get().addTranscriptLine("user", text);
                 }
             },
 
             reset: () => {
+                ++connectionEpoch;
                 const { manager, localStream } = get();
                 if (manager) manager.disconnect();
                 if (localStream) {
@@ -446,6 +471,9 @@ STRICT INSTRUCTIONS:
                     avatarState: "idle",
                     transcript: [],
                     activeDeltaMessage: "",
+                    _resumeInstructions: undefined,
+                    _subtitleBuffer: "",
+                    _isDrainingSubtitle: false,
                     isMicMuted: false,
                     error: null,
                     manager: null,

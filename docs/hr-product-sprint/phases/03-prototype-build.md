@@ -61,6 +61,10 @@ The repository's pre-existing Firebase configuration/rule edits and local agent 
 
 ## Candidate session-integrity extension
 
+**Current behavior, 2026-09-09:** [pause/warning/recovery policy](../implementation/session-integrity.md) supersedes the earlier nonterminating defaults below. The full-screen modal pauses transport and time after one second hidden, warns on the second interruption or six seconds continuously away, and ends on the third or fifteen seconds away. Same-browser recovery retains answers/time and replaces the interrupted question. The [current verification record](../implementation/verification/2026-09-09-session-control-checks.json) separates mocked/software checks from unverified live voice and hosted persistence.
+
+The following paragraphs record earlier iterations:
+
 Added [deterministic guardrails](../implementation/session-integrity.md) to the actual interview room: pre-start notice, active-only visibility/focus monitoring, a 10-second grace period, warnings at three counted events and human-review suggestion at five, without termination or score penalties. Candidates can provide structured context. Recruiter report display/export and a separate completion-save attempt are implemented; live Firebase persistence and anti-tamper guarantees are not established. The local rehearsal requires no AI key. This is separate from the frozen synthetic review-brief experiment.
 
 [Verification record](../implementation/verification/2026-09-08-session-integrity-checks.json): 84 Jest checks passed across eight suites, including 19 guardrail checks; four guardrail browser checks passed. Build and scoped lint passed. The rehearsal returned 200 in development and 404 in production.

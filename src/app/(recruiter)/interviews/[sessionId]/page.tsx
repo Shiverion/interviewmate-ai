@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { IntegrityReportPanel } from "@/components/interview/SessionIntegrity";
 import { reportText } from "@/lib/integrity/policy";
+import SessionControlReport from "@/components/interview/SessionControlReport";
 
 export default function CandidateReportPage() {
     const params = useParams();
@@ -239,6 +240,7 @@ export default function CandidateReportPage() {
 
             {/* ATS Pre-Screen Score */}
             <IntegrityReportPanel value={sessionData.session_integrity}/>
+            <SessionControlReport value={sessionData.session_control}/>
             {sessionData?.ats_score && (
                 <div className="mb-8 space-y-4">
                     <h2 className="text-2xl font-bold font-heading flex items-center gap-2">

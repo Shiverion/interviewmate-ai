@@ -103,9 +103,14 @@ test("refresh restores counts and flags an active-page coverage gap", () => {
   const h = setup("demo-test");
   signal(true);
   signal(false, 3000);
-  const raw = sessionStorage.getItem("interview-integrity:same-session")!;
+  const raw = sessionStorage.getItem(
+    "interview-integrity:same-session:session-integrity-v2"
+  )!;
   h.unmount();
-  sessionStorage.setItem("interview-integrity:same-session", raw);
+  sessionStorage.setItem(
+    "interview-integrity:same-session:session-integrity-v2",
+    raw
+  );
   useIntegrityStore.setState({ record: null });
   useIntegrityStore.getState().prepare("same-session");
   expect(useIntegrityStore.getState().record).toMatchObject({

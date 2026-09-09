@@ -2,7 +2,7 @@
 
 [Pilot guide](english-first-pilot.md) · [Phase 5](../phases/05-case-study-and-handoff.md)
 
-Updated: 2026-09-08. Prototype policy and future requirements; no regulatory compliance claim.
+Updated: 2026-09-09. Prototype policy and future requirements; no regulatory compliance claim.
 
 ## Implemented
 
@@ -16,7 +16,7 @@ Review state is lost on refresh unless exported. Exports/reference packets are u
 
 ## Future learning loop: not implemented
 
-The separate candidate interview room now records [session-integrity metadata](../implementation/session-integrity.md) after a candidate notice: times, durations, counts and structured context. These are session-linked advisory records, not anonymous analytics or training data. That guide documents browser limitations, persistence and production authorization gaps.
+The separate candidate interview room records [session-integrity metadata and recovery checkpoints](../implementation/session-integrity.md) after a candidate notice. Recovery checkpoints contain answers, partial questions, retired exchanges, remaining time and interruption/recovery counts in browser localStorage, including after tab closure. Terminal sessions attempt a hosted save. These are personal/session-linked records, not anonymous analytics or training data. There is no automatic deletion schedule or cross-device recovery. Use synthetic content for testing; the guide documents access, retention, client tampering and production authorization gaps.
 
 Aggregate issue categories, create synthetic examples demonstrating recurring problems, review them, and evaluate prompt/model changes on a separate set. Reviewer corrections require calibration and are not automatically correct training labels. Past hiring outcomes are not unquestioned ground truth.
 

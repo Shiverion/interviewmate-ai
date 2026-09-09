@@ -8,6 +8,7 @@ import {
   stateSchema,
   type IntegrityState,
   type IntegrityEvent,
+  POLICY,
 } from "./policy";
 
 type Store = {
@@ -22,7 +23,8 @@ type Store = {
   explain: (id: number, reason: IntegrityEvent["reason"]) => void;
   syncStatus: (key: string, status: Store["sync"]) => void;
 };
-const storageKey = (key: string) => "interview-integrity:" + key;
+const storageKey = (key: string) =>
+  "interview-integrity:" + key + ":" + POLICY.version;
 export const useIntegrityStore = create<Store>((set, get) => {
   const save = (record: IntegrityState) => {
     let storageUnavailable = get().storageUnavailable;

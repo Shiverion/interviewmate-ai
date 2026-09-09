@@ -1,100 +1,87 @@
-# Lightweight session-integrity guardrails
+# Interview pauses, warnings and recovery
 
-[Phase 3 progress](../phases/03-prototype-build.md) · [Phase 4](../phases/04-evaluation-and-iteration.md) · [Data governance](../evaluation/data-governance.md)
+[Phase 3](../phases/03-prototype-build.md) · [Phase 4](../phases/04-evaluation-and-iteration.md) · [Data governance](../evaluation/data-governance.md)
 
-Updated: 2026-09-08. **Implemented; rule/browser tests verify the feature. Live Firebase persistence and real-candidate false-positive rates are not established.**
+Updated: 2026-09-09. **Implemented prototype; live voice reconnection, hosted persistence and production enforcement remain unverified.** This guide supersedes the earlier nonterminating three/five-event design. Historical verification files retain the policy that was tested at the time.
 
 ## Product behavior
 
-The candidate interview room now presents a notice before Start Interview is enabled. During active interviews, deterministic browser signals produce an advisory record. This is a deterrent and a review aid, not proof of cheating or a way to block access to AI.
+The candidate reads the English/Indonesian notice before starting. Browser signals are not proof of cheating and cannot identify AI tools, another page's contents, searches, or intent. The app can cover its own page; it cannot prevent another app/device from being used.
 
-| Signal / threshold | Behavior |
+| Trigger | Current behavior |
 |---|---|
-| First 10 seconds after monitoring begins/resumes | Grace period for setup and permissions |
-| Page hidden less than 3 seconds | Ignored |
-| Page hidden at least 3 seconds after grace | One counted event per continuous away episode |
-| Repeated blur/visibility/focus notifications | Combined into the same episode |
-| Focus lost while page remains visible, at least 10 seconds | Context event only; does not increase warning count |
-| Cursor leaves the page | Not collected or counted |
-| 1–2 counted events | Neutral reminder and optional candidate context |
-| 3–4 counted events | Nonblocking warning |
-| 5 or more counted events | Human review suggested; interview remains active |
-| Any number of events | No automatic termination, candidate score deduction, or hiring decision |
+| First 10 seconds of a new session | Startup grace |
+| Hidden for less than 1 second after grace | No counted interruption |
+| Hidden for at least 1 second | Pause microphone/video capture, AI transport, answer submission and timer; show full-screen dialog |
+| Second counted interruption OR 6 seconds continuously hidden | Final warning |
+| Third counted interruption OR 15 seconds continuously hidden | End session and retain answers for human review |
+| Window loses focus while still visible | Context only; does not trigger this sequence |
+| Cursor leaves page | Not collected |
+| Technical/offline interruption or page closure | Recoverable checkpoint; time stays paused until reconnection |
 
-Three and five are provisional product thresholds, not validated cheating thresholds. Durations use event timestamps rather than background timer ticks, since browsers throttle background timers. A long uninterrupted absence is one event, with its duration retained.
+Thresholds are provisional product defaults, not validated cheating thresholds. A continuous absence counts once. Visibility return closes its hidden interval without waiting for keyboard focus. If a candidate keeps switching while already paused, each new qualifying absence still counts. Resume does not reset interruption counts or grant another startup grace period.
 
-Window blur can reflect permission dialogs, browser controls, accessibility tools, or other interruptions. Hidden-page events can also reflect minimization or a locked screen. A page cannot reliably identify other apps, URLs, search activity, AI tools, a second device, or intent. The browser API limitations are described by [MDN Page Visibility](https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API) and [Window blur](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event), checked 2026-09-08.
+Long-absence thresholds are measured from the start of the hidden interval after grace, not from the warning. Browser callbacks may be delayed, throttled or suspended. The app reconciles elapsed time when it can run again; this is not a guarantee of ending at exactly 15 seconds while suspended. A final-warning state can be reached while the candidate is away, so its visual message may not be seen before ending. The pre-start notice also discloses the whole sequence. An optional chime is best effort, not proof a warning was heard.
 
-## Candidate experience
+## Return-to-page alerts
 
-The English and Indonesian notices describe what is recorded, the thresholds, possible recruiter review, and the absence of automatic penalties. Candidates should arrange permitted resources and accommodations with the recruiter before starting. Acknowledgment confirms the notice was read; it is not a claim that all privacy/legal requirements are satisfied.
+The large dialog covers the viewport and blurs the interview behind it. It uses a native modal dialog so underlying controls are inert and keyboard focus stays within it. Escape and outside clicks do not bypass the pause. The candidate explicitly chooses **I understand — resume with a new question**. This initiates reconnection for a live interview; the timer resumes only after connection succeeds.
 
-A compact in-session panel displays counts, warnings and **Review events and add context**. Candidates may select technical issue/device permission, accessibility need, interruption, permitted resource, or other. No free-text explanation, cursor coordinates, clipboard content, keystrokes, extra camera recording, eye tracking, or browser history is collected. Detailed circumstances can be discussed directly with the recruiter.
+Sound is optional, starts off and has enable/test and mute controls inside the dialog. A short local oscillator tone requires no API/file. Browser audio restrictions can prevent playback; a visible fallback message remains. Media is disconnected while paused, including microphone and camera tracks. This trades reconnection latency for a clear transport stop.
 
-Explanations are available while monitoring is active. At completion the report is read-only and can be exported as JSON. This guardrail never calls interview termination or passes its data into AI evaluation prompts. Existing interview duration/completion behavior remains independent.
+The rehearsal shows monitoring off, startup countdown, readiness, remaining time, current question and session state. It has a clearly labelled simulated connection-loss action and a **New rehearsal** action that creates a separate attempt. The real interview does not offer that attempt-reset action.
 
-### Return-to-page alerts
+## Recovery and replacement questions
 
-Each new counted hidden-page event shows a dismissible corner pop-up when the candidate returns. It says **Your interview page was hidden**, gives the count, and escalates its message at three/five events. It does not assert that another tab, AI tool, or rule violation was detected. English and Indonesian are supported. Quick switches and focus-only context do not trigger the pop-up. Dismissal leaves the event record intact; restored history and candidate context edits do not replay alerts.
+Checkpoints persist completed transcript lines, partial assistant text, remaining time, interruption/recovery counts, terminal state and retired exchanges in this browser's localStorage. The normal context store still supplies the session identity after reopening. A recovered active/paused session opens in recovery, with its timer frozen. Sessions already ended stay ended through normal reload/reopen. Corrupt/unavailable checkpoints are held for recruiter help rather than silently granting a fresh session.
 
-Return handling now closes the hidden interval as soon as the document becomes visible, even if keyboard focus is still outside the page. It previously waited for focus as well, which could delay the alert. Further visible focus loss is separate context; a later focus notification does not count the hidden event twice. The rehearsal shows monitoring off, a startup countdown, and **Monitoring ready**. Reloading the rehearsal returns it to setup; start it again and wait for ready before testing. No cache clearing is needed for this logic fix.
+Before resuming, the current interrupted exchange is moved to a retired-material archive. Earlier question/answer exchanges remain in the active transcript. Replacement selection uses eight distinct authored behavioral scenarios in English/Indonesian, advancing through unused entries and skipping exact/partial textual matches to previous questions. The live voice response is instructed to ask the selected question exactly. The rehearsal displays it directly. A failed connection retry keeps its reserved replacement and does not discard another completed answer. Exhaustion requires recruiter help; it does not recycle the bank.
 
-The card has a blurred backdrop, without a full-screen blur or modal lock. It announces itself to assistive technology without moving keyboard focus and can be dismissed with its button or Escape. The interview audio and timer continue, as stated in the notice and pop-up; dismissal is not a resume action.
+The bank is a prototype fallback, not calibrated role-specific or difficulty-matched content. Semantic paraphrase detection and the model's actual spoken adherence are not verified. Production needs an approved question pool organized by competency, language and difficulty, server-side selection/retirement, and a rule for exhausted pools. Changing a question reduces preparation opportunities; it cannot eliminate intentional interruption or distinguish a crash from deliberate closure.
 
-Candidates may choose **Enable & test alert sound** during the active session. This plays a short, quiet preview and enables one 240 ms chime per new counted event. Sound starts off and can be muted; it is not persisted or included in recruiter reports. Audio is generated locally without an extra API or file. Browser/device restrictions can prevent playback, in which case a visual message appears and pop-ups remain available. User-gesture activation follows [MDN Web Audio best practices](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices), checked 2026-09-08. Use headphones when trying it in a voice interview to reduce speaker-to-microphone pickup; actual audio audibility and interference still need a human check.
+Offline events and unexpected WebRTC/data-channel disconnects pause the session instead of marking it completed. Reopening restores the last available checkpoint; recovery attempts remain visible for review. Technical recovery preserves earlier interruption counts but does not count downtime as a new page violation. Repeated technical failures do not automatically imply misconduct.
 
-## Recruiter experience and persistence
+## Reports, evaluation and governance
 
-The existing candidate report includes **Session integrity · human review**, with counts, the event timeline and candidate context. Its transcript/report text export also includes the advisory summary. A missing or invalid record is shown as unavailable, not as proof of compliance.
+The recruiter report displays session-control status, counts, remaining time, replacements, event history and retired questions. The terminal save attempts a separate `session_control` field alongside `final_transcript`; the existing visibility record remains in `session_integrity`. Writes are best effort and failure is visible. A checkpoint can be downloaded from the full-screen dialog. Demo rehearsals make no Firebase write.
 
-Client-side sessionStorage retains the record for the interview ID across reloads in the same browser tab. An active record restored after reload reports a coverage gap; reconnecting after a stopped monitoring interval retains counts and reports the gap. Storage denial is visible and the interview continues with memory-only tracking. Normal tab closure can remove sessionStorage; it is not durable server evidence.
+An automatically ended session skips the page's automatic evaluation request. An ended session is not an automatic rejection or score deduction. On a normally completed resumed interview, the evaluation input is the active transcript; retired exchanges are kept separately for human review and are not sent as evaluation evidence. Manual/other evaluation paths must apply the same exclusion before production use.
 
-At completed status, scheduled sessions attempt a separate Firestore update to `interview_sessions/<sessionId>.session_integrity`. It contains no score or transcript update. Failures remain visible to the candidate, with JSON export available. Demo/standalone rehearsals do not write to Firebase. Network loss, abrupt closure or departure before completion may prevent server saving. Candidate context is stored with the events and remains labelled candidate-provided.
+These checkpoints contain candidate answers and are **personal/session-linked data, not anonymous telemetry or training data**. Browser-local storage survives tab closure, can be read by same-origin code and by people with access to the browser profile, can fail, and can be modified or cleared. Use synthetic data for the sprint. There is no automatic retention/deletion job, encryption boundary, cross-device recovery, server checkpoint reconciliation, recruiter restart authorization flow, or tamper-resistant lock. Existing Firebase rule/configuration edits were not changed or deployed; owner/candidate authorization must be hardened before real deployment. Clearing storage or altering client code can bypass local limits.
 
-The current working Firebase rules allow broad authenticated access to interview sessions. Those pre-existing, uncommitted configuration/rule files were not changed or deployed. Owner/candidate authorization and server-side append-only recording require hardening and verification before real deployment. Client events can be modified, disabled, cleared, or spoofed; sessionStorage and acknowledgment are not anti-tamper boundaries.
-
-Keep these records under interview access/retention controls because they are associated with a session and candidate. There is no background analytics upload, model training, extra API key, or ML dependency. The latest 200 events are retained; older omissions are counted and aggregate totals preserved. Browser-tampered input is schema-checked before report rendering, but schema validation does not authenticate evidence.
+Do not claim production anti-cheating enforcement. A production service must own active-time accounting, append-only audit events, question eligibility, terminal/restart state and resume authorization. It must also define retention/deletion, access isolation, recovery after device/storage loss, warning-delivery evidence and accessibility accommodations.
 
 ## Try it without an AI key
 
-1. Run `npm run dev -- --hostname 127.0.0.1`.
-2. Open [the local rehearsal](http://127.0.0.1:3000/review-brief/integrity-demo).
-3. Read/acknowledge the notice and select **Start local rehearsal**.
-4. Allow ten seconds for startup grace. Switch to another tab for at least three seconds, then return.
-5. Repeat until three events: expect a warning. At five: expect a human-review suggestion and an active session.
-6. Add a context category, finish the rehearsal, and export the record.
-7. Separately try a quick switch, moving the cursor out of the page, and a visible-window focus loss. Cursor movement should do nothing; focus-only context should not increase the counted events.
-8. Enable and test the alert sound, then repeat a qualifying tab switch. Expect one pop-up and one short chime on return. Dismiss with the button or Escape; the count should remain. Mute sound and repeat to check the visual-only behavior.
+1. Run `npm run dev -- --hostname 127.0.0.1` and open [the rehearsal](http://127.0.0.1:3000/review-brief/integrity-demo).
+2. If an earlier attempt is ended, choose **New rehearsal**. Read/acknowledge the notice, start and wait for **Monitoring ready**.
+3. Switch away for one second, return, and check the full-screen pause. Resume and observe the changed question.
+4. Repeat: the second interruption gives the final warning; the third ends the session. Reload to verify the normal UI retains the end state.
+5. Start a separate rehearsal. Stay away for six seconds to test the final warning, or fifteen to test automatic end.
+6. In another attempt, choose **Simulate connection loss**, note remaining time, reload and resume. Time should remain paused and the question should change.
+7. Enable/test sound, try real network loss, reopen the same browser session, and check mobile/keyboard behavior. For a live voice test, working provider credentials and Firebase configuration are still needed.
 
-The rehearsal uses the same hook, policy, storage and panels as the interview room. Its route returns 404 in production. The actual interview room's guardrail remains enabled when that room runs; its existing AI/Firebase requirements still apply. Rehearsal counts persist in the tab so reload is not presented as a way to reset them.
-
-Human follow-up: try real tab switching in the browsers candidates will use, permission dialogs, assistive tools and permitted resources. Record false-positive examples before choosing production thresholds. Recruiters should discuss flagged events and accommodations with the candidate; no second reviewer is required to begin the local rehearsal.
+Human follow-up: check real WebRTC reconnection, media stopping, model question delivery, permissions, browser suspension and network flapping on the browsers candidates will use. Calibrate thresholds and equivalent replacement questions with recruiters/candidates, including accessibility needs. Synthetic UI tests do not measure false-positive or cheating-detection accuracy.
 
 ## Engineering map
 
-- [Deterministic policy and schemas](../../../src/lib/integrity/policy.ts): the single threshold source, episode accounting, bounded report and text formatter.
-- [Browser record store](../../../src/lib/integrity/store.ts): persistence, acknowledgment, candidate context and visible storage/sync status.
-- [Session hook](../../../src/lib/integrity/useSessionIntegrity.ts): active-only listeners, cleanup and completion saving.
-- [Candidate and recruiter panels](../../../src/components/interview/SessionIntegrity.tsx).
-- [Return-to-page pop-up and optional local chime](../../../src/components/interview/IntegrityAlert.tsx).
-- [Interview room integration](../../../src/app/(public)/interview/page.tsx) and [recruiter report integration](../../../src/app/(recruiter)/interviews/[sessionId]/page.tsx).
-- [Rehearsal page](../../../src/app/review-brief/integrity-demo/page.tsx).
+- [Control engine and question bank](../../../src/lib/integrity/session-control.ts): thresholds, clock, transitions and retirement.
+- [Recovery checkpoint store](../../../src/lib/integrity/control-store.ts): same-browser persistence and terminal-state restoration.
+- [Live/rehearsal integration](../../../src/lib/integrity/useInterviewControl.ts): lifecycle signals, resume and terminal saving.
+- [Visibility record policy](../../../src/lib/integrity/policy.ts), [store](../../../src/lib/integrity/store.ts) and [hook](../../../src/lib/integrity/useSessionIntegrity.ts).
+- [Full-screen dialog](../../../src/components/interview/IntegrityAlert.tsx), [notice/panels](../../../src/components/interview/SessionIntegrity.tsx), [recovery report](../../../src/components/interview/SessionControlReport.tsx).
+- [Interview transport store](../../../src/lib/store/useInterviewStore.ts) and [WebRTC manager](../../../src/lib/audio/WebRTCAudioManager.ts).
 
-Change thresholds in POLICY with a new policy version, corresponding notice text, boundary tests, and a documented rationale. Preserve historical reports and do not compare counts from different policies as equivalent.
+Visibility policy v2 uses a versioned sessionStorage key and requires a new acknowledgment. Old v1 keys are left intact and old v1 reports retain their original three-second/nonterminating interpretation. New recovery checkpoints use a separate versioned localStorage prefix. Do not compare counts from different versions as equivalent.
 
 ## Verification
 
-[Alert follow-up results](verification/2026-09-08-session-alert-checks.json): 89 Jest checks across nine suites, all five guardrail browser scenarios, app/Cypress type checks, scoped lint and production build passed. Audible playback with a real microphone session remains a manual check.
-
-[Recorded results](verification/2026-09-08-session-integrity-checks.json): all 84 Jest checks passed (19 guardrail checks), four guardrail browser checks passed, and production build/scoped lint passed. The rehearsal returned 200 in development and 404 in production.
+Run `npx jest --runInBand`, application/Cypress type checks, scoped ESLint, `npm run build`, `node docs/scripts/check-docs.cjs`, and the browser suite:
 
 ```powershell
-npx jest --runInBand
-npx tsc --noEmit
-npx tsc --project cypress/tsconfig.json --noEmit
 npx cypress run --config baseUrl=http://127.0.0.1:3000 --spec cypress/e2e/integrity.cy.ts --browser electron
-npm run build
-node docs/scripts/check-docs.cjs
 ```
 
-Unit tests exercise timing boundaries, startup grace, duplicate signals, focus-only context, long absences, nontermination, history bounds, reload recovery, storage denial, session isolation and mocked completion saving. Browser tests simulate visibility events, validate the actual interview start gate and check the Indonesian/mobile UI. They are software checks, not a live cheating-detection accuracy study. Firebase writes are mocked in tests; no production rules were deployed.
+[Original record checks](verification/2026-09-08-session-integrity-checks.json) and [earlier alert checks](verification/2026-09-08-session-alert-checks.json) are historical. [Phase 4](../phases/04-evaluation-and-iteration.md#session-integrity-software-verification) records the current iteration and its practical limits.
+
+Browser constraints: [MDN Page Visibility](https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API), [Window blur](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event), and [Web Audio best practices](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices), inspected 2026-09-08.

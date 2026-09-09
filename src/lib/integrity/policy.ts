@@ -1,14 +1,14 @@
 import { z } from "zod";
 
 export const POLICY = Object.freeze({
-  version: "session-integrity-v1" as const,
+  version: "session-integrity-v2" as const,
   startupGraceMs: 10_000,
-  hiddenMinimumMs: 3_000,
+  hiddenMinimumMs: 1_000,
   focusContextMinimumMs: 10_000,
-  warningAt: 3,
-  reviewAt: 5,
+  warningAt: 2,
+  reviewAt: 3,
   maxEvents: 200,
-  autoTerminate: false as const,
+  autoTerminate: true as const,
 });
 export const reasonSchema = z.enum([
   "not_provided",
@@ -83,7 +83,7 @@ export function start(state: IntegrityState, now: number): IntegrityState {
       (state.endedAt !== null && now - state.endedAt > 1000 ? 1 : 0),
     startedAt: state.startedAt ?? now,
     endedAt: null,
-    graceUntil: now + POLICY.startupGraceMs,
+    graceUntil: state.startedAt === null ? now + POLICY.startupGraceMs : now,
     episode: null,
   };
 }
@@ -169,27 +169,44 @@ export function finish(state: IntegrityState, now: number): IntegrityState {
     episode: null,
   };
 }
-export const reportSchema = z.strictObject({
-  version: z.literal(POLICY.version),
-  source: z.literal("client_reported"),
-  sessionKey: z.string().max(200),
-  acknowledgedAt: timestamp.nullable(),
-  startedAt: timestamp.nullable(),
-  endedAt: timestamp.nullable(),
-  hiddenCount: z.number().int().nonnegative(),
-  focusContextCount: z.number().int().nonnegative(),
-  coverageGaps: z.number().int().nonnegative(),
-  droppedEvents: z.number().int().nonnegative(),
-  events: z.array(eventSchema).max(POLICY.maxEvents),
-  policy: z.object({
-    startupGraceMs: z.literal(POLICY.startupGraceMs),
-    hiddenMinimumMs: z.literal(POLICY.hiddenMinimumMs),
-    focusContextMinimumMs: z.literal(POLICY.focusContextMinimumMs),
-    warningAt: z.literal(POLICY.warningAt),
-    reviewAt: z.literal(POLICY.reviewAt),
-    autoTerminate: z.literal(false),
-  }),
-});
+export const reportSchema = z
+  .strictObject({
+    version: z.enum(["session-integrity-v1", POLICY.version]),
+    source: z.literal("client_reported"),
+    sessionKey: z.string().max(200),
+    acknowledgedAt: timestamp.nullable(),
+    startedAt: timestamp.nullable(),
+    endedAt: timestamp.nullable(),
+    hiddenCount: z.number().int().nonnegative(),
+    focusContextCount: z.number().int().nonnegative(),
+    coverageGaps: z.number().int().nonnegative(),
+    droppedEvents: z.number().int().nonnegative(),
+    events: z.array(eventSchema).max(POLICY.maxEvents),
+    policy: z.object({
+      startupGraceMs: z.literal(POLICY.startupGraceMs),
+      hiddenMinimumMs: z.union([
+        z.literal(3000),
+        z.literal(POLICY.hiddenMinimumMs),
+      ]),
+      focusContextMinimumMs: z.literal(POLICY.focusContextMinimumMs),
+      warningAt: z.union([z.literal(3), z.literal(POLICY.warningAt)]),
+      reviewAt: z.union([z.literal(5), z.literal(POLICY.reviewAt)]),
+      autoTerminate: z.boolean(),
+    }),
+  })
+  .refine(
+    (r) =>
+      r.policy.hiddenMinimumMs ===
+        (r.version === "session-integrity-v1"
+          ? 3000
+          : POLICY.hiddenMinimumMs) &&
+      r.policy.autoTerminate === (r.version !== "session-integrity-v1") &&
+      r.policy.warningAt ===
+        (r.version === "session-integrity-v1" ? 3 : POLICY.warningAt) &&
+      r.policy.reviewAt ===
+        (r.version === "session-integrity-v1" ? 5 : POLICY.reviewAt),
+    { message: "Policy duration does not match its version" }
+  );
 export type IntegrityReport = z.infer<typeof reportSchema>;
 export function report(state: IntegrityState): IntegrityReport {
   return {
@@ -210,7 +227,7 @@ export function report(state: IntegrityState): IntegrityReport {
       focusContextMinimumMs: POLICY.focusContextMinimumMs,
       warningAt: POLICY.warningAt,
       reviewAt: POLICY.reviewAt,
-      autoTerminate: false,
+      autoTerminate: true,
     },
   };
 }
@@ -227,8 +244,10 @@ export function reportText(value: unknown) {
     r.focusContextCount +
     "\n" +
     "Human review suggested: " +
-    (r.hiddenCount >= POLICY.reviewAt ? "yes" : "threshold not reached") +
-    "; automatic termination: disabled\n" +
+    (r.hiddenCount >= r.policy.reviewAt ? "yes" : "threshold not reached") +
+    (r.policy.autoTerminate
+      ? "; automatic termination: enabled by session-control-v1 (third interruption or 15s continuously away, final warning at second interruption or 6s)\n"
+      : "; automatic termination: disabled\n") +
     "Coverage gaps: " +
     r.coverageGaps +
     "; older events omitted: " +

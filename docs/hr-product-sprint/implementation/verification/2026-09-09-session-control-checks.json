@@ -1,0 +1,24 @@
+{
+  "recordedOn": "2026-09-09",
+  "scope": "Full-screen pause, final warning, automatic session end and same-browser recovery prototype",
+  "policies": { "visibility": "session-integrity-v2", "control": "session-control-v1" },
+  "checks": {
+    "jest": { "passed": 105, "suites": 11, "integrityAndControlChecks": 40 },
+    "cypress": { "passed": 7, "spec": "cypress/e2e/integrity.cy.ts", "browser": "Electron", "signals": "simulated browser events and clock", "coverage": ["start gate and brief switches", "full-screen modal and explicit resume", "second warning and third end retained on reload", "frozen timer and six/fifteen-second escalation", "recovery and replacement after reload", "Indonesian/mobile", "real interview notice gate without connecting"] },
+    "applicationTypecheck": "passed",
+    "cypressTypecheck": "passed",
+    "scopedEslint": "passed",
+    "productionBuild": "passed"
+  },
+  "limits": [
+    "Live voice provider connection, replacement speech and Firebase terminal saving were not exercised.",
+    "Media stopping is verified with mocked transport/tracks, not a real microphone or speaker.",
+    "Client-side timers and locks can be delayed or bypassed; server enforcement and cross-device recovery are not implemented.",
+    "Final warnings may be issued while the page is hidden; delivery/awareness is not guaranteed.",
+    "Replacement bank is an authored bilingual behavioral fallback, not calibrated equivalent role-specific questions.",
+    "Recovery stores candidate answers in localStorage and terminal reports; no automatic retention/deletion job or training reuse.",
+    "Browser signals do not establish cheating or justify an automatic hiring decision.",
+    "Existing Firebase configuration/rule changes were not modified or deployed; production authorization remains a gap.",
+    "Existing optional PDF/canvas build warnings remain."
+  ]
+}

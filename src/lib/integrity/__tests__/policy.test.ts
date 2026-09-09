@@ -12,6 +12,26 @@ import {
 const running = () =>
   start({ ...initialState("test-session"), acknowledgedAt: 0 }, 0);
 
+test("historical v1 reports retain their original rules and mixed versions are rejected", () => {
+  const current = report(running());
+  const old = {
+    ...current,
+    version: "session-integrity-v1",
+    policy: {
+      ...current.policy,
+      hiddenMinimumMs: 3000,
+      warningAt: 3,
+      reviewAt: 5,
+      autoTerminate: false,
+    },
+  };
+  expect(reportSchema.safeParse(old).success).toBe(true);
+  expect(reportSchema.safeParse(current).success).toBe(true);
+  expect(
+    reportSchema.safeParse({ ...old, policy: current.policy }).success
+  ).toBe(false);
+});
+
 test("reconnection preserves counts and reports the unobserved interval", () => {
   const ended = finish(away(running(), 11000), 15000);
   const resumed = start(ended, 30000);
@@ -27,12 +47,12 @@ test("no monitoring before acknowledgment or before an active interview", () => 
 });
 test("startup grace excludes permission and setup interruptions", () => {
   expect(away(running(), 100, 3500).count).toBe(0);
-  expect(away(running(), 9000, 3500).count).toBe(0);
+  expect(away(running(), 9000, 1500).count).toBe(0);
   expect(away(running(), 9000, 4000).count).toBe(1);
 });
-test("brief switches below three seconds are ignored; boundary qualifies", () => {
-  expect(away(running(), 11000, 2999).count).toBe(0);
-  expect(away(running(), 11000, 3000).count).toBe(1);
+test("brief switches below one second are ignored; boundary qualifies", () => {
+  expect(away(running(), 11000, 999).count).toBe(0);
+  expect(away(running(), 11000, 1000).count).toBe(1);
 });
 test("blur, hide, visible and focus notifications form one episode", () => {
   let s = observe(running(), false, false, 11000);
@@ -63,26 +83,26 @@ test("returning to a visible tab reports the hidden event before keyboard focus 
 test("brief hidden time does not borrow duration from long focus loss", () => {
   let s = observe(running(), false, false, 11000);
   s = observe(s, true, false, 25000);
-  s = observe(s, false, true, 26000);
+  s = observe(s, false, true, 25500);
   expect(s.count).toBe(0);
   expect(s.focusCount).toBe(1);
-  expect(s.events[0].hiddenMs).toBe(1000);
+  expect(s.events[0].hiddenMs).toBe(500);
 });
 test("timers are unnecessary: delayed return accounts for one long absence", () => {
   const s = away(running(), 11000, 120000);
   expect(s.count).toBe(1);
   expect(s.events[0].hiddenMs).toBe(120000);
 });
-test("three warns, five suggests review, even many events never terminate", () => {
+test("recorder preserves history while the separate session control enforces termination", () => {
   let s = running();
   for (let i = 0; i < 10; i++) s = away(s, 11000 + i * 4000);
   expect(s.count).toBe(10);
   expect(s.active).toBe(true);
   expect(s.completed).toBe(false);
   expect(POLICY).toMatchObject({
-    warningAt: 3,
-    reviewAt: 5,
-    autoTerminate: false,
+    warningAt: 2,
+    reviewAt: 3,
+    autoTerminate: true,
   });
 });
 test("finish captures an open absence once and ignores later signals", () => {

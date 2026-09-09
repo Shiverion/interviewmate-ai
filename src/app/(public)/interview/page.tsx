@@ -7,7 +7,9 @@ import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { getOpenAIKey } from "@/lib/keys/store";
 import { isFirebaseReady } from "@/lib/firebase/config";
 import { useSessionIntegrity } from "@/lib/integrity/useSessionIntegrity";
+import { useInterviewControl, resumeControlled } from "@/lib/integrity/useInterviewControl";
 import { IntegrityNotice, IntegrityPanel } from "@/components/interview/SessionIntegrity";
+import IntegrityAlert from "@/components/interview/IntegrityAlert";
 import dynamic from "next/dynamic";
 
 const CodeEditor = dynamic(() => import("@/components/interview/CodeEditor"), { ssr: false });
@@ -36,6 +38,11 @@ interface EvaluationResult {
 }
 
 export default function InterviewRoomPage() {
+  const language = useInterviewStore(s => s._sessionContext?.preferredLanguage);
+  return <><InterviewRoomContent /><IntegrityAlert language={language} floatingControls onResume={() => resumeControlled(true, language)} /></>;
+}
+
+function InterviewRoomContent() {
   const router = useRouter();
   const {
     avatarState,
@@ -43,9 +50,7 @@ export default function InterviewRoomPage() {
     toggleMic,
     status,
     error,
-    connect,
     disconnect,
-    reset,
     localStream,
     transcript,
     activeDeltaMessage,
@@ -55,7 +60,6 @@ export default function InterviewRoomPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(30 * 60); // 30 minutes
   const [chatInput, setChatInput] = useState("");
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationDone, setEvaluationDone] = useState(false);
@@ -69,7 +73,10 @@ export default function InterviewRoomPage() {
   const codeDiff = _sessionContext?.codeDiff ?? "";
   const isDemoSession = !!sessionId && sessionId.startsWith("demo-");
   const hasVisualPanel = visualPanel !== "none" && status === "active";
-  const integrity = useSessionIntegrity(sessionId || "standalone-interview", status, sessionId);
+  const control = useInterviewControl(sessionId || "standalone-interview", status, true, sessionId);
+  const timeLeft = Math.ceil((control.record?.remainingMs ?? 1800000) / 1000);
+  const monitorStatus = control.record && ["running", "paused", "final_warning"].includes(control.record.phase) ? "active" : status;
+  const integrity = useSessionIntegrity(sessionId || "standalone-interview", monitorStatus, sessionId);
 
   // Attach local stream to video element PIP when it becomes available
   useEffect(() => {
@@ -78,39 +85,13 @@ export default function InterviewRoomPage() {
     }
   }, [localStream]);
 
-  // Persistent Timer Logic
-  useEffect(() => {
-    if (status !== "active") return;
 
-    const startedAt = _sessionContext?.startedAt || Date.now();
-    const thirtyMinsMs = 30 * 60 * 1000;
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const remainingMs = thirtyMinsMs - elapsed;
-
-      if (remainingMs <= 0) {
-        clearInterval(interval);
-        setTimeLeft(0);
-        // Force the AI to stop natively and database to mark completed
-        disconnect();
-      } else {
-        setTimeLeft(Math.ceil(remainingMs / 1000));
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [status, _sessionContext?.startedAt, disconnect]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => reset();
-  }, [reset]);
+  // Control hook checkpoints and stops transport on unmount; answers survive recovery.
 
   // Trigger automated evaluation asynchronously on completion
   useEffect(() => {
     // The moment the state transitions to 'completed' and we haven't already hit this toggle
-    if (status === "completed" && sessionId && !isEvaluating && !evaluationDone) {
+    if (status === "completed" && control.record?.phase !== "ended" && sessionId && !isEvaluating && !evaluationDone) {
       const hasTranscript = transcript.some((line) => line.text && line.text.trim().length > 0);
       if (!hasTranscript) {
         console.warn("[InterviewRoom] Skipping evaluation: no transcript captured.");
@@ -164,7 +145,7 @@ export default function InterviewRoomPage() {
           setEvaluationDone(true);
         });
     }
-  }, [status, sessionId, transcript, candidateName, jobTitle, jobDescription, isDemoSession, isEvaluating, evaluationDone]);
+  }, [status, control.record?.phase, sessionId, transcript, candidateName, jobTitle, jobDescription, isDemoSession, isEvaluating, evaluationDone]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -182,7 +163,7 @@ export default function InterviewRoomPage() {
 
   const isTextMode = _sessionContext?.interviewMode === "text";
 
-  if (status === "setup" || status === "error") {
+  if (status === "setup" || status === "error" || status === "paused") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 text-center">
         <div className="max-w-md w-full glass-card p-8 space-y-6">
@@ -203,10 +184,11 @@ export default function InterviewRoomPage() {
           )}
 
           <IntegrityNotice language={_sessionContext?.preferredLanguage}/>
+          <IntegrityPanel language={_sessionContext?.preferredLanguage} showAlert={false} />
 
           <button
-            onClick={connect}
-            disabled={integrity.record?.acknowledgedAt == null}
+            onClick={() => { void resumeControlled(true, _sessionContext?.preferredLanguage).catch(() => {}); }}
+            disabled={integrity.record?.acknowledgedAt == null || ["ended", "completed"].includes(control.record?.phase || "")}
             className="w-full gradient-primary text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-primary-500/25 hover:-translate-y-0.5 transition-transform"
           >
             Start Interview
@@ -229,9 +211,14 @@ export default function InterviewRoomPage() {
   if (status === "completed") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 text-center">
-        <IntegrityPanel language={_sessionContext?.preferredLanguage}/>
+        <IntegrityPanel language={_sessionContext?.preferredLanguage} showAlert={false}/>
         <div className="max-w-2xl w-full glass-card p-8 md:p-10 space-y-6 relative overflow-hidden">
-          {isEvaluating ? (
+          {control.record?.phase === "ended" ? (
+            <>
+              <h2 className="text-2xl font-bold">Session ended — recruiter review needed</h2>
+              <p>Completed answers are retained. Automatic evaluation was skipped for this interrupted session; contact your recruiter to discuss what happened.</p>
+            </>
+          ) : isEvaluating ? (
             <>
               <div className="mx-auto w-16 h-16 relative flex items-center justify-center mb-6">
                 <div className="absolute inset-0 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" />
@@ -331,7 +318,7 @@ export default function InterviewRoomPage() {
 
   return (
     <div className="relative flex flex-col h-[calc(100vh-4rem)] bg-[var(--background)] overflow-hidden">
-      <IntegrityPanel language={_sessionContext?.preferredLanguage}/>
+      <IntegrityPanel language={_sessionContext?.preferredLanguage} showAlert={false}/>
       {/* Background gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none" />
 

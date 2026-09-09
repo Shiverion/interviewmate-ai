@@ -27,23 +27,23 @@ export function IntegrityNotice({ language = "" }: { language?: string }) {
       </p>
       <p>
         {id
-          ? "Saat sesi aktif, halaman mencatat waktu dan durasi ketika tersembunyi atau kehilangan fokus. Perpindahan minimal 3 detik dihitung setelah masa awal 10 detik. Gerakan kursor, isi tab lain, penelusuran, dan clipboard tidak direkam."
-          : "During the active session, this page records when it is hidden or loses focus and for how long. Hidden periods of at least 3 seconds count after a 10-second startup grace period. Cursor movements, other tabs' contents, searches, and clipboard contents are not recorded."}
+          ? "Saat sesi aktif, halaman mencatat waktu dan durasi ketika tersembunyi atau kehilangan fokus. Perpindahan minimal 1 detik dihitung setelah masa awal 10 detik. Gerakan kursor, isi tab lain, penelusuran, dan clipboard tidak direkam."
+          : "During the active session, this page records when it is hidden or loses focus and for how long. Hidden periods of at least 1 second count after a 10-second startup grace period. Cursor movements, other tabs' contents, searches, and clipboard contents are not recorded."}
       </p>
       <p>
         {id
-          ? "Tiga kejadian memunculkan peringatan; lima menyarankan peninjauan manusia. Kehilangan fokus saja tidak menambah hitungan. Sesi tidak otomatis dihentikan dan skor tidak dikurangi. Kejadian bukan bukti kecurangan; Anda bisa memberikan konteks."
-          : "Three events trigger a warning; five suggest human review. Focus loss alone does not increase this count. Your session is not automatically ended and scores are not reduced. Events are not proof of cheating; you can provide context."}
+          ? "Sesi dijeda setelah 1 detik meninggalkan halaman. Gangguan kedua atau 6 detik berturut-turut memicu peringatan terakhir. Gangguan ketiga atau 15 detik berturut-turut mengakhiri sesi. Kehilangan fokus saja tidak dihitung. Tidak ada pengurangan skor otomatis."
+          : "The session pauses after 1 second away. A second interruption or 6 continuous seconds away triggers a final warning. A third interruption or 15 continuous seconds away ends the session. Focus loss alone does not count. No automatic score deduction applies."}
       </p>
       <p className="text-[var(--muted)]">
         {id
-          ? "Pengingat pop-up muncul saat Anda kembali setelah kejadian yang dihitung. Suara singkat dapat diaktifkan selama sesi. Wawancara dan waktunya tetap berjalan saat pengingat muncul."
-          : "A pop-up reminder appears when you return after a counted event. You can enable a short alert sound during the session. The interview and timer keep running while the reminder is displayed."}
+          ? "Saat dijeda, latar layar diburamkan, mikrofon dan respons AI dihentikan, serta waktu dibekukan. Suara peringatan opsional. Setelah masalah teknis, Anda dapat menyambung kembali dengan pertanyaan pengganti. Jawaban sebelumnya disimpan; pertanyaan yang dibatalkan tidak dinilai."
+          : "During a pause, the screen is blurred, microphone capture and AI responses stop, and the timer freezes. Alert sound is optional. After a technical interruption, reconnect with a replacement question. Earlier answers are retained; retired questions are excluded from evaluation."}
       </p>
       <p className="text-[var(--muted)]">
         {id
-          ? "Catatan disimpan di tab ini. Saat wawancara selesai, sistem mencoba menyimpan ringkasannya ke sesi untuk dilihat perekrut."
-          : "The record is kept in this browser tab. At interview completion, the app attempts to save it with the session for your recruiter to review."}
+          ? "Catatan pemulihan berisi jawaban disimpan di browser ini, termasuk setelah tab ditutup. Saat selesai, sistem mencoba menyimpannya untuk perekrut. Gunakan perangkat pribadi. Gangguan bukan bukti kecurangan; konteks dapat dijelaskan kepada perekrut."
+          : "A recovery checkpoint containing your answers is kept in this browser, including after tab closure. At completion, the app attempts to save it for your recruiter. Use a private device. Interruptions are not proof of cheating; you can explain context to your recruiter."}
       </p>
       <label className="flex items-start gap-2">
         <input
@@ -62,22 +62,39 @@ export function IntegrityNotice({ language = "" }: { language?: string }) {
     </section>
   );
 }
-export function IntegrityPanel({ language = "" }: { language?: string }) {
+export function IntegrityPanel({
+  language = "",
+  onResume,
+  onNewAttempt,
+  showAlert = true,
+}: {
+  language?: string;
+  onResume?: () => void | Promise<void>;
+  onNewAttempt?: () => void;
+  showAlert?: boolean;
+}) {
   const { record, storageUnavailable, sync, explain } = useIntegrityStore();
-  if (!record || record.startedAt === null) return null;
+  if (!record || record.startedAt === null)
+    return showAlert ? (
+      <IntegrityAlert
+        language={language}
+        onResume={onResume}
+        onNewAttempt={onNewAttempt}
+      />
+    ) : null;
   const id = /indones|bahasa|^id$/i.test(language);
   const message =
     record.count >= POLICY.reviewAt
       ? id
-        ? "Peninjauan manusia disarankan. Wawancara tetap berjalan; jelaskan konteks kejadian kepada perekrut."
-        : "Human review suggested. Your interview can continue; explain the interruptions to your recruiter."
+        ? "Jelaskan konteks gangguan kepada perekrut."
+        : "Explain interruption context to your recruiter."
       : record.count >= POLICY.warningAt
         ? id
-          ? "Beberapa kali meninggalkan halaman. Harap tetap di halaman wawancara; sesi tidak akan otomatis dihentikan."
-          : "Repeated page-away events. Please stay on the interview page; this will not automatically end your session."
+          ? "Beberapa kali meninggalkan halaman. Ikuti petunjuk status sesi."
+          : "Repeated page-away events. Follow the session status instructions."
         : id
-          ? "Anda dapat melanjutkan wawancara. Jika ada gangguan, tambahkan konteks di bawah."
-          : "You can continue your interview. Add context below if an interruption occurred.";
+          ? "Jika ada gangguan, tambahkan konteks di bawah."
+          : "Add context below if an interruption occurred.";
   return (
     <section
       className="relative z-10 mx-4 my-2 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-3 text-sm shrink-0"
@@ -100,7 +117,13 @@ export function IntegrityPanel({ language = "" }: { language?: string }) {
             : message}
         </p>
       </div>
-      {record.active && <IntegrityAlert language={language} />}
+      {showAlert && (
+        <IntegrityAlert
+          language={language}
+          onResume={onResume}
+          onNewAttempt={onNewAttempt}
+        />
+      )}
       {storageUnavailable && (
         <p role="status">
           {id
@@ -255,7 +278,7 @@ export function IntegrityReportPanel({ value }: { value: unknown }) {
             {parsed.data.focusContextCount} focus-only context events
           </p>
           <p>
-            {parsed.data.hiddenCount >= POLICY.reviewAt
+            {parsed.data.hiddenCount >= parsed.data.policy.reviewAt
               ? "Review threshold reached. Discuss context with the candidate before drawing conclusions."
               : "Review threshold not reached. This does not establish compliance."}
           </p>
@@ -267,6 +290,10 @@ export function IntegrityReportPanel({ value }: { value: unknown }) {
           <p>
             Coverage gaps: {parsed.data.coverageGaps}. Older events omitted:{" "}
             {parsed.data.droppedEvents}.
+          </p>
+          <p className="text-sm">
+            Recorded policy: {parsed.data.version}; hidden-page threshold:{" "}
+            {parsed.data.policy.hiddenMinimumMs / 1000}s.
           </p>
           <details>
             <summary className="cursor-pointer">

@@ -8,11 +8,35 @@ import {
   IntegrityReportPanel,
 } from "./SessionIntegrity";
 import { report } from "@/lib/integrity/policy";
+import { useSearchParams } from "next/navigation";
+import {
+  useInterviewControl,
+  resumeControlled,
+} from "@/lib/integrity/useInterviewControl";
+import { useControlStore } from "@/lib/integrity/control-store";
 
 export default function IntegrityRehearsal() {
   const [status, setStatus] = useState("setup");
   const [language, setLanguage] = useState("English");
-  const integrity = useSessionIntegrity("demo-integrity-rehearsal", status);
+  const [startError, setStartError] = useState(false);
+  const query = useSearchParams();
+  const key = "demo-integrity-rehearsal:" + (query.get("attempt") || "default");
+  const control = useInterviewControl(key, status);
+  const monitorStatus =
+    control.record &&
+    ["running", "paused", "final_warning"].includes(control.record.phase)
+      ? "active"
+      : ["ended", "completed"].includes(control.record?.phase || "")
+        ? "completed"
+        : "setup";
+  const integrity = useSessionIntegrity(key, monitorStatus);
+  const resume = async () => {
+    await resumeControlled(false, language);
+    setStatus("active");
+  };
+  const newAttempt = () => {
+    window.location.href = "/review-brief/integrity-demo?attempt=" + Date.now();
+  };
   const [now, setNow] = useState(0);
   useEffect(() => {
     if (status !== "active") return;
@@ -46,7 +70,9 @@ export default function IntegrityRehearsal() {
       </label>
       <IntegrityNotice language={language} />
       <p role="status">
-        Rehearsal status: <strong>{status}</strong>
+        Rehearsal status: <strong>{control.record?.phase || status}</strong> ·
+        Time remaining:{" "}
+        {Math.ceil((control.record?.remainingMs ?? 1800000) / 1000)}s
       </p>
       <p
         role="status"
@@ -56,31 +82,74 @@ export default function IntegrityRehearsal() {
           ? "Monitoring is off. Start the rehearsal to test tab switching."
           : now === 0 || graceSeconds > 0
             ? `Getting ready — ${now === 0 ? 10 : graceSeconds} seconds of startup grace remaining.`
-            : "Monitoring ready. Leave this tab for at least 3 seconds; the alert appears when you return."}
+            : "Monitoring ready. Leave this tab for at least 1 second; the alert appears when you return."}
       </p>
       <p>
         After starting, allow 10 seconds for the startup grace period. Switch to
-        another tab for at least 3 seconds, then return. Three qualifying events
-        warn; five suggest review. Moving the cursor outside the page is
-        ignored.
+        another tab for at least 1 second, then return. The session pauses. A
+        second interruption or 6 seconds away triggers a final warning; a third
+        interruption or 15 seconds away ends it. Moving the cursor outside the
+        page is ignored.
       </p>
       <button
         disabled={
-          status === "active" || integrity.record?.acknowledgedAt == null
+          control.record?.phase !== "setup" ||
+          integrity.record?.acknowledgedAt == null
         }
-        onClick={() => setStatus("active")}
+        onClick={() => {
+          const c = useControlStore.getState();
+          if (c.record)
+            c.save({
+              ...c.record,
+              transcript: [
+                {
+                  role: "assistant",
+                  text: "Describe how you handled a difficult project and what you learned.",
+                },
+              ],
+            });
+          setStartError(false);
+          void resume().catch(() => setStartError(true));
+        }}
         className="px-4 py-2 border rounded disabled:opacity-40"
       >
         Start local rehearsal
       </button>
+      {startError && (
+        <p role="status">
+          Cannot start yet. Check your connection and try again.
+        </p>
+      )}
       <button
-        disabled={status !== "active"}
-        onClick={() => setStatus("completed")}
+        disabled={control.record?.phase !== "running"}
+        onClick={() => {
+          control.complete();
+          setStatus("completed");
+        }}
         className="ml-3 px-4 py-2 border rounded disabled:opacity-40"
       >
         Finish rehearsal
       </button>
-      <IntegrityPanel language={language} />
+      <button
+        className="px-3 py-2 border rounded"
+        disabled={control.record?.phase !== "running"}
+        onClick={() => control.recover("simulated_connection_loss")}
+      >
+        Simulate connection loss
+      </button>
+      <button className="px-3 py-2 border rounded" onClick={newAttempt}>
+        New rehearsal
+      </button>
+      {control.record?.transcript.length ? (
+        <p className="rounded-xl border p-4" aria-label="Current question">
+          {control.record.transcript.at(-1)?.text}
+        </p>
+      ) : null}
+      <IntegrityPanel
+        language={language}
+        onResume={resume}
+        onNewAttempt={newAttempt}
+      />
       {status === "completed" && integrity.record && (
         <IntegrityReportPanel value={report(integrity.record)} />
       )}
