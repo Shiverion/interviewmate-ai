@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-09",
+  "baseCommit": "170688d",
+  "iteration": "visibility-and-focus-v2 and enabled escalating audio",
+  "automated": {
+    "jest": { "status": "passed", "tests": 107, "suites": 11 },
+    "cypress": { "status": "passed", "tests": 8, "spec": "cypress/e2e/integrity.cy.ts", "browser": "Electron 138" },
+    "applicationTypecheck": "passed",
+    "cypressTypecheck": "passed",
+    "scopedLint": "passed",
+    "productionBuild": "passed with inherited optional canvas/PDF warnings"
+  },
+  "coverage": [
+    "Visible focus loss pauses after one second; subsecond focus loss does not pause",
+    "Overlapping focus and hidden signals share one absence and count",
+    "Still-unfocused resume is blocked without consuming a replacement",
+    "Default-enabled audio arms from a gesture, repeats and escalates pulse cadence",
+    "Mute suppresses future tones; unavailable audio retains visual alerts",
+    "Existing pause, final warning, end, recovery and language checks remain passing"
+  ],
+  "readOnlyDiagnosis": {
+    "firebaseProject": "interviewmate-9bdd4",
+    "publicProjectConfigHttpStatus": 200,
+    "localhostAuthorized": true,
+    "127.0.0.1Authorized": false,
+    "localhostLoginHttpStatus": 200,
+    "successfulSignIn": "not observed",
+    "hostedConfigChanged": false
+  },
+  "limitations": [
+    "AudioContext and browser signals are mocked in automated checks",
+    "New behavior awaits manual audible, windowed and embedded-browser retest",
+    "Previous owner self-test results are stored separately and do not validate this iteration",
+    "No live provider, microphone or hosted-write pass is claimed",
+    "Background suspension, mute and focus ambiguity remain browser limitations"
+  ]
+}

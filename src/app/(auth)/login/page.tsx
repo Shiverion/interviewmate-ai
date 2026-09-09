@@ -4,6 +4,7 @@ import { useState } from "react";
 import { auth, isFirebaseReady } from "@/lib/firebase/config";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { authErrorMessage } from "@/lib/firebase/auth-error";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -29,9 +30,9 @@ export default function LoginPage() {
                 await signInWithEmailAndPassword(auth, email, password);
             }
             router.push("/dashboard");
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Auth error:", err);
-            setError(err.message || "Failed to authenticate.");
+            setError(authErrorMessage(err, window.location.hostname, process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID));
         } finally {
             setLoading(false);
         }
@@ -49,9 +50,9 @@ export default function LoginPage() {
         try {
             await signInWithPopup(auth, provider);
             router.push("/dashboard");
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Google Auth error:", err);
-            setError(err.message || "Failed to authenticate with Google.");
+            setError(authErrorMessage(err, window.location.hostname, process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID));
         } finally {
             setLoading(false);
         }

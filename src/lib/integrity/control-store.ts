@@ -13,7 +13,7 @@ type Store = {
   storageFailed: boolean;
   prepare: (key: string) => void;
   save: (record: Checkpoint) => void;
-  tick: (hidden: boolean, online: boolean) => void;
+  tick: (away: boolean, online: boolean, reason?: "page_hidden" | "window_unfocused") => void;
   start: () => void;
   recover: (reason: string) => void;
   complete: () => void;
@@ -42,6 +42,9 @@ export const useControlStore = create<Store>((set, get) => ({
         record = checkpointSchema.parse(JSON.parse(raw));
         if (record.key !== key) throw Error("Wrong session");
         record = recover(record, Date.now(), "browser_reopened");
+        if (record.controlPolicy !== "visibility-and-focus-v2" && !["ended", "completed"].includes(record.phase)) {
+          record = log({ ...record, controlPolicy: "visibility-and-focus-v2" }, "focus_policy_updated", Date.now());
+        }
       }
     } catch {
       record = {
@@ -54,10 +57,10 @@ export const useControlStore = create<Store>((set, get) => ({
     set({ record, storageFailed });
     get().save(record);
   },
-  tick(hidden, online) {
+  tick(hidden, online, reason) {
     const s = get().record;
     if (s) {
-      const n = advance(s, Date.now(), hidden, online);
+      const n = advance(s, Date.now(), hidden, online, reason);
       if (n !== s) get().save(n);
     }
   },

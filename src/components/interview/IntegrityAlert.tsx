@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useControlStore } from "@/lib/integrity/control-store";
+import { ALERT_PATTERN, InterviewAlertAudio, type AlertLevel } from "@/lib/integrity/alert-audio";
 
 export default function IntegrityAlert({
   language = "",
@@ -15,93 +16,80 @@ export default function IntegrityAlert({
   floatingControls?: boolean;
 }) {
   const { record, storageFailed } = useControlStore();
-  const [sound, setSound] = useState(false),
+  const [sound, setSound] = useState(true),
     [soundUnavailable, setSoundUnavailable] = useState(false),
     [busy, setBusy] = useState(false),
     [resumeError, setResumeError] = useState(false);
-  const context = useRef<AudioContext | null>(null),
+  const audio = useRef(new InterviewAlertAudio()),
     dialog = useRef<HTMLDialogElement | null>(null);
   const id = /indones|bahasa|^id$/i.test(language);
   const phase = record?.phase;
   const isOpen =
     !!phase && ["paused", "final_warning", "recovery", "ended"].includes(phase);
-  function chime() {
-    const ctx = context.current;
-    if (!ctx || ctx.state !== "running") {
-      setSoundUnavailable(true);
-      return;
-    }
-    const oscillator = ctx.createOscillator(),
-      gain = ctx.createGain(),
-      now = ctx.currentTime;
-    oscillator.frequency.value = 660;
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.045, now + 0.02);
-    gain.gain.linearRampToValueAtTime(0, now + 0.22);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.onended = () => {
-      oscillator.disconnect();
-      gain.disconnect();
-    };
-    oscillator.start(now);
-    oscillator.stop(now + 0.24);
-  }
   useEffect(() => {
     if (!isOpen || !dialog.current) return;
     const element = dialog.current;
     element.showModal();
     return () => element.close();
   }, [isOpen]);
-  useEffect(
-    () =>
-      useControlStore.subscribe((n, p) => {
-        if (
-          sound &&
-          n.record?.phase !== p.record?.phase &&
-          ["paused", "final_warning", "ended"].includes(n.record?.phase || "")
-        ) {
-          try {
-            chime();
-          } catch {
-            setSoundUnavailable(true);
-          }
-        }
-      }),
-    [sound]
-  );
-  useEffect(
-    () => () => {
-      const current = context.current;
-      context.current = null;
-      if (current) void current.close().catch(() => {});
-    },
-    []
-  );
+  useEffect(() => {
+    if (!sound) return;
+    let active = true;
+    const arm = () => {
+      if (!useControlStore.getState().record) return;
+      void audio.current.arm().then(() => { if (active) setSoundUnavailable(false); })
+        .catch(() => { if (active) setSoundUnavailable(true); });
+    };
+    document.addEventListener("click", arm, true);
+    document.addEventListener("keydown", arm, true);
+    return () => {
+      active = false;
+      document.removeEventListener("click", arm, true);
+      document.removeEventListener("keydown", arm, true);
+    };
+  }, [sound]);
+  useEffect(() => {
+    const player = audio.current;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const clear = () => {
+      clearInterval(timer);
+      timer = undefined;
+      player.silence();
+    };
+    const schedule = (next: string | undefined, playImmediately: boolean) => {
+      clear();
+      if (!sound || !next || !(next in ALERT_PATTERN)) return;
+      const level = next as AlertLevel;
+      const play = () => {
+        try { player.play(level); } catch { setSoundUnavailable(true); }
+      };
+      if (playImmediately) play();
+      const delay = ALERT_PATTERN[level].repeatMs;
+      if (delay) timer = setInterval(play, delay);
+    };
+    // Restored pauses repeat after a gesture; terminal alerts never loop.
+    schedule(useControlStore.getState().record?.phase, false);
+    const unsubscribe = useControlStore.subscribe((n, p) => {
+      if (n.record?.phase !== p.record?.phase) schedule(n.record?.phase, true);
+    });
+    return () => { unsubscribe(); clear(); };
+  }, [sound]);
+  useEffect(() => {
+    const player = audio.current;
+    return () => player.close();
+  }, []);
   function toggleSound() {
     setSoundUnavailable(false);
     if (sound) {
       setSound(false);
-      const current = context.current;
-      context.current = null;
-      if (current) void current.close().catch(() => {});
+      audio.current.close();
       return;
     }
-    try {
-      const current = context.current ?? new AudioContext();
-      context.current = current;
-      setSound(true);
-      void current
-        .resume()
-        .then(() => {
-          if (context.current === current) chime();
-        })
-        .catch(() => setSoundUnavailable(true));
-    } catch {
-      setSoundUnavailable(true);
-    }
+    setSound(true);
+    void audio.current.arm().then(() => audio.current.play("paused"))
+      .catch(() => setSoundUnavailable(true));
   }
-  if (!record || phase === "setup" || phase === "completed") return null;
+  if (!record || phase === "completed") return null;
   const title =
     phase === "ended"
       ? id
@@ -182,8 +170,8 @@ export default function IntegrityAlert({
                   {phase === "paused" && (
                     <p className="mt-4">
                       {id
-                        ? "Halaman wawancara tersembunyi. Gangguan kedua atau 6 detik berturut-turut memicu peringatan terakhir."
-                        : "Your interview page was hidden. A second interruption or six continuous seconds away triggers the final warning."}
+                        ? "Halaman wawancara tersembunyi atau kehilangan fokus. Gangguan kedua atau 6 detik berturut-turut memicu peringatan terakhir."
+                        : "Your interview page was hidden or lost focus. A second interruption or six continuous seconds away triggers the final warning."}
                     </p>
                   )}
                   <p className="mt-4">

@@ -16,6 +16,7 @@ const line = z.object({
 });
 export const checkpointSchema = z.object({
   version: z.literal(CONTROL.version),
+  controlPolicy: z.enum(["visibility-v1", "visibility-and-focus-v2"]).optional(),
   key: z.string().max(200),
   phase: z.enum([
     "setup",
@@ -50,6 +51,7 @@ export type Checkpoint = z.infer<typeof checkpointSchema>;
 export function newCheckpoint(key: string): Checkpoint {
   return {
     version: CONTROL.version,
+    controlPolicy: "visibility-and-focus-v2",
     key,
     phase: "setup",
     reason: "",
@@ -76,7 +78,8 @@ export function advance(
   s: Checkpoint,
   now: number,
   hidden: boolean,
-  online: boolean
+  online: boolean,
+  absenceReason: "page_hidden" | "window_unfocused" = "page_hidden"
 ): Checkpoint {
   if (["setup", "ended", "completed", "recovery"].includes(s.phase)) return s;
   const elapsed = Math.max(
@@ -107,11 +110,11 @@ export function advance(
       {
         ...n,
         phase: "paused",
-        reason: "page_hidden",
+        reason: absenceReason,
         episodeCounted: true,
         interruptions: n.interruptions + 1,
       },
-      "paused_page_hidden",
+      "paused_" + absenceReason,
       now
     );
   }

@@ -14,6 +14,7 @@ import {
   resumeControlled,
 } from "@/lib/integrity/useInterviewControl";
 import { useControlStore } from "@/lib/integrity/control-store";
+import IntegrityAlert from "./IntegrityAlert";
 
 export default function IntegrityRehearsal() {
   const [status, setStatus] = useState("setup");
@@ -82,11 +83,11 @@ export default function IntegrityRehearsal() {
           ? "Monitoring is off. Start the rehearsal to test tab switching."
           : now === 0 || graceSeconds > 0
             ? `Getting ready — ${now === 0 ? 10 : graceSeconds} seconds of startup grace remaining.`
-            : "Monitoring ready. Leave this tab for at least 1 second; the alert appears when you return."}
+            : "Monitoring ready. Hiding this tab or focusing another window for at least 1 second pauses the session."}
       </p>
       <p>
         After starting, allow 10 seconds for the startup grace period. Switch to
-        another tab for at least 1 second, then return. The session pauses. A
+        another tab or focus another window for at least 1 second, then return. The session pauses. A
         second interruption or 6 seconds away triggers a final warning; a third
         interruption or 15 seconds away ends it. Moving the cursor outside the
         page is ignored.
@@ -146,6 +147,10 @@ export default function IntegrityRehearsal() {
         </p>
       ) : null}
       <IntegrityPanel
+        language={language}
+        showAlert={false}
+      />
+      <IntegrityAlert
         language={language}
         onResume={resume}
         onNewAttempt={newAttempt}

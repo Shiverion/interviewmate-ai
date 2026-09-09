@@ -2,11 +2,13 @@
 
 Status: **In progress — English-first comparison implemented; live provider access and human review pending.**
 
-Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Updated: 2026-09-09 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](03-prototype-build.md) · [Sprint index](../README.md) · [Next phase](05-case-study-and-handoff.md)
 
 ## Outcome and deliverables
+
+The [manual session-control validation checklist](../evaluation/session-control-validation.md) provides step-by-step rehearsal and live checks. The [owner's self-test](../evaluation/results/2026-09-09-session-control-self-test.md) reports A1–A10 passing on the previous implementation, with warning-delivery/default-sound caveats and a visible-window focus gap. Part B is blocked by sign-in; a read-only Firebase check confirmed `localhost` is authorized but `127.0.0.1` is not. The resulting focus/sound changes require fresh manual validation and do not change the model-quality evaluation status below.
 
 Phase 4 now has a [frozen synthetic dataset](../evaluation/dataset/README.md), [evaluation guide](../evaluation/phase-4-guide.md), repeatable runner and software checks. Eight base cases cover concrete evidence, vague accounts, missing topics, conflicting ownership, unknown speakers, instruction injection, cautious language and an interrupted interview. Two matched variants change an introductory name or conversational fillers.
 
@@ -93,6 +95,8 @@ Use the [manual study guide](../evaluation/manual-study-guide.md) if a willing r
 
 ### Session-integrity software verification
 
+**Focus/sound follow-up, 2026-09-09:** [recorded checks](../implementation/verification/2026-09-09-focus-and-sound-checks.json) passed 107 unit tests across 11 suites and eight browser scenarios, plus application/Cypress type checks, scoped lint and production build. Visible focus loss now participates in session control; overlap is deduplicated. Default-enabled audio repeats with faster triple pulses at final warning. This iteration responds to the [owner's self-test](../evaluation/results/2026-09-09-session-control-self-test.md); manual audibility/windowed behavior and live sign-in still need retesting. The prior automated iteration below remains historical evidence.
+
 **Current iteration, 2026-09-09:** [full-screen pauses and recovery](../implementation/session-integrity.md) now use one-second pause, second-interruption/six-second final warning, and third-interruption/fifteen-second ending. [Recorded checks](../implementation/verification/2026-09-09-session-control-checks.json): 105 unit checks across 11 suites (40 integrity/control checks), seven browser scenarios, app/Cypress type checks, scoped lint and production build passed. Tests cover timing, terminal-state retention, offline/reload recovery, question retirement/replacement, optional sound, and mocked media stopping. Actual model speech/reconnection and hosted saves remain unverified. These are not model-quality or cheating-detection metrics. Earlier results below retain their original policy context.
 
 The [guardrail extension](../implementation/session-integrity.md) has [recorded software checks](../implementation/verification/2026-09-08-session-integrity-checks.json): 19 new policy/store/hook checks and four browser checks passed; the full Jest suite now passes 84 checks. Coverage includes threshold boundaries, signal deduplication, continued interviews after five events, candidate context, storage failures, the actual interview start gate, and the Indonesian/mobile notice. Browser events and Firebase writes are mocked. Actual false-positive rates, recruiter interpretation, accommodation handling and live persistence need human checks; these results do not establish cheating-detection accuracy or complete the model-quality evaluation.
@@ -125,3 +129,5 @@ A final case study can already explain the scope, design, implementation and hon
 | 2026-09-08 | Implemented and checked the evaluation runner and summaries | 27 software checks passed; mocked outcomes remain explicitly separate |
 | 2026-09-08 | Attempted the first real Phase 4 batch | C01-r1 returned 503 / AI_UNAVAILABLE; retained failure, zero generated drafts and 29 unattempted slots |
 | 2026-09-08 | Implemented English-first three-provider benchmark and a separate Indonesian extension | Reference approval, shuffled review, gated ranking, export/import, setup guide and governance record; software checks pass, live and human judgments pending |
+| 2026-09-09 | Prepared the [manual session-control validation checklist](../evaluation/session-control-validation.md) | Ten rehearsal checks, five live-flow checks, expected observations and a blank result sheet; manual results remain Not run |
+| 2026-09-09 | Recorded the [owner's manual self-test and iteration requests](../evaluation/results/2026-09-09-session-control-self-test.md) | Rehearsal results retain caveats; Part B blocked by unauthorized hostname; follow-up sound/focus behavior needs retest |

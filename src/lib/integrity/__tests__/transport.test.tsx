@@ -32,6 +32,7 @@ beforeEach(() => {
     connect: originalConnect,
   });
   useControlStore.setState({ record: null, storageFailed: false });
+  jest.spyOn(document, "hasFocus").mockReturnValue(true);
   Object.defineProperty(document, "hidden", {
     configurable: true,
     value: false,
@@ -125,4 +126,40 @@ test("resume sends a replacement instruction and excludes retired answers; termi
     record: { ...useControlStore.getState().record!, phase: "ended" },
   });
   await expect(resumeControlled(true)).rejects.toThrow();
+});
+
+test("visible focus loss pauses and overlaps with hidden state as one episode", () => {
+  const view = renderHook(() => useInterviewControl("focus-test", "setup"));
+  act(() => {
+    useControlStore.getState().start();
+    jest.advanceTimersByTime(11000);
+    jest.mocked(document.hasFocus).mockReturnValue(false);
+    window.dispatchEvent(new Event("blur"));
+    jest.advanceTimersByTime(500);
+  });
+  expect(useControlStore.getState().record?.phase).toBe("running");
+  act(() => jest.advanceTimersByTime(500));
+  expect(useControlStore.getState().record).toMatchObject({ phase: "paused", interruptions: 1, reason: "window_unfocused" });
+  act(() => {
+    Object.defineProperty(document, "hidden", { configurable: true, value: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    jest.advanceTimersByTime(1000);
+    Object.defineProperty(document, "hidden", { configurable: true, value: false });
+    document.dispatchEvent(new Event("visibilitychange"));
+    jest.advanceTimersByTime(4000);
+  });
+  expect(useControlStore.getState().record).toMatchObject({ phase: "final_warning", interruptions: 1 });
+  act(() => {
+    jest.mocked(document.hasFocus).mockReturnValue(true);
+    window.dispatchEvent(new Event("focus"));
+  });
+  expect(useControlStore.getState().record?.awaySince).toBeNull();
+  view.unmount();
+});
+
+test("resume refuses a still-unfocused window without replacing its question", async () => {
+  useControlStore.setState({ record: { ...newCheckpoint("session"), phase: "paused" } });
+  jest.mocked(document.hasFocus).mockReturnValue(false);
+  await expect(resumeControlled(false)).rejects.toThrow();
+  expect(useControlStore.getState().record?.replacementIndex).toBe(0);
 });

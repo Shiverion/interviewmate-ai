@@ -10,6 +10,7 @@ Updated: 2026-09-08. **The human practice packet and Phase 4 dataset/runner are 
 
 | Purpose | Materials | Current status |
 |---|---|---|
+| Validate interview pauses and recovery | [Step-by-step validation checklist](session-control-validation.md), [owner self-test](results/2026-09-09-session-control-self-test.md) | A1–A10 reported passing with A5/A8 caveats and a window-focus gap; Part B blocked by sign-in; revised behavior needs retest |
 | Understand the inherited report | [Source baseline report](current-product-baseline.md), [dated raw audit](baselines/2026-09-07-source-audit.json) | Executed source inspection; no model or user outcome measured |
 | Facilitate a human rehearsal | [Manual study guide](manual-study-guide.md) | Instructions, timing boundaries and quality checks ready; reviewer unassigned |
 | Give a participant the task | [Reviewer packet](practice/reviewer-packet.md), [blank brief](templates/review-brief.md), task instruction from the guide | Two fictional practice records, P1-A/P1-B |

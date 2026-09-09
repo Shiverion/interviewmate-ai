@@ -42,6 +42,27 @@ describe("session pauses and technical recovery", () => {
     cy.get("dialog").should("not.exist");
     cy.contains("Rehearsal status:").should("contain", "running");
   });
+  it("pauses when a visible interview loses focus to another window, without double counting", () => {
+    start();
+    cy.document().then((doc) => {
+      const focus = doc.hasFocus as unknown as { returns: (v: boolean) => void };
+      focus.returns(false);
+      doc.defaultView!.dispatchEvent(new Event("blur"));
+    });
+    cy.tick(1000);
+    cy.contains("Interview paused").should("be.visible");
+    cy.contains("Your interview page was hidden or lost focus").should("be.visible");
+    visible(true);
+    cy.tick(1000);
+    visible(false);
+    cy.document().then((doc) => {
+      const focus = doc.hasFocus as unknown as { returns: (v: boolean) => void };
+      focus.returns(true);
+      doc.defaultView!.dispatchEvent(new Event("focus"));
+    });
+    cy.get("dialog").should("contain", "Page interruptions: 1 / 3");
+    resume();
+  });
   it("covers the entire screen, traps focus and requires explicit resume with a new question", () => {
     start();
     cy.get('[aria-label="Current question"]')

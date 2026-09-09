@@ -28,17 +28,17 @@ export function IntegrityNotice({ language = "" }: { language?: string }) {
       <p>
         {id
           ? "Saat sesi aktif, halaman mencatat waktu dan durasi ketika tersembunyi atau kehilangan fokus. Perpindahan minimal 1 detik dihitung setelah masa awal 10 detik. Gerakan kursor, isi tab lain, penelusuran, dan clipboard tidak direkam."
-          : "During the active session, this page records when it is hidden or loses focus and for how long. Hidden periods of at least 1 second count after a 10-second startup grace period. Cursor movements, other tabs' contents, searches, and clipboard contents are not recorded."}
+          : "During the active session, this page records when it is hidden or loses focus and for how long. Either signal lasting at least 1 second counts after a 10-second startup grace period. Cursor movements, other tabs' contents, searches, and clipboard contents are not recorded."}
       </p>
       <p>
         {id
-          ? "Sesi dijeda setelah 1 detik meninggalkan halaman. Gangguan kedua atau 6 detik berturut-turut memicu peringatan terakhir. Gangguan ketiga atau 15 detik berturut-turut mengakhiri sesi. Kehilangan fokus saja tidak dihitung. Tidak ada pengurangan skor otomatis."
-          : "The session pauses after 1 second away. A second interruption or 6 continuous seconds away triggers a final warning. A third interruption or 15 continuous seconds away ends the session. Focus loss alone does not count. No automatic score deduction applies."}
+          ? "Sesi dijeda setelah halaman tersembunyi atau kehilangan fokus selama 1 detik, termasuk saat memakai jendela lain di samping wawancara. Gangguan kedua atau 6 detik berturut-turut memicu peringatan terakhir. Gangguan ketiga atau 15 detik berturut-turut mengakhiri sesi. Tidak ada pengurangan skor otomatis."
+          : "The session pauses after 1 second hidden or unfocused, including when using another window alongside the interview. A second interruption or 6 continuous seconds away triggers a final warning. A third interruption or 15 continuous seconds away ends the session. No automatic score deduction applies."}
       </p>
       <p className="text-[var(--muted)]">
         {id
-          ? "Saat dijeda, latar layar diburamkan, mikrofon dan respons AI dihentikan, serta waktu dibekukan. Suara peringatan opsional. Setelah masalah teknis, Anda dapat menyambung kembali dengan pertanyaan pengganti. Jawaban sebelumnya disimpan; pertanyaan yang dibatalkan tidak dinilai."
-          : "During a pause, the screen is blurred, microphone capture and AI responses stop, and the timer freezes. Alert sound is optional. After a technical interruption, reconnect with a replacement question. Earlier answers are retained; retired questions are excluded from evaluation."}
+          ? "Saat dijeda, latar layar diburamkan, mikrofon dan respons AI dihentikan, serta waktu dibekukan. Suara aktif secara bawaan, dapat dimatikan, dan makin cepat saat peringatan terakhir. Browser mungkin memblokir suara. Setelah masalah teknis, sambungkan kembali dengan pertanyaan pengganti. Jawaban sebelumnya disimpan; pertanyaan yang dibatalkan tidak dinilai."
+          : "During a pause, the screen is blurred, microphone capture and AI responses stop, and the timer freezes. Sound starts enabled, can be muted, and becomes more urgent at the final warning. Your browser may block audio. After a technical interruption, reconnect with a replacement question. Earlier answers are retained; retired questions are excluded from evaluation."}
       </p>
       <p className="text-[var(--muted)]">
         {id

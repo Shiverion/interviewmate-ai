@@ -3,7 +3,6 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
 } from "@testing-library/react";
 import IntegrityAlert from "@/components/interview/IntegrityAlert";
 import { useControlStore } from "../control-store";
@@ -71,14 +70,15 @@ test("Indonesian pause and final warning are available", () => {
   phase("final_warning");
   expect(screen.getByRole("alert")).toHaveTextContent("Peringatan terakhir");
 });
-test("unsupported audio keeps the visual alert available", () => {
+test("unsupported default audio keeps the visual alert available", async () => {
   render(<IntegrityAlert />);
-  fireEvent.click(screen.getByText("Enable & test alert sound"));
+  await act(async () => { fireEvent.click(document.body); });
   expect(screen.getByRole("status")).toHaveTextContent("Sound is unavailable");
   phase("paused");
   expect(screen.getByRole("dialog")).toBeInTheDocument();
 });
-test("optional sound plays on pause and final warning, and mute suppresses the end sound", async () => {
+test("sound defaults on, escalates and repeats, and mute cancels future tones", async () => {
+  jest.useFakeTimers();
   const start = jest.fn(),
     close = jest.fn(async () => {});
   const audio = {
@@ -108,17 +108,25 @@ test("optional sound plays on pause and final warning, and mute suppresses the e
   try {
     const view = render(<IntegrityAlert />);
     expect(start).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByText("Enable & test alert sound"));
-    await waitFor(() => expect(start).toHaveBeenCalledTimes(1));
+    expect(screen.getByText("Mute alert sound")).toHaveAttribute("aria-pressed", "true");
+    await act(async () => { fireEvent.click(document.body); });
+    expect(audio.resume).toHaveBeenCalled();
     phase("paused");
+    expect(start).toHaveBeenCalledTimes(1);
+    act(() => jest.advanceTimersByTime(2500));
+    expect(start).toHaveBeenCalledTimes(2);
     phase("final_warning");
-    expect(start).toHaveBeenCalledTimes(3);
-    fireEvent.click(screen.getByText("Mute alert sound"));
+    expect(start).toHaveBeenCalledTimes(5);
+    act(() => jest.advanceTimersByTime(1200));
+    expect(start).toHaveBeenCalledTimes(8);
+    await act(async () => { fireEvent.click(screen.getByText("Mute alert sound")); });
     phase("ended");
-    expect(start).toHaveBeenCalledTimes(3);
+    act(() => jest.advanceTimersByTime(5000));
+    expect(start).toHaveBeenCalledTimes(8);
     expect(close).toHaveBeenCalledTimes(1);
     view.unmount();
   } finally {
+    jest.useRealTimers();
     if (original) Object.defineProperty(window, "AudioContext", original);
     else Reflect.deleteProperty(window, "AudioContext");
   }

@@ -23,6 +23,7 @@ export async function resumeControlled(live: boolean, language = "English") {
   if (
     !s ||
     document.hidden ||
+    !document.hasFocus() ||
     !navigator.onLine ||
     ["ended", "completed"].includes(s.phase) ||
     ["checkpoint_unavailable", "replacement_bank_exhausted"].includes(s.reason)
@@ -101,7 +102,11 @@ export function useInterviewControl(
       if (n.record?.phase !== p.record?.phase) apply();
     });
     const tick = () => {
-      useControlStore.getState().tick(document.hidden, navigator.onLine);
+      useControlStore.getState().tick(
+        document.hidden || !document.hasFocus(),
+        navigator.onLine,
+        document.hidden ? "page_hidden" : "window_unfocused"
+      );
       apply();
     };
     const timer = window.setInterval(tick, 250);
@@ -115,6 +120,8 @@ export function useInterviewControl(
         useInterviewStore.getState().interrupt();
     };
     document.addEventListener("visibilitychange", tick);
+    window.addEventListener("blur", tick);
+    window.addEventListener("focus", tick);
     window.addEventListener("offline", tick);
     window.addEventListener("online", tick);
     window.addEventListener("pagehide", depart);
@@ -122,6 +129,8 @@ export function useInterviewControl(
       unsubscribe();
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", tick);
+      window.removeEventListener("blur", tick);
+      window.removeEventListener("focus", tick);
       window.removeEventListener("offline", tick);
       window.removeEventListener("online", tick);
       window.removeEventListener("pagehide", depart);

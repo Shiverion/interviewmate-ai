@@ -12,22 +12,24 @@ The candidate reads the English/Indonesian notice before starting. Browser signa
 |---|---|
 | First 10 seconds of a new session | Startup grace |
 | Hidden for less than 1 second after grace | No counted interruption |
-| Hidden for at least 1 second | Pause microphone/video capture, AI transport, answer submission and timer; show full-screen dialog |
+| Hidden or unfocused for at least 1 second | Pause microphone/video capture, AI transport, answer submission and timer; show full-screen dialog |
 | Second counted interruption OR 6 seconds continuously hidden | Final warning |
 | Third counted interruption OR 15 seconds continuously hidden | End session and retain answers for human review |
-| Window loses focus while still visible | Context only; does not trigger this sequence |
+| Window loses focus while still visible | Same pause/warning/end sequence, including another app used beside the visible interview |
 | Cursor leaves page | Not collected |
 | Technical/offline interruption or page closure | Recoverable checkpoint; time stays paused until reconnection |
 
-Thresholds are provisional product defaults, not validated cheating thresholds. A continuous absence counts once. Visibility return closes its hidden interval without waiting for keyboard focus. If a candidate keeps switching while already paused, each new qualifying absence still counts. Resume does not reset interruption counts or grant another startup grace period.
+Thresholds are provisional product defaults, not validated cheating thresholds. A continuous absence counts once across overlapping blur/visibility signals. The control interval closes when the page is both visible and focused; visible-but-unfocused time still counts. The separate advisory visibility recorder closes hidden intervals on visibility return and keeps focus context separately. Its counts need not equal the session-control total, which governs penalties. If a candidate keeps switching while already paused, each new qualifying absence still counts. Resume requires focus and does not reset counts or grant another startup grace period.
 
-Long-absence thresholds are measured from the start of the hidden interval after grace, not from the warning. Browser callbacks may be delayed, throttled or suspended. The app reconciles elapsed time when it can run again; this is not a guarantee of ending at exactly 15 seconds while suspended. A final-warning state can be reached while the candidate is away, so its visual message may not be seen before ending. The pre-start notice also discloses the whole sequence. An optional chime is best effort, not proof a warning was heard.
+The focus extension is labelled `visibility-and-focus-v2` inside the compatible v1 checkpoint format. Existing nonterminal checkpoints receive a `focus_policy_updated` event when loaded; saved terminal states are preserved. Start a fresh rehearsal to acknowledge and test the revised notice. Focus loss can also come from browser chrome, dialogs or accessibility tools; this signal does not identify the app being used or prove misconduct. Simply seeing another window without moving focus may remain undetectable.
+
+Long-absence thresholds are measured from the start of the absence after grace, not from the warning. Browser callbacks may be delayed, throttled or suspended. The app reconciles elapsed time when it can run again; this is not a guarantee of ending at exactly 15 seconds while suspended. A final-warning state can be reached while the candidate is away, so its visual message may not be seen before ending. The pre-start notice also discloses the whole sequence. Repeating sound is best effort, not proof a warning was heard.
 
 ## Return-to-page alerts
 
 The large dialog covers the viewport and blurs the interview behind it. It uses a native modal dialog so underlying controls are inert and keyboard focus stays within it. Escape and outside clicks do not bypass the pause. The candidate explicitly chooses **I understand — resume with a new question**. This initiates reconnection for a live interview; the timer resumes only after connection succeeds.
 
-Sound is optional, starts off and has enable/test and mute controls inside the dialog. A short local oscillator tone requires no API/file. Browser audio restrictions can prevent playback; a visible fallback message remains. Media is disconnected while paused, including microphone and camera tracks. This trades reconnection latency for a clear transport stop.
+Sound starts enabled for each mounted attempt and arms from the candidate's click/key gesture, including acknowledgment/start. Mute is available before starting and inside the dialog; re-enabling plays a preview. A pause plays one 660 Hz pulse every 2.5 seconds. Final warning plays three 880 Hz pulses every 1.2 seconds, with bounded gain rising from 0.035 to 0.06. Ending plays a single three-pulse lower-pitch pattern and stops repeating. Resume/recovery/completion stop pending warning tones; mute cancels scheduled pulses and closes the audio context. Device volume is never changed. These local oscillator tones need no API/file. Browser audio restrictions, suspension or device mute can prevent playback; a visible fallback remains. Media is disconnected while paused, including microphone and camera tracks. This trades reconnection latency for a clear transport stop.
 
 The rehearsal shows monitoring off, startup countdown, readiness, remaining time, current question and session state. It has a clearly labelled simulated connection-loss action and a **New rehearsal** action that creates a separate attempt. The real interview does not offer that attempt-reset action.
 
@@ -53,6 +55,8 @@ Do not claim production anti-cheating enforcement. A production service must own
 
 ## Try it without an AI key
 
+For repeatable steps, expected results and a blank result sheet, use the [manual validation checklist](../evaluation/session-control-validation.md). It separates no-key rehearsal checks from live voice and hosted-saving checks.
+
 1. Run `npm run dev -- --hostname 127.0.0.1` and open [the rehearsal](http://127.0.0.1:3000/review-brief/integrity-demo).
 2. If an earlier attempt is ended, choose **New rehearsal**. Read/acknowledge the notice, start and wait for **Monitoring ready**.
 3. Switch away for one second, return, and check the full-screen pause. Resume and observe the changed question.
@@ -63,6 +67,8 @@ Do not claim production anti-cheating enforcement. A production service must own
 
 Human follow-up: check real WebRTC reconnection, media stopping, model question delivery, permissions, browser suspension and network flapping on the browsers candidates will use. Calibrate thresholds and equivalent replacement questions with recruiters/candidates, including accessibility needs. Synthetic UI tests do not measure false-positive or cheating-detection accuracy.
 
+The [owner's self-test](../evaluation/results/2026-09-09-session-control-self-test.md) records passing rehearsal checks with warning/sound caveats, the prior window-focus gap, and the Firebase hostname diagnosis. For live testing, use [localhost login](http://localhost:3000/login); changing hostnames creates a separate browser-storage context. The revised focus and sound behaviors still need manual retesting.
+
 ## Engineering map
 
 - [Control engine and question bank](../../../src/lib/integrity/session-control.ts): thresholds, clock, transitions and retirement.
@@ -70,11 +76,14 @@ Human follow-up: check real WebRTC reconnection, media stopping, model question 
 - [Live/rehearsal integration](../../../src/lib/integrity/useInterviewControl.ts): lifecycle signals, resume and terminal saving.
 - [Visibility record policy](../../../src/lib/integrity/policy.ts), [store](../../../src/lib/integrity/store.ts) and [hook](../../../src/lib/integrity/useSessionIntegrity.ts).
 - [Full-screen dialog](../../../src/components/interview/IntegrityAlert.tsx), [notice/panels](../../../src/components/interview/SessionIntegrity.tsx), [recovery report](../../../src/components/interview/SessionControlReport.tsx).
+- [Bounded alert tones](../../../src/lib/integrity/alert-audio.ts): pulse patterns, gesture activation and cancellation.
 - [Interview transport store](../../../src/lib/store/useInterviewStore.ts) and [WebRTC manager](../../../src/lib/audio/WebRTCAudioManager.ts).
 
 Visibility policy v2 uses a versioned sessionStorage key and requires a new acknowledgment. Old v1 keys are left intact and old v1 reports retain their original three-second/nonterminating interpretation. New recovery checkpoints use a separate versioned localStorage prefix. Do not compare counts from different versions as equivalent.
 
 ## Verification
+
+The [focus and sound follow-up checks](verification/2026-09-09-focus-and-sound-checks.json) record 107 unit tests, eight browser scenarios, type/lint/build results and the read-only Authentication hostname diagnosis. Audible warning delivery and actual windowed-browser behavior still need the owner's retest.
 
 Run `npx jest --runInBand`, application/Cypress type checks, scoped ESLint, `npm run build`, `node docs/scripts/check-docs.cjs`, and the browser suite:
 
