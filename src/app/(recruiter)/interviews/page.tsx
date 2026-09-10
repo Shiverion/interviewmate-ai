@@ -431,15 +431,15 @@ export default function InterviewsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
+            <table className="w-full min-w-[1080px] text-left text-sm">
               <thead className="bg-[var(--surface-elevated)] border-b border-[var(--border)] text-[var(--muted)]">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Candidate</th>
-                  <th className="px-6 py-4 font-medium">Candidate ID</th>
-                  <th className="px-6 py-4 font-medium">Link Status</th>
-                  <th className="px-6 py-4 font-medium">Created On</th>
-                  <th className="px-6 py-4 font-medium">Completed On</th>
-                  <th className="px-6 py-4 font-medium">
+                  <th className="w-[220px] px-6 py-4 font-medium">Candidate</th>
+                  <th className="w-[170px] px-6 py-4 font-medium">Candidate ID</th>
+                  <th className="w-[125px] px-6 py-4 font-medium">Link Status</th>
+                  <th className="w-[190px] px-6 py-4 font-medium">Created On</th>
+                  <th className="w-[190px] px-6 py-4 font-medium">Completed On</th>
+                  <th className="w-[175px] px-6 py-4 font-medium">
                     <button
                       type="button"
                       onClick={toggleSort}
@@ -477,7 +477,7 @@ export default function InterviewsPage() {
                       </span>
                     </button>
                   </th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  <th className="w-[300px] px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -513,8 +513,8 @@ export default function InterviewsPage() {
                       key={session.id}
                       className="hover:bg-[var(--surface-elevated)] transition-colors"
                     >
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-[var(--foreground)] flex items-center gap-2">
+                      <td className="max-w-[220px] px-6 py-4">
+                        <div className="flex items-center gap-2 font-medium text-[var(--foreground)]">
                           {session.candidate_name}
                           {session.source === "reviewer_invitation" && (
                             <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-accent-500/10 text-accent-400">
@@ -523,7 +523,7 @@ export default function InterviewsPage() {
                           )}
                         </div>
                         {session.candidate_email && (
-                          <div className="text-xs text-[var(--muted)]">
+                          <div className="truncate text-xs text-[var(--muted)]" title={session.candidate_email}>
                             {session.candidate_email}
                           </div>
                         )}
@@ -675,14 +675,13 @@ export default function InterviewsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-xs">
                         <Link
                           href={`/interviews/${session.id}`}
                           className="text-primary-400 hover:text-primary-300 transition-colors text-xs font-medium"
                         >
-                          Expand details →
+                          View record →
                         </Link>
-                        <span className="text-[var(--border)]">|</span>
                         {displayStatus === "Active" && (
                           <>
                             <button
@@ -702,13 +701,6 @@ export default function InterviewsPage() {
                           </>
                         )}
 
-                        <Link
-                          href={`/interviews/${session.id}`}
-                          className="text-accent-400 hover:text-accent-300 transition-colors text-xs font-medium"
-                        >
-                          {displayStatus === "Active" ? "Open record" : "View record"} &rarr;
-                        </Link>
-                        <span className="text-[var(--border)]">|</span>
                         <button
                           onClick={() => handleDelete(session)}
                           className="text-error hover:text-red-400 transition-colors text-xs"
