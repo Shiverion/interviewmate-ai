@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import LottieAvatar from "@/components/interview/LottieAvatar";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
@@ -105,6 +110,18 @@ function InterviewRoomContent() {
   } = useInterviewStore();
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const roomRef = useRef<HTMLDivElement>(null);
+  const cameraRef = useRef<HTMLDivElement>(null);
+  const cameraDragRef = useRef<{
+    pointerId: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+  const [cameraPosition, setCameraPosition] = useState<{
+    left: number | null;
+    top: number;
+  }>({ left: null, top: 176 });
+  const [isCameraDragging, setIsCameraDragging] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [chatInput, setChatInput] = useState("");
   const lastDraftRef = useRef("");
@@ -303,6 +320,65 @@ function InterviewRoomContent() {
     sendTextMessage(chatInput.trim());
     setChatInput("");
     lastDraftRef.current = "";
+  };
+
+  const handleCameraPointerDown = (
+    event: ReactPointerEvent<HTMLDivElement>
+  ) => {
+    const camera = cameraRef.current;
+    const room = roomRef.current;
+    if (!camera || !room) return;
+
+    const cameraRect = camera.getBoundingClientRect();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    cameraDragRef.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - cameraRect.left,
+      offsetY: event.clientY - cameraRect.top,
+    };
+    setIsCameraDragging(true);
+    event.preventDefault();
+  };
+
+  const handleCameraPointerMove = (
+    event: ReactPointerEvent<HTMLDivElement>
+  ) => {
+    const drag = cameraDragRef.current;
+    const camera = cameraRef.current;
+    const room = roomRef.current;
+    if (!drag || drag.pointerId !== event.pointerId || !camera || !room) return;
+
+    const roomRect = room.getBoundingClientRect();
+    const cameraRect = camera.getBoundingClientRect();
+    const padding = 12;
+    const footerHeight = 80;
+    const maxLeft = Math.max(
+      padding,
+      roomRect.width - cameraRect.width - padding
+    );
+    const maxTop = Math.max(
+      padding,
+      roomRect.height - cameraRect.height - footerHeight - padding
+    );
+    const left = Math.min(
+      maxLeft,
+      Math.max(padding, event.clientX - roomRect.left - drag.offsetX)
+    );
+    const top = Math.min(
+      maxTop,
+      Math.max(padding, event.clientY - roomRect.top - drag.offsetY)
+    );
+
+    setCameraPosition({ left, top });
+  };
+
+  const handleCameraPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (cameraDragRef.current?.pointerId !== event.pointerId) return;
+    cameraDragRef.current = null;
+    setIsCameraDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   const isTextMode = _sessionContext?.interviewMode === "text";
@@ -607,7 +683,10 @@ function InterviewRoomContent() {
     : "bg-[var(--surface-elevated)] text-[var(--foreground)] hover:bg-[var(--border)] border-[var(--border)]";
 
   return (
-    <div className="relative flex flex-col h-[calc(100vh-4rem)] bg-[var(--background)] overflow-hidden">
+    <div
+      ref={roomRef}
+      className="relative flex min-h-[calc(100vh-4rem)] flex-col bg-[var(--background)] overflow-x-hidden"
+    >
       {turnNotice && (
         <div role="status" className="wm-note text-center m-3">
           {turnNotice}
@@ -641,11 +720,11 @@ function InterviewRoomContent() {
 
       {/* Main Stage — split layout when visual panel is active */}
       <div
-        className={`flex-1 min-h-0 ${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6 items-center"} p-4 overflow-hidden`}
+        className={`flex-1 min-h-0 ${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6 items-start"} p-4 pb-8 overflow-x-hidden overflow-y-auto`}
       >
         {/* AI Interviewer Column */}
         <div
-          className={`flex min-h-0 w-full flex-col items-center justify-center ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
+          className={`flex min-h-0 w-full flex-col items-center justify-start pt-4 ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
         >
           <div className="relative w-40 h-40 sm:w-56 sm:h-56 mb-6 shrink-0">
             {/* Subtle pulse ring when active */}
@@ -742,7 +821,7 @@ function InterviewRoomContent() {
             </div>
           ) : (
             <div
-              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} h-32 shrink-0 relative flex flex-col justify-end overflow-hidden mask-image-b-to-t`}
+              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} min-h-32 shrink-0 relative flex flex-col justify-end overflow-visible mask-image-b-to-t`}
             >
               <div className="flex flex-col gap-2 p-4 text-center">
                 {transcript.slice(-3).map((item, i) => (
@@ -789,7 +868,7 @@ function InterviewRoomContent() {
 
         <section
           aria-label="Answer composer"
-          className="w-full max-w-xl justify-self-center self-center rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+          className="w-full max-w-xl justify-self-center self-start rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
         >
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
@@ -867,7 +946,26 @@ function InterviewRoomContent() {
 
       {/* Picture-in-Picture Webcam */}
       {status === "active" && localStream && (
-        <div className="absolute bottom-28 right-4 w-32 md:w-48 aspect-[3/4] md:aspect-video bg-black/50 rounded-lg overflow-hidden border border-[var(--border)] shadow-xl z-50">
+        <div
+          ref={cameraRef}
+          role="button"
+          tabIndex={0}
+          aria-label="Camera preview. Drag to move it around the interview window."
+          title="Drag to move camera preview"
+          onPointerDown={handleCameraPointerDown}
+          onPointerMove={handleCameraPointerMove}
+          onPointerUp={handleCameraPointerUp}
+          onPointerCancel={handleCameraPointerUp}
+          style={
+            cameraPosition.left === null
+              ? { right: "1rem", top: `${cameraPosition.top}px` }
+              : {
+                  left: `${cameraPosition.left}px`,
+                  top: `${cameraPosition.top}px`,
+                }
+          }
+          className={`absolute z-40 aspect-[3/4] w-32 select-none overflow-hidden rounded-lg border border-[var(--border)] bg-black/50 shadow-xl md:aspect-video md:w-48 touch-none ${isCameraDragging ? "cursor-grabbing ring-2 ring-primary-400/70" : "cursor-grab"}`}
+        >
           <video
             ref={videoRef}
             autoPlay
@@ -879,7 +977,7 @@ function InterviewRoomContent() {
       )}
 
       {/* Bottom Control Bar */}
-      <div className="h-20 shrink-0 glass border-t border-[var(--border)] flex items-center justify-center gap-4 px-4 z-50">
+      <div className="relative z-50 h-20 shrink-0 glass border-t border-[var(--border)] flex items-center justify-center gap-4 px-4">
         <button
           onClick={toggleMic}
           className={`flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 border ${micClass}`}
