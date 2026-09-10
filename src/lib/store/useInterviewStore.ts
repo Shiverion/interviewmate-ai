@@ -90,6 +90,7 @@ interface InterviewState {
   _resumeInstructions?: string;
   turnNotice: string;
   turnsAsked: number;
+  completionCountdown: number | null;
   diagnostic: ProviderDiagnostic | null;
   microphoneIssue: boolean;
   setStatus: (status: Status) => void;
@@ -106,7 +107,9 @@ interface InterviewState {
   repeatQuestion: () => void;
   skipQuestion: () => void;
   wrapUpNow: () => boolean;
+  beginCompletionCountdown: () => void;
 }
+const COMPLETION_GRACE_SECONDS = 30;
 const CLOSE_INSTRUCTIONS =
   "The turn budget is exhausted. Return only a brief closing statement thanking the candidate and saying the interview is finished. Do not ask another question, request more information, say 'next', or invite a response. Call end_interview only after the complete closing statement has been spoken.";
 let repeatRequested = false;
@@ -117,10 +120,15 @@ let repeatRequested = false;
 let responsePending = false;
 let connectionEpoch = 0,
   turnTimer: ReturnType<typeof setTimeout> | undefined,
-  silenceTimer: ReturnType<typeof setInterval> | undefined;
+  silenceTimer: ReturnType<typeof setInterval> | undefined,
+  completionTimer: ReturnType<typeof setInterval> | undefined;
 function clearTimers() {
   clearTimeout(turnTimer);
   clearInterval(silenceTimer);
+}
+function clearCompletionTimer() {
+  clearInterval(completionTimer);
+  completionTimer = undefined;
 }
 export const useInterviewStore = create<InterviewState>()(
   persist(
@@ -138,6 +146,7 @@ export const useInterviewStore = create<InterviewState>()(
       _isDrainingSubtitle: false,
       turnNotice: "",
       turnsAsked: 0,
+      completionCountdown: null,
       diagnostic: null,
       microphoneIssue: false,
       setStatus: (status) => set({ status }),
@@ -147,6 +156,7 @@ export const useInterviewStore = create<InterviewState>()(
           set((s) => ({ transcript: [...s.transcript, { role, text }] }));
       },
       toggleMic: () => {
+        if (get().completionCountdown !== null) return;
         const next = !get().isMicMuted;
         get()
           .localStream?.getAudioTracks()
@@ -169,6 +179,7 @@ export const useInterviewStore = create<InterviewState>()(
       sendTextMessage: (text) => {
         if (
           get().status !== "active" ||
+          get().completionCountdown !== null ||
           speechKind(text) !== "meaningful" ||
           get().avatarState === "speaking" ||
           get().avatarState === "thinking"
@@ -189,6 +200,7 @@ export const useInterviewStore = create<InterviewState>()(
       repeatQuestion: () => {
         if (
           get().status !== "active" ||
+          get().completionCountdown !== null ||
           get().avatarState === "speaking" ||
           get().avatarState === "thinking" ||
           responsePending
@@ -211,6 +223,7 @@ export const useInterviewStore = create<InterviewState>()(
       skipQuestion: () => {
         if (
           get().status !== "active" ||
+          get().completionCountdown !== null ||
           get().avatarState === "speaking" ||
           get().avatarState === "thinking" ||
           responsePending
@@ -236,6 +249,7 @@ export const useInterviewStore = create<InterviewState>()(
       wrapUpNow: () => {
         if (
           get().status !== "active" ||
+          get().completionCountdown !== null ||
           get().avatarState === "speaking" ||
           get().avatarState === "thinking" ||
           responsePending
@@ -251,6 +265,32 @@ export const useInterviewStore = create<InterviewState>()(
         });
         return true;
       },
+      beginCompletionCountdown: () => {
+        if (
+          get().status !== "active" ||
+          get().completionCountdown !== null
+        )
+          return;
+        clearCompletionTimer();
+        get()
+          .localStream?.getAudioTracks()
+          .forEach((track) => (track.enabled = false));
+        set({ completionCountdown: COMPLETION_GRACE_SECONDS });
+        completionTimer = setInterval(() => {
+          const remaining = get().completionCountdown;
+          if (remaining === null) {
+            clearCompletionTimer();
+            return;
+          }
+          if (remaining <= 1) {
+            clearCompletionTimer();
+            set({ completionCountdown: null });
+            get().endInterview();
+            return;
+          }
+          set({ completionCountdown: remaining - 1 });
+        }, 1000);
+      },
       connect: async () => {
         if (get().status === "connecting" || get().status === "active") return;
         const epoch = ++connectionEpoch;
@@ -259,9 +299,11 @@ export const useInterviewStore = create<InterviewState>()(
         responsePending = false;
         repeatRequested = false;
         clearTimers();
+        clearCompletionTimer();
         set({
           status: "connecting",
           error: null,
+          completionCountdown: null,
           turnNotice: "",
           microphoneIssue: false,
         });
@@ -334,13 +376,20 @@ export const useInterviewStore = create<InterviewState>()(
             };
           });
           set({ localStream });
+          const recoveryInstructions = get()._resumeInstructions?.trim(),
+            hasAssistantTranscript = get().transcript.some(
+              (t) => t.role === "assistant"
+            );
           let candidateSpeaking = false,
             waitingSince = 0,
             repeatPending = false,
             playbackActive = false,
             endAfterPlayback = false,
             candidateDraftBase = "",
-            openingResponseSent = false;
+            // A fresh session needs one opening response. Reconnects with
+            // completed assistant content must not greet the candidate again;
+            // recovery connections send only their replacement instructions.
+            openingResponseSent = hasAssistantTranscript && !recoveryInstructions;
           const setCandidateCapture = (enabled: boolean) => {
             localStream.getAudioTracks().forEach((track) => {
               track.enabled = enabled && !get().isMicMuted;
@@ -411,7 +460,12 @@ export const useInterviewStore = create<InterviewState>()(
                 if (!openingResponseSent && !responsePending) {
                   openingResponseSent = true;
                   responsePending = true;
-                  manager.sendEvent({ type: "response.create" });
+                  manager.sendEvent({
+                    type: "response.create",
+                    ...(recoveryInstructions
+                      ? { response: { instructions: recoveryInstructions } }
+                      : {}),
+                  });
                 }
               } else if (type === "user_started_speaking") {
                 if (playbackActive || get().avatarState === "thinking") {
@@ -475,6 +529,30 @@ export const useInterviewStore = create<InterviewState>()(
               else if (type === "transcript_done") {
                 const message = text || get().activeDeltaMessage;
                 const normalizedMessage = message.trim();
+                // The opening is requested once per connection. Some realtime
+                // providers can nevertheless surface a second assistant item
+                // before the candidate has submitted an answer. Treat that as
+                // a duplicate opening instead of showing two questions at
+                // once; subsequent turns still require a candidate message.
+                const hasCandidateAnswer = get().transcript.some(
+                  (t) => t.role === "user"
+                );
+                if (
+                  normalizedMessage &&
+                  !recoveryInstructions &&
+                  !hasCandidateAnswer &&
+                  get().turnsAsked === 0 &&
+                  get().transcript.some((t) => t.role === "assistant") &&
+                  !repeatRequested
+                ) {
+                  responsePending = false;
+                  set({
+                    activeDeltaMessage: "",
+                    _subtitleBuffer: "",
+                    _isDrainingSubtitle: false,
+                  });
+                  return;
+                }
                 const previousAssistant = get().transcript
                   .filter((t) => t.role === "assistant")
                   .at(-1)?.text.trim();
@@ -517,7 +595,7 @@ export const useInterviewStore = create<InterviewState>()(
                 playbackActive = false;
                 if (endAfterPlayback) {
                   endAfterPlayback = false;
-                  get().endInterview();
+                  get().beginCompletionCountdown();
                   return;
                 }
                 setCandidateCapture(true);
@@ -534,7 +612,7 @@ export const useInterviewStore = create<InterviewState>()(
                   get().avatarState === "thinking"
                 ) {
                   endAfterPlayback = true;
-                } else get().endInterview();
+                } else get().beginCompletionCountdown();
               }
               else if (type === "transcription_failed") {
                 get().interrupt();
@@ -640,12 +718,14 @@ export const useInterviewStore = create<InterviewState>()(
         repeatRequested = false;
         responsePending = false;
         clearTimers();
+        clearCompletionTimer();
         const { manager, localStream } = get();
         set({
           status: "paused",
           manager: null,
           localStream: null,
           avatarState: "idle",
+          completionCountdown: null,
           _isDrainingSubtitle: false,
           turnNotice: "",
           candidateDeltaMessage: "",
@@ -661,6 +741,7 @@ export const useInterviewStore = create<InterviewState>()(
         set({ status: "completed" });
       },
       endInterview: () => {
+        clearCompletionTimer();
         const context = get()._sessionContext,
           transcript = get().transcript;
         get().disconnect();
@@ -707,6 +788,7 @@ export const useInterviewStore = create<InterviewState>()(
           turnNotice: "",
           turnsAsked: 0,
           microphoneIssue: false,
+          completionCountdown: null,
         });
       },
     }),

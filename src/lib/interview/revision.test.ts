@@ -95,6 +95,7 @@ test.each([
     );
   expect(first.overallScore).toBeNull();
   expect(first.dimensions.evidenceQuality).toBeNull();
+  expect(first.dimensions.evidenceScore).toBe(0);
   expect(first.status).toContain("Insufficient Evidence");
 });
 test("strong partial coverage retains assessed quality without scoring missing answers", () => {
@@ -104,6 +105,7 @@ test("strong partial coverage retains assessed quality without scoring missing a
     assessed: 1,
     total: 4,
   });
+  expect(result.dimensions.evidenceScore).toBe(25);
   expect(result.competencies[1].status).toBe("Not Assessed");
   expect(result.overallScore).toBeNull();
 });

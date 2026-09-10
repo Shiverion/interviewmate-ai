@@ -125,6 +125,17 @@ export function finalizeEvidence(
   });
   const assessed = competencies.filter((c) => c.level > 0),
     clear = assessed.filter((c) => c.level >= 3);
+  // Keep a simple, deterministic score for the review UI. Every rubric item
+  // contributes equally, and an item without supported evidence remains 0.
+  // This makes coverage visible instead of letting a high average over only
+  // the assessed items look like a complete result.
+  const evidenceScore = competencies.length
+    ? Math.round(
+        (competencies.reduce((sum, competency) => sum + competency.level, 0) /
+          (competencies.length * 4)) *
+          100
+      )
+    : null;
   const sufficient =
     competencies.length > 0 &&
     assessed.length >= Math.min(3, competencies.length) &&
@@ -137,6 +148,7 @@ export function finalizeEvidence(
       : "Insufficient Evidence for Reliable Overall Assessment",
     competencies,
     dimensions: {
+      evidenceScore,
       evidenceQuality: assessed.length
         ? Math.round(
             (assessed.reduce((s, c) => s + c.level, 0) / assessed.length) * 100

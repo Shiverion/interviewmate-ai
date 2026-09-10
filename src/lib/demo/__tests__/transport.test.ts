@@ -94,6 +94,46 @@ test("duplicate ready events trigger only one opening response", async () => {
   expect(sendEvent).toHaveBeenCalledWith({ type: "response.create" });
   useInterviewStore.getState().reset();
 });
+test("duplicate assistant opening items are collapsed before the first answer", async () => {
+  let events: WebRTCManagerConfig["onMessage"];
+  jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
+    events = config.onMessage;
+    return {
+      connect: async () => config.onMessage?.("ready", null),
+      sendEvent: jest.fn(),
+      disconnect: jest.fn(),
+    } as unknown as WebRTCAudioManager;
+  });
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: jest.fn().mockResolvedValue({
+        getTracks: () => [],
+        getAudioTracks: () => [],
+      }),
+    },
+  });
+  useInterviewStore.setState({
+    _sessionContext: {
+      sessionId: "demo-duplicate-opening",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_and_text",
+      candidateName: "Reviewer",
+      jobTitle: "Frontend Engineer",
+      startedAt: Date.now(),
+    },
+    status: "setup",
+    transcript: [],
+  });
+  await useInterviewStore.getState().connect();
+  events?.("transcript_done", "Welcome to the interview.");
+  events?.("transcript_done", "Here is the first question.");
+  expect(useInterviewStore.getState().transcript).toEqual([
+    { role: "assistant", text: "Welcome to the interview." },
+  ]);
+  useInterviewStore.getState().reset();
+});
 test("a denied or missing camera falls back to audio-only instead of blocking the interview", async () => {
   const sendEvent = jest.fn();
   jest.mocked(WebRTCAudioManager).mockImplementation(
@@ -176,10 +216,13 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
     },
   });
   await useInterviewStore.getState().connect();
-  // The opening greeting is exempt from the turn budget (interviewingInstructions()) —
-  // simulate it first so the one configured question below is what actually consumes it.
-  events?.("transcript_done", "Hi! Thanks for joining, let's get started.");
-  events?.("transcript_done", "What did you decide?");
+  // The opening greeting is exempt from the turn budget. A provider must keep
+  // the welcome and first question in one assistant item before the candidate
+  // has submitted an answer.
+  events?.(
+    "transcript_done",
+    "Hi! Thanks for joining, let's get started. What did you decide?"
+  );
   events?.("audio_playback_done", null);
   events?.("user_started_speaking", null);
   events?.("user_stopped_speaking", null);
@@ -188,7 +231,7 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
   expect(
     sendEvent.mock.calls.filter(([e]) => e.type === "response.create")
   ).toHaveLength(0);
-  expect(useInterviewStore.getState().transcript).toHaveLength(2);
+  expect(useInterviewStore.getState().transcript).toHaveLength(1);
   events?.("user_started_speaking", null);
   events?.("user_stopped_speaking", null);
   events?.(
@@ -352,6 +395,10 @@ test("end of interview waits for closing audio playback", async () => {
   expect(useInterviewStore.getState().status).toBe("active");
   expect(disconnect).not.toHaveBeenCalled();
   events?.("audio_playback_done", null);
+  expect(useInterviewStore.getState().status).toBe("active");
+  expect(useInterviewStore.getState().completionCountdown).toBe(30);
+  expect(disconnect).not.toHaveBeenCalled();
+  useInterviewStore.getState().endInterview();
   expect(useInterviewStore.getState().status).toBe("completed");
   expect(disconnect).toHaveBeenCalledTimes(1);
   useInterviewStore.getState().reset();

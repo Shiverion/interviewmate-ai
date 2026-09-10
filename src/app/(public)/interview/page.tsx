@@ -105,6 +105,7 @@ function InterviewRoomContent() {
     transcript,
     activeDeltaMessage,
     candidateDeltaMessage,
+    completionCountdown,
     _sessionContext,
     sendTextMessage,
     editCandidateDraft,
@@ -132,6 +133,9 @@ function InterviewRoomContent() {
     useState<EvaluationResult | null>(null);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const sessionId = _sessionContext?.sessionId;
+  const isIndonesian = /indones|bahasa|^id$/i.test(
+    _sessionContext?.preferredLanguage || ""
+  );
   const candidateName = _sessionContext?.candidateName;
   const jobTitle = _sessionContext?.jobTitle;
   const jobDescription = _sessionContext?.jobDescription;
@@ -1057,6 +1061,62 @@ function InterviewRoomContent() {
           </svg>
         </button>
       </div>
+
+      {completionCountdown !== null && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="completion-title"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+        >
+          <div className="w-full max-w-lg rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary-400/30 bg-primary-500/10 text-primary-400">
+              <svg
+                className="h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h2 id="completion-title" className="mt-5 text-2xl font-semibold">
+              {isIndonesian ? "Interview selesai" : "Interview complete"}
+            </h2>
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              {isIndonesian
+                ? "AI sudah selesai berbicara. Anda dapat mengakhiri sesi sekarang."
+                : "The interviewer has finished speaking. You can end the session now."}
+            </p>
+            <div
+              className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-5"
+              aria-live="polite"
+            >
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+                {isIndonesian
+                  ? "Sesi berakhir otomatis dalam"
+                  : "Session ends automatically in"}
+              </p>
+              <p className="mt-2 font-mono text-4xl font-semibold text-primary-300">
+                {completionCountdown}s
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => useInterviewStore.getState().endInterview()}
+              className="mt-6 w-full rounded-xl bg-primary-500 px-5 py-3 font-semibold text-white transition hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 focus:ring-offset-[var(--surface-elevated)]"
+            >
+              {isIndonesian ? "Akhiri sesi sekarang" : "End session now"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
