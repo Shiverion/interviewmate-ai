@@ -30,10 +30,10 @@ export function getBootstrap() {
     system,
   };
 }
-export function localHandler() {
+export function localHandler(reviewerAuthorized = false) {
   const bootstrap = getBootstrap();
   return createHandler({
-    enabled: process.env.NODE_ENV === "development",
+    enabled: reviewerAuthorized || process.env.NODE_ENV === "development",
     configured: bootstrap.configured,
     provenance: bootstrap.provenance,
     async generate(input, signal): Promise<ModelResult> {

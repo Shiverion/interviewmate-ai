@@ -1,45 +1,29 @@
-import { NextResponse } from "next/server";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = "";
-
-type PdfTextItem = {
-    str?: string;
-};
-
+import { parsePdfBytes, MAX_PDF_BYTES } from "@/lib/pdf/engine";
+import { parsingFailure } from "@/lib/pdf/result";
 export async function POST(req: Request) {
-    try {
-        const formData = await req.formData();
-        const file = formData.get("file");
-
-        if (!(file instanceof File)) {
-            return NextResponse.json({ error: "Missing PDF file" }, { status: 400 });
-        }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({
-            data: new Uint8Array(arrayBuffer),
-            useWorkerFetch: false,
-            isEvalSupported: false
-        });
-        const pdfDocument = await loadingTask.promise;
-
-        let fullText = "";
-        for (let page = 1; page <= pdfDocument.numPages; page++) {
-            const pageRef = await pdfDocument.getPage(page);
-            const textContent = await pageRef.getTextContent();
-            const pageText = textContent.items
-                .map((item) => {
-                    const candidate = item as PdfTextItem;
-                    return candidate.str || "";
-                })
-                .join(" ");
-            fullText += `${pageText}\n\n`;
-        }
-
-        return NextResponse.json({ text: fullText.trim() }, { status: 200 });
-    } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : "Failed to parse PDF";
-        return NextResponse.json({ error: message }, { status: 500 });
-    }
+  if (Number(req.headers.get("content-length")) > MAX_PDF_BYTES + 10000)
+    return Response.json(parsingFailure("unsupported", "PDF exceeds 10 MB."), {
+      status: 413,
+    });
+  try {
+    const form = await req.formData(),
+      file = form.get("file");
+    if (!(file instanceof File))
+      return Response.json(parsingFailure("unsupported", "Select a PDF."), {
+        status: 400,
+      });
+    if (file.size > MAX_PDF_BYTES)
+      return Response.json(
+        parsingFailure("unsupported", "PDF exceeds 10 MB."),
+        { status: 413 }
+      );
+    return Response.json(
+      await parsePdfBytes(new Uint8Array(await file.arrayBuffer()))
+    );
+  } catch {
+    return Response.json(
+      parsingFailure("failed", "Could not read the upload."),
+      { status: 400 }
+    );
+  }
 }

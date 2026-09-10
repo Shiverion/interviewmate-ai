@@ -71,7 +71,19 @@ export function useInterviewControl(
   const control = useControlStore();
   useEffect(() => {
     useControlStore.getState().prepare(key);
-    const state = useControlStore.getState();
+    let state = useControlStore.getState();
+    const configuration =
+      useInterviewStore.getState()._sessionContext?.configuration;
+    if (live && configuration && state.record?.phase === "setup")
+      state.save({
+        ...state.record,
+        unlimited: configuration.durationMinutes === "unlimited",
+        remainingMs:
+          configuration.durationMinutes === "unlimited"
+            ? 1800000
+            : configuration.durationMinutes * 60000,
+      });
+    state = useControlStore.getState();
     const deadline =
       useInterviewStore.getState()._sessionContext?.demoExpiresAt;
     if (live && deadline && state.record?.phase === "setup")

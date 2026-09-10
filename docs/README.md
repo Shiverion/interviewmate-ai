@@ -1,55 +1,29 @@
-# Documentation home
+# Five-day sprint progress
 
-[Project README](../README.md) · [How to edit these docs](CONTRIBUTING.md)
+Updated: 2026-09-10. This is the authoritative progress tracker. [Product specification](../Product_Sprint.md) · [Product overview](../README.md) · [Current runbook](hr-product-sprint/implementation/current-runbook.md)
 
-Updated: 2026-09-08. This is the entry point for the inherited InterviewMate application and its new five-day HR product sprint.
-
-**Current status:** Discovery and design are complete. The [Phase 3 prototype](hr-product-sprint/phases/03-prototype-build.md) is implemented; successful live generation is pending provider access. Start with the [runbook](hr-product-sprint/implementation/review-brief-runbook.md) to run or modify it. [Phase 4](hr-product-sprint/phases/04-evaluation-and-iteration.md) has a frozen dataset and checked runner; its first live batch stopped on AI_UNAVAILABLE. Phase 5 and human timing remain pending.
-
-## Recommended reading order
-
-1. [Sprint overview](hr-product-sprint/README.md) — objective, progress and deliverable locations.
-2. [Phase 1 report](hr-product-sprint/phases/01-discovery-and-ux.md) — what was completed and what remains unknown.
-3. [D01: sprint scope](hr-product-sprint/decisions/001-sprint-scope.md) — selected problem, reuse decision and boundaries.
-4. [Phase 2 design package](hr-product-sprint/design/README.md) — clickable wireframe, rubric, AI contract and next build tasks.
-5. Follow the supporting evidence or implementation links below for your role.
-
-## Find the right document
-
-| Reader / task | Start with | Continue to |
+| Phase | Progress | Remaining evidence |
 |---|---|---|
-| Reviewer checking sprint progress | [Phase reports](hr-product-sprint/README.md#phase-reports) | [Final submission register](hr-product-sprint/phases/05-case-study-and-handoff.md#final-submission-register) |
-| Designer exploring the recruiting problem | [Problem and workflow](hr-product-sprint/research/problem-and-workflow.md) | [Source register](hr-product-sprint/research/source-register.md), [Phase 2 report](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) |
-| Designer/engineer continuing the selected solution | [Design package](hr-product-sprint/design/README.md) | [Phase 3 backlog](hr-product-sprint/implementation/phase-3-backlog.md) |
-| Engineer continuing implementation | [Product overview](product/overview.md) | [Local development](product/local-development.md), [source baseline](hr-product-sprint/evaluation/current-product-baseline.md) |
-| Facilitator preparing an evaluation | [Evaluation home](hr-product-sprint/evaluation/README.md) | [Phase 4 run/review guide](hr-product-sprint/evaluation/phase-4-guide.md), [manual study protocol](hr-product-sprint/evaluation/manual-study-guide.md) |
-| Contributor updating a report | [Documentation contributor guide](CONTRIBUTING.md) | [Phase report template](templates/phase-report.md) |
-| Reader investigating older claims | [Archive index](archive/README.md) | Original PRD, project report and README |
+| [1 · Discovery](hr-product-sprint/phases/01-discovery-and-ux.md) | Desk research and inherited-product inspection complete; target user and workflow hypothesis defined. | No recruiter interview or measured manual-review baseline. |
+| [2 · Design](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) | Shared configuration, evidence rubric, access boundaries and recovery behavior specified and implemented. | Validate adaptive relevance and usability with a human. |
+| [3 · Prototype](hr-product-sprint/phases/03-prototype-build.md) | Shared realtime service; three evaluation providers; invitations; configuration snapshots; CV validation; relevant GitHub context; human records. | Live provider and authenticated Firebase acceptance. |
+| [4 · Evaluation](hr-product-sprint/phases/04-evaluation-and-iteration.md) | Frozen baseline dataset, English-first protocol and Indonesian extension; deterministic regression tests. | Successful model batches, transcription recordings, repeatability, latency/cost and human judgments. |
+| [5 · Handoff](hr-product-sprint/phases/05-case-study-and-handoff.md) | PDF case study and demo script prepared; documentation reorganized. | Capture a successful live five-minute demo and publish an HTTPS reviewer environment. |
 
-## Folder guide
+## Current validation
 
-```text
-docs/
-  README.md                       Reading guide (this page)
-  CONTRIBUTING.md                  Editing rules and checks
-  product/                        Inherited app overview and local setup
-  hr-product-sprint/
-    README.md                     Sprint dashboard
-    phases/                       One progress report for each phase, 1–5
-    decisions/                    Scope choices and their rationale
-    research/                     Sources, workflow hypotheses and illustration
-    design/                       UX/AI spec, rubric, prompt and authored wireframe
-    implementation/               Build backlog, runbook and verification records
-    evaluation/
-      README.md                   Materials and result status
-      practice/                   Participant packet and separate reference notes
-      templates/                  Blank review brief
-      baselines/                  Dated source snapshot and human timing CSV
-      runs/                       Ignored scratch audit output, created on rerun
-    scripts/                      Reproducible source audit
-  templates/                      Reusable documentation templates
-  scripts/                        Documentation link checker
-  archive/                        Historical documents with provenance labels
-```
+See the [revision validation record](hr-product-sprint/evaluation/results/2026-09-10-evidence-revision.md) for final command outcomes. Previous baseline: commit `29e40ba`, 122 unit tests and 10 browser checks. New software checks do not measure AI accuracy, fairness or recruiting outcomes.
 
-Research evidence, source inspection, authored examples and measured outcomes serve different purposes. Each artifact states which it contains. The [editing guide](CONTRIBUTING.md#evidence-and-status-conventions) defines the labels and where to record future changes.
+The last recorded credential check returned OpenAI HTTP 401; Gemini and DeepSeek host keys were absent. Credentials are private and never included in tracked documentation.
+
+## Reading order and ownership
+
+1. Read the [PDF](../deliverables/InterviewMate-Case-Study-and-Handoff.pdf) for the case study and handoff.
+2. Use [Product_Sprint.md](../Product_Sprint.md) to change requirements or product decisions.
+3. Update the relevant [phase report](hr-product-sprint/README.md) and this tracker when evidence changes.
+4. Use [current setup](hr-product-sprint/implementation/current-runbook.md), [model study](hr-product-sprint/evaluation/model-comparison-v2.md) and [revision matrix](hr-product-sprint/implementation/revision-tracker.md) for implementation/validation.
+5. Research, frozen datasets and dated results preserve their original evidence scope. [Archived design](archive/pre-evidence-v2/) and [legacy product documents](archive/README.md) are historical, not current instructions.
+
+## Open limitations
+
+Adaptive relevance is prompt-directed, not a validated autonomous planner. Browser visibility/focus signals cannot prove cheating or see other devices. Hosted Unlimited pauses the interview clock but has a separate funding deadline. Budget units are bounded usage reservations, not an exact currency spending cap. Human records and recovery data remain in private local storage until exported or deleted by the host. No candidate-data training pipeline is enabled.

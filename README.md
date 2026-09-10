@@ -1,35 +1,19 @@
-# InterviewMate AI
+# InterviewMate
 
-InterviewMate is a Next.js/Firebase application for creating AI interview sessions and reviewing candidate transcripts and reports.
+An English-first recruiting prototype that conducts structured or adaptive voice interviews and helps a human reviewer inspect competency evidence. Bahasa Indonesia is a separate multilingual test.
 
-The current five-day HR sprint explores a **recruiter-reviewed first-screen brief**: a draft organized by role criteria, with source quotations, missing evidence and recruiter corrections. Phase 1 discovery and Phase 2 design are complete. The [Phase 3 prototype](docs/hr-product-sprint/phases/03-prototype-build.md) now implements the review workflow, including a server AI route and labelled authored examples. [Phase 4 evaluation](docs/hr-product-sprint/phases/04-evaluation-and-iteration.md) now has a frozen dataset and runner. Its first live attempt failed on provider access; AI quality and human review time remain unmeasured.
+The inherited Next.js application is the baseline. This revision replaces unexplained interview percentages with a cited 0–4 evidence rubric, explicit missing-evidence states and contextual human review.
 
-## Start here
+- [Product_Sprint.md](Product_Sprint.md): authoritative challenge, accepted requirements and decisions.
+- [Five-phase progress](docs/README.md): current work, measured checks and release blockers.
+- [Case study and engineering handoff](deliverables/InterviewMate-Case-Study-and-Handoff.pdf): reviewer-facing PDF.
+- [Setup and validation](docs/hr-product-sprint/implementation/current-runbook.md).
+- [Five-minute demo script](deliverables/demo-script.md).
 
-| I want to… | Read |
-|---|---|
-| Understand the project and find its documents | [Documentation home](docs/README.md) |
-| Review sprint progress and deliverables | [HR product sprint](docs/hr-product-sprint/README.md) |
-| Understand what the inherited application contains | [Product overview](docs/product/overview.md) |
-| Set up the application locally | [Local development](docs/product/local-development.md) |
-| Edit or add documentation | [Documentation contributor guide](docs/CONTRIBUTING.md) |
-| Read the older plans and reports | [Historical archive](docs/archive/README.md) |
+## Run locally
 
-## Local quick start
+Use Node 20.9 or newer. Run `npm install`, then `npm run dev`; open http://localhost:3000. Add personal provider keys in Settings, or configure host credentials for Demo/Reviewer Mode as described in the runbook. Signing in does not force API-key setup.
 
-Use Node.js **20.9.0 or newer**, as required by [package.json](package.json). Configure the environment using the [local development guide](docs/product/local-development.md), then run from the repository root:
+Reviewers enter a private invitation at `/reviewer`. Ordinary visitors use `/demo`. Production hosting requires a persistent Node runtime and durable private usage storage; this sponsored voice implementation is not ready for ephemeral hosting.
 
-```powershell
-npm ci
-npm run dev -- --hostname 127.0.0.1
-```
-
-Open [the review workspace](http://127.0.0.1:3000/review-brief). Follow its [runbook](docs/hr-product-sprint/implementation/review-brief-runbook.md) for authored examples or server AI setup. Firebase is not required for this local prototype; the inherited live interview/Firebase flow remains unverified.
-
-## Documentation checks
-
-```powershell
-node docs/scripts/check-docs.cjs
-```
-
-This checks local Markdown links and anchors. It does not validate external websites or product behavior.
+Prototype status: 138 automated tests and 24 selected browser checks pass, along with source lint and the production build. Successful live voice, model-quality benchmarks, independent human review and final video footage remain release gates. No hiring-validity or time-saving claim is established.

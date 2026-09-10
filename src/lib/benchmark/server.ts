@@ -12,13 +12,16 @@ const selectionSchema = z.strictObject({
   referenceHash: z.string().regex(/^[a-f0-9]{64}$/),
   referenceReviewed: z.literal(true),
 });
-export async function benchmarkPost(request: Request) {
+export async function benchmarkPost(
+  request: Request,
+  reviewerAuthorized = false
+) {
   const error = (code: string, message: string, status: number) =>
     Response.json(
       { error: { code, message } },
       { status, headers: { "Cache-Control": "no-store" } }
     );
-  if (process.env.NODE_ENV !== "development")
+  if (!reviewerAuthorized && process.env.NODE_ENV !== "development")
     return error("NOT_ENABLED", "Development only.", 404);
   if (
     request.headers.get("origin") &&

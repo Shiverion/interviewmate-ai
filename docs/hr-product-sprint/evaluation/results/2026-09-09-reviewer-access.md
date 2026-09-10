@@ -1,6 +1,6 @@
 # Reviewer access validation — 2026-09-09
 
-[Setup and architecture](../../implementation/reviewer-demo-and-access.md) · [Phase 4](../../phases/04-evaluation-and-iteration.md)
+[Setup and architecture](../../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md) · [Phase 4](../../phases/04-evaluation-and-iteration.md)
 
 Scope: keyless navigation, redesigned UI, provider selection and limited hosted voice. This is software validation, not a recruiting-quality study.
 

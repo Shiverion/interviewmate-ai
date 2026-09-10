@@ -1,6 +1,6 @@
 # Phase 4 synthetic dataset
 
-[Evaluation guide](../phase-4-guide.md) · [Phase 4 report](../../phases/04-evaluation-and-iteration.md) · [Frozen acceptance plan](../../design/acceptance-plan.md#phase-4-dataset-and-split)
+[Evaluation guide](../phase-4-guide.md) · [Phase 4 report](../../phases/04-evaluation-and-iteration.md) · [Frozen acceptance plan](../../../archive/pre-evidence-v2/hr-product-sprint/design/acceptance-plan.md#phase-4-dataset-and-split)
 
 Version: **phase4-eval-v1**. Authored and frozen: **2026-09-08**. Author: project AI assistant. These fictional transcripts and reference judgments have not been calibrated by a recruiter or hiring manager.
 

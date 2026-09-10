@@ -150,7 +150,13 @@ export function setReviewer(
 ): ReviewSession {
   return reviewerId === session.reviewerId
     ? session
-    : invalidate({ ...session, reviewerId: reviewerId.slice(0, 80) });
+    : {
+        ...session,
+        reviewerId: reviewerId.slice(0, 80),
+        revision: session.revision + 1,
+        reviewedAt: null,
+        reviewedRevision: null,
+      };
 }
 export function setNote(
   session: ReviewSession,
@@ -158,7 +164,13 @@ export function setNote(
 ): ReviewSession {
   return reviewerNote === session.reviewerNote
     ? session
-    : invalidate({ ...session, reviewerNote: reviewerNote.slice(0, 1000) });
+    : {
+        ...session,
+        reviewerNote: reviewerNote.slice(0, 1000),
+        revision: session.revision + 1,
+        reviewedAt: null,
+        reviewedRevision: null,
+      };
 }
 export function canReview(session: ReviewSession): boolean {
   return (

@@ -1,0 +1,15 @@
+# Five-minute demo script
+
+Status: recording plan; final video is not recorded. Use synthetic people and answers. Hide keys, invitation codes, browser account details and candidate data before recording. Complete the live checks in the runbook first.
+
+| Time | Show | Narration |
+|---|---|---|
+| 0:00–0:35 | Dashboard and a short synthetic transcript | “A recruiter needs to explain what a candidate demonstrated, which areas remain unknown, and what the hiring manager should follow up. We reused InterviewMate and focused on making that handoff inspectable. This is a desk-research hypothesis; we have not measured recruiter time savings.” |
+| 0:35–1:15 | Reviewer Mode already unlocked, shared setup | “Reviewers can explore with an expiring invitation. This setup controls language, duration, turn budget, rubric and Structured or Adaptive questions. Scheduled links retain these settings. CV context has a preview; an unreadable CV is not passed to the interviewer.” |
+| 1:15–2:20 | A successful English voice interaction | Say “hmm”, wait, give an answer about your own technical decision. Demonstrate the brief end-of-turn buffer, relevant follow-up and repeat/skip options. “Fillers do not finish an answer. Skipping collects no evidence. Technical recovery preserves completed answers and replaces the interrupted question.” Use actual behavior, not a simulated success. |
+| 2:20–3:05 | Completed evidence assessment and a no-answer case | “These are competency evidence levels, not a generated hiring percentage. Strong assessed evidence can coexist with incomplete coverage. When evidence is insufficient, the system says so. Every accepted quotation must be present in a candidate answer.” |
+| 3:05–3:45 | Evaluation Sandbox and Human Review | “These cases are synthetic and excluded from candidate statistics. I can inspect the source, record judgments, add notes and submit a stable record with model, rubric and transcript versions. This pilot still needs independent reviewer calibration.” |
+| 3:45–4:20 | Provider diagnostics and comparison protocol | “Voice and evaluation have different requirements. We preserve baseline models and compare candidates on the same frozen inputs. Fallback is visible and uses configured providers; no model has been promoted without evidence. English is the baseline, Indonesian a separate extension.” |
+| 4:20–5:00 | PDF result/limitations and handoff pages | State the actual software-test count and actual live-study results at recording time. “The handoff identifies configuration, realtime, evidence and access modules. Remaining work includes production admission and storage, retention controls, independent evaluation and deployment validation.” |
+
+Record approximately five minutes using Loom or your screen recorder. If the live provider fails, fix access before recording or explicitly present the failure and mark the deliverable incomplete. Do not splice a simulated exchange into a video as though it were a real provider call. Save the final link in the Phase 5 report and verify an external reviewer can play it.

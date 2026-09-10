@@ -8,7 +8,7 @@ Start with Part A, which needs no AI key, microphone or database. Then run Part 
 
 ## Before you start
 
-1. Keep the local preview running. If the page does not load, follow [local development](../../product/local-development.md#install-and-start).
+1. Keep the local preview running. If the page does not load, follow [local development](../../archive/pre-evidence-v2/product/local-development.md#install-and-start).
 2. Open [the rehearsal](http://127.0.0.1:3000/review-brief/integrity-demo). Use a regular browser profile, and keep the same browser and address throughout recovery tests. Do not clear site storage during a test.
 3. Open a second, harmless tab to switch to. Use a phone stopwatch or count aloud; switching to an on-screen timer would itself affect the test.
 4. Choose **New rehearsal** before each numbered test unless it explicitly says to continue the same attempt. Save the resulting address so you can reopen that exact attempt.
@@ -116,7 +116,7 @@ For manual timing, use two seconds to cross the one-second pause threshold, seve
 
 ### Choose a live demo first, then Schedule Interview
 
-For no-account, host-funded voice, use [Reviewer demo](http://localhost:3000/demo) and its [setup runbook](../implementation/reviewer-demo-and-access.md). It supports B1–B3 within an eight-minute wall-clock funding window that includes pauses; it does not verify scheduled report saving. Dashboard access no longer requires a key. The personal demo steps below remain available.
+For no-account, host-funded voice, use [Reviewer demo](http://localhost:3000/demo) and its [setup runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). It supports B1–B3 within an eight-minute wall-clock funding window that includes pauses; it does not verify scheduled report saving. Dashboard access no longer requires a key. The personal demo steps below remain available.
 
 | Entry point | Use for | What it exercises |
 |---|---|---|
@@ -156,7 +156,7 @@ Both Dashboard actions enter the shared `/interview` room. The redesigned dashbo
 
 The live code uses OpenAI Realtime with `whisper-1` input transcription. Settings → Models & access now selects OpenAI, Gemini or DeepSeek for automatic and manual evaluations. The [English-first multi-provider comparison](english-first-pilot.md) remains a separate controlled benchmark. These statements describe implementation, not a successful live-provider test.
 
-These checks need a fictional candidate/session, working microphone permissions, valid OpenAI access in the app's existing key setup, and an isolated configured Firebase project for report saving. Follow [local setup](../../product/local-development.md#prerequisites-and-environment). A server key alone is not established as sufficient for fresh candidate entry. The three-provider evaluation benchmark is a separate workflow and does not verify the live voice connection.
+These checks need a fictional candidate/session, working microphone permissions, valid OpenAI access in the app's existing key setup, and an isolated configured Firebase project for report saving. Follow [local setup](../../archive/pre-evidence-v2/product/local-development.md#prerequisites-and-environment). A server key alone is not established as sufficient for fresh candidate entry. The three-provider evaluation benchmark is a separate workflow and does not verify the live voice connection.
 
 Keep keys out of screenshots and result files. If starting the voice session fails, record **Blocked — provider/setup** and the sanitized visible error. Do not mark downstream voice or saving checks passed from rehearsal behavior.
 

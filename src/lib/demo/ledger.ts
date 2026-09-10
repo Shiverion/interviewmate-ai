@@ -17,6 +17,8 @@ export const DEMO_LIMITS = {
   connections: 8,
 } as const;
 export type DemoLease = {
+  reviewerId?: string;
+  configuration?: import("@/lib/interview/config").InterviewConfiguration;
   owner: string;
   expiresAt: number;
   connections: number;
@@ -25,6 +27,32 @@ export type DemoLease = {
   evaluations: string[];
 };
 type Ledger = {
+  reviewerSessions?: Record<
+    string,
+    {
+      owner: string;
+      id: string;
+      candidateName: string;
+      jobTitle: string;
+      jobDescription: string;
+      configuration: import("@/lib/interview/config").InterviewConfiguration;
+      resumeText?: string;
+      cvParsing?: import("@/lib/pdf/result").ParsingResult;
+      startsAt: number;
+      endsAt: number;
+      status: string;
+      createdAt: number;
+      transcript?: unknown;
+      evaluation?: unknown;
+      model?: string;
+      provider?: string;
+    }
+  >;
+  reviewers?: Record<
+    string,
+    { units: number; minute: number; requests: number }
+  >;
+  redemptions?: Record<string, number>;
   daily: Record<string, number>;
   leases: Record<string, DemoLease>;
 };
@@ -88,30 +116,40 @@ export async function withLedger<T>(fn: (data: Ledger) => T): Promise<T> {
 }
 const dailyKey = (owner: string) =>
   new Date().toISOString().slice(0, 10) + ":" + owner;
-export async function quota(owner: string) {
+export async function quota(
+  owner: string,
+  limit: number = DEMO_LIMITS.starts,
+  globalLimit: number = DEMO_LIMITS.globalStarts
+) {
   return withLedger((data) => ({
-    remaining: Math.max(
-      0,
-      DEMO_LIMITS.starts - (data.daily[dailyKey(owner)] || 0)
-    ),
+    remaining: Math.max(0, limit - (data.daily[dailyKey(owner)] || 0)),
     sharedRemaining: Math.max(
       0,
-      DEMO_LIMITS.globalStarts - (data.daily[dailyKey("global")] || 0)
+      globalLimit - (data.daily[dailyKey("global")] || 0)
     ),
   }));
 }
 export async function reserve(
   owner: string,
   requested?: string,
-  connecting = true
+  connecting = true,
+  options?: {
+    reviewerId: string;
+    dailyStarts: number;
+    expiresAt: number;
+    durationMs: number;
+    configuration?: import("@/lib/interview/config").InterviewConfiguration;
+  }
 ) {
   return withLedger((data) => {
     const now = Date.now();
     let id = requested;
     if (!id) {
       if (
-        (data.daily[dailyKey(owner)] || 0) >= DEMO_LIMITS.starts ||
-        (data.daily[dailyKey("global")] || 0) >= DEMO_LIMITS.globalStarts
+        (data.daily[dailyKey(owner)] || 0) >=
+          (options?.dailyStarts || DEMO_LIMITS.starts) ||
+        (data.daily[dailyKey("global")] || 0) >=
+          (options ? 100 : DEMO_LIMITS.globalStarts)
       )
         throw Error(
           "Today's free voice allowance is used. Come back tomorrow or connect your own key."
@@ -130,8 +168,16 @@ export async function reserve(
       data.daily[dailyKey("global")] =
         (data.daily[dailyKey("global")] || 0) + 1;
       data.leases[id] = {
+        ...(options
+          ? {
+              reviewerId: options.reviewerId,
+              configuration: options.configuration,
+            }
+          : {}),
         owner,
-        expiresAt: now + DEMO_LIMITS.durationMs,
+        expiresAt: options
+          ? Math.min(options.expiresAt, now + options.durationMs)
+          : now + DEMO_LIMITS.durationMs,
         connections: 0,
         callIds: [],
         pendingUntil: 0,
@@ -208,10 +254,19 @@ export async function claimEvaluation(
   });
 }
 export async function hangupCalls(id?: string) {
+  const { invitations } = await import("@/lib/access/reviewer");
+  const activeInvites = new Set(
+    (await invitations())
+      .filter((i) => !i.revoked && i.expiresAt > Date.now())
+      .map((i) => i.id)
+  );
   const pending = await withLedger((data) =>
     Object.entries(data.leases)
       .filter(([key, value]) =>
-        id ? key === id : value.expiresAt <= Date.now()
+        id
+          ? key === id
+          : value.expiresAt <= Date.now() ||
+            (!!value.reviewerId && !activeInvites.has(value.reviewerId))
       )
       .flatMap(([key, value]) =>
         value.callIds.map((callId) => ({ key, callId }))

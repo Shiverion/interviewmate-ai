@@ -1,3 +1,5 @@
+> September 10 revision: see [current progress](../../README.md) and [implementation matrix](../implementation/revision-tracker.md). Earlier entries below are a dated phase history, not a claim that the expanded scope has passed live acceptance.
+
 # Phase 1: discovery and UX workflow
 
 Status: **Desk-research package complete; human timing baseline pending.**
@@ -8,7 +10,7 @@ Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 
 ## Outcome
 
-Reuse InterviewMate to explore **a recruiter-reviewed first-screen brief** for one fictional frontend-engineer role. The draft should connect claims to candidate turns, expose missing evidence and support correction before handoff. [D01](../decisions/001-sprint-scope.md) owns the scope and unresolved design decisions.
+Reuse InterviewMate to explore **a recruiter-reviewed first-screen brief** for one fictional frontend-engineer role. The draft should connect claims to candidate turns, expose missing evidence and support correction before handoff. [D01](../../archive/pre-evidence-v2/hr-product-sprint/decisions/001-sprint-scope.md) owns the scope and unresolved design decisions.
 
 The user chose desk research because recruiter/hiring-manager access is unavailable. This is enough to start a small design experiment, but demand, time savings, hiring accuracy and reduced bias remain unvalidated. Human timing is carried into Phase 4.
 
@@ -18,7 +20,7 @@ The user chose desk research because recruiter/hiring-manager access is unavaila
 |---|---|---|
 | 1 | [Problem and workflow](../research/problem-and-workflow.md) | Target user, task, repository observations and hypotheses |
 | 2 | [Source register](../research/source-register.md) | Six external sources, alternatives and evidence limits |
-| 3 | [D01: sprint scope](../decisions/001-sprint-scope.md) | Reuse decision, selected journey, scope and timeboxes |
+| 3 | [D01: sprint scope](../../archive/pre-evidence-v2/hr-product-sprint/decisions/001-sprint-scope.md) | Reuse decision, selected journey, scope and timeboxes |
 | 4 | [Discovery example](../research/discovery-example.md) | Short illustration of evidence versus interpretation |
 | 5 | [Evaluation materials](../evaluation/README.md) | Practice records, source baseline and future human protocol |
 
@@ -37,14 +39,14 @@ The [source audit](../evaluation/current-product-baseline.md) ran successfully; 
 - [x] Explore one explicitly synthetic example.
 - [x] Prepare two realistic practice records, separate source annotations, a blank brief, task instructions and an empty raw timing log.
 - [x] Record a reproducible current-product capability inventory, clearly separate from human timing and AI-quality evaluation.
-- [x] Resolve the discovery scope and hand the decision into Phase 2 through [D01](../decisions/001-sprint-scope.md).
+- [x] Resolve the discovery scope and hand the decision into Phase 2 through [D01](../../archive/pre-evidence-v2/hr-product-sprint/decisions/001-sprint-scope.md).
 - [ ] Collect an empirical human timing baseline. No participant is assigned; this outstanding evidence is tracked in [Phase 4](04-evaluation-and-iteration.md), not marked complete.
 
 ## Open items and next action
 
 - Human timing is **not measured**; the [study guide](../evaluation/manual-study-guide.md) is ready when a human reviewer is available.
 - Real workflow fit and provisional role criteria still need practitioner validation.
-- The [Phase 2 package](../design/README.md) now specifies screens, schemas, prompts, review states and acceptance rules. Product implementation is next in Phase 3.
+- The [Phase 2 package](../../archive/pre-evidence-v2/hr-product-sprint/design/README.md) now specifies screens, schemas, prompts, review states and acceptance rules. Product implementation is next in Phase 3.
 
 ## Progress log
 

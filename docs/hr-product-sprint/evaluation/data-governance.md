@@ -2,17 +2,17 @@
 
 [Pilot guide](english-first-pilot.md) · [Phase 5](../phases/05-case-study-and-handoff.md)
 
-Updated: 2026-09-09. Prototype policy and future requirements; no regulatory compliance claim.
+Updated: 2026-09-10. Prototype policy and future requirements; no regulatory compliance claim. [Current access and storage](../implementation/current-runbook.md).
 
 ## Implemented
 
 The benchmark accepts bundled fictional text only. It has no arbitrary transcript upload, audio collection, training job, automatic feedback collection, or automatic provider fallback. Do not substitute real candidate information into these fixtures.
 
-The browser holds a reviewer alias, approvals, original drafts and structured judgments in memory. Export/import is explicit. The server sends only the selected synthetic transcript, rubric and instructions to selected hosted providers. It does not send reference answers or human judgments.
+The benchmark workspace holds its study in memory with explicit export/import. Review Brief and competency-v2 human-review forms also save drafts/completed records in browser localStorage; competency-v2 submissions with a valid invitation are saved in private reviewer storage. The model receives the selected transcript, rubric and instructions, not the human reference answers or judgments.
 
 Ignored local `.benchmark-runs` files contain allowlisted synthetic inputs/outputs, settings/hashes, timestamps, usage metadata and failures. Credentials and complete SDK request/response objects are not serialized. Missing keys produce no provider record. There is no automatic retention/deletion job: the owner manages scratch files and keeps selected fictional evidence for the case study.
 
-Review state is lost on refresh unless exported. Exports/reference packets are user-managed files containing fictional text and, for studies, a reviewer alias. They are not automatically uploaded, anonymous analytics, or signed audit evidence. Public examples should remain fictional and use a non-identifying alias.
+Review form selections survive reload. Completed human records include source IDs/hashes, transcript/model/rubric versions, judgments, alias, notes and timestamp. Browser storage and private host records have no automatic retention/deletion schedule. They are not anonymous analytics, model-training consent or tamper-proof audit evidence. Public examples should remain fictional and use a non-identifying alias. Export a reviewed record intentionally before reusing it in an evaluation dataset.
 
 ## Future learning loop: not implemented
 

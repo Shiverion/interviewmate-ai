@@ -1,0 +1,91 @@
+{
+  "title": "InterviewMate",
+  "subtitle": "Evidence a hiring manager can inspect",
+  "date": "10 September 2026",
+  "status": "Prototype and handoff draft · live acceptance pending",
+  "pages": [
+    {
+      "kicker": "01 / PRODUCT CASE",
+      "title": "From an interview to a defensible handoff",
+      "intro": "An English-first recruiting prototype that turns a candidate conversation into cited competency evidence, explicit unknowns and a human-reviewed record.",
+      "sections": [
+        ["The user and problem", "A tech recruiter prepares first-screen feedback for an engineering hiring manager. The proposed bottleneck is reconstructing relevant answers, checking AI claims and explaining unanswered areas. The candidate is affected when missing evidence becomes an unjustified negative conclusion. Our job-to-be-done: help the recruiter organize what was demonstrated against role criteria and prepare the next conversation."],
+        ["What we reused", "The existing InterviewMate Next.js application already supplied scheduling, Firebase authentication and records, a voice room and generated reports. Reusing it preserved the recruiter-to-candidate workflow. We replaced inconsistent voice initialization and unexplained evaluation percentages while adding reviewer access and a shared setup contract. Baseline commit: 29e40ba."],
+        ["What this case study establishes", "This is a five-day challenge developed through subsequent product revisions. The working application, this PDF and an approximately five-minute video are the intended submission. Software tests establish selected application behavior. They do not establish hiring validity, model accuracy, recruiter demand or time savings. Final live voice, comparative model results and video footage remain pending."],
+        ["Read this document", "Pages 2–3 explain discovery and UX. Pages 4–5 specify architecture and evaluation. Pages 6–7 state evidence, governance and engineering handoff. English is the evaluation baseline; Bahasa Indonesia is a separately reported multilingual extension."]
+      ]
+    },
+    {
+      "kicker": "02 / DISCOVERY",
+      "title": "A practical workflow, with explicit hypotheses",
+      "intro": "Desk research supports structured feedback as a real recruiting activity. No recruiter or hiring manager was interviewed for this sprint.",
+      "sections": [
+        ["Current workflow", "Align on role criteria → conduct the screen → review notes or a transcript → map evidence to a scorecard → hand off to the hiring manager. Our hypothesis is that reconstruction and checking create avoidable effort. The proposed improvement is a draft whose evidence and uncertainty can be inspected in context."],
+        ["Discovery evidence", "OPM structured-interview guidance supports job-related competencies and common rating standards. Greenhouse scorecard guidance and transcript-linked Notetaker features establish existing workflows and alternatives. These sources motivate the design; they do not show that our target user needs another tool or that our prototype outperforms existing products."],
+        ["Product decisions", "Keep the recruiter pipeline familiar. Add shared interview configuration, structured/adaptive questioning and explicit evidence levels. Preserve human decision-making. Hide synthetic fixtures from ordinary navigation and production statistics. Let a reviewer explore through a private invitation, while ordinary visitors use a limited live voice demo."],
+        ["Baseline and success measures", "The user reported approximately 40% and 60% from equivalent no-answer tests; these are motivating observations, not a controlled benchmark. The replacement returns deterministic insufficient evidence for empty/filler/skipped input. A future manual-versus-assisted study must measure active review minutes, corrections and completed brief quality on comparable tasks. No baseline minutes or percentage improvement has been measured."],
+        ["Source notes", "OPM Structured Interviews: https://www.opm.gov/policy-data-oversight/assessment-and-selection/structured-interviews . Greenhouse Scorecard definitions: https://support.greenhouse.io/hc/en-us/articles/360007247412-Structured-hiring-Scorecard-definitions . Sources were recorded in the September 7 discovery register; vendor descriptions are workflow evidence, not causal studies."]
+      ]
+    },
+    {
+      "kicker": "03 / EXPERIENCE",
+      "title": "One setup, a recoverable interview, visible evidence",
+      "intro": "The same configuration drives personal, scheduled and reviewer interviews. A failed connection should leave the candidate with clear actions and preserved context.",
+      "sections": [
+        ["Configure and confirm", "Choose 5, 10, 15 minutes or Unlimited; set a maximum turn count, Structured/Adaptive mode, competency rubric, English/Bahasa Indonesia, interaction modes, custom questions and optional technical panels. Scheduled links snapshot behavior and role context. Review parsed CV text before using it, or explicitly proceed without it."],
+        ["Conduct the interview", "The model receives one-question-per-response instructions. Structured mode follows core questions; Adaptive mode requests a directly relevant follow-up about missing ownership, decisions, tradeoffs, validation or outcomes. Follow-ups consume the question budget. Relevance and non-repetition remain prompt-directed behaviors that require live human validation."],
+        ["Make thinking space", "Filler-only transcripts do not trigger a response. Meaningful speech receives an approximately 2.5-second end buffer. After question playback, seven seconds of silence prompts gentle text; seventeen seconds offers repeat or skip. A skipped question becomes No Evidence Collected. Muting, disconnection and transcription failure are technical states, not low competency."],
+        ["Recover safely", "Retry Connection, Return to Setup and Exit Interview are explicit actions. Completed answers are checkpointed; recovery retires and replaces the unfinished question. Browser-hidden/unfocused events pause the session with a full-screen warning. Repeated or prolonged interruption can end the session according to the disclosed policy, without an automatic score deduction or rejection."],
+        ["Review in context", "The report shows quality on assessed competencies, coverage, relevance, consistency and provisional confidence, with candidate quotations. Human judgments retain their selection while the reviewer types or reloads. Submission creates a read-only record linked to transcript, rubric and model versions. Synthetic records are visibly labelled and stored separately."]
+      ]
+    },
+    {
+      "kicker": "04 / AI AND SYSTEM DESIGN",
+      "title": "Shared transport, bounded context, validated output",
+      "intro": "Browser microphone → shared realtime route → provider call → transcript → evidence evaluator → exact-quote validation → human review.",
+      "sections": [
+        ["Voice and transcription", "Every room calls /api/realtime. The server uses the GA OpenAI realtime/calls endpoint with one session configuration, error mapping and optional configured model fallback. Current product defaults remain gpt-realtime and whisper-1. Automatic VAD responses are disabled; application events distinguish filler speech from meaningful answers and request the next response. Old token-creation behavior is retired."],
+        ["Evaluation contract", "The default adapters are OpenAI gpt-4o, Gemini 2.5 Flash and DeepSeek v4 Flash. Each produces structured competency evidence. The server verifies known/unique competency IDs and exact quotations from eligible candidate turns, rejects unsupported references and computes the displayed dimensions. Schema validity and exact text matches do not prove that a quote supports its assigned level; the human review step checks that semantic claim."],
+        ["Evidence rubric v2", "0 = No Evidence; 1 = Weak or Vague; 2 = Partial; 3 = Clear; 4 = Strong Concrete Evidence. Unquoted or unreached competencies are Not Assessed. Quality averages assessed levels only, while coverage reports assessed/total. Overall percentage is null. Limited or conflicting evidence returns Insufficient Evidence for Reliable Overall Assessment. Even adequate coverage remains provisional and needs human review."],
+        ["Context preparation", "PDF output is structured as success, partial, failed, no_extractable_text or unsupported, with pages, character count, warnings and failure reason. Error strings cannot become CV facts. GitHub first ranks lightweight metadata against role/CV context, then reads at most three relevant READMEs. Stars do not control ranking; forks, tutorials and archived projects are penalized. Text is bounded and treated as untrusted input."],
+        ["Provider visibility", "Recent actual requests update cached Ready, Degraded, Rate Limited, Unavailable or Misconfigured observations. The interface exposes primary/active provider and whether fallback occurred. No inference probes maintain the status indicator. BYOK fallback requires explicit opt-in because it can send the transcript to another configured provider."]
+      ]
+    },
+    {
+      "kicker": "05 / EVALUATION DESIGN",
+      "title": "Separate model improvements from product changes",
+      "intro": "A new model is an experiment candidate. It is not a winner until quality, reliability, latency and cost are measured on comparable inputs.",
+      "sections": [
+        ["Frozen model experiment", "Preserve the historical Review Brief prompt, contract and dataset. Eight English base cases contain concrete evidence, vague team-centered answers, missing coverage, contradictory ownership, unknown speakers, injection attempts, cautious phrasing and interruption. Three repeats per base case produce 24 planned runs per model; name/filler variants add six. The frozen data and baseline file hashes identify the experiment."],
+        ["Independent product experiment", "Evaluate competency-evidence-v2 separately. Cases include no answers, filler-only input, skipping, microphone failure, strong partial coverage, contradiction and invented quotations. Counterfactual pairs must keep evidence identical while changing employer, university or title labels. Automated metadata invariance is implemented; live transcript-embedded prestige tests and independent judgments remain pending."],
+        ["Measure the right outcomes", "Voice: first-audio latency, end-to-response p50/p95, filler false-advances, interruption success, disconnects and cost. Transcription: word/character error and meaning-changing technical terms on identical recordings with corrected references. Evaluation: schema-valid outputs, grounded citations, repeated-level agreement, rubric adherence, human disagreement, abstention, latency and cost. Keep provider failures in availability denominators."],
+        ["Language and reviewer strategy", "Start with English and report Bahasa Indonesia separately. A bilingual builder can perform an initial pilot, label self-review and correct transcripts. A second reviewer should independently judge at least a subset before claiming inter-rater reliability. Synthetic authored references are provisional. Public datasets require license, provenance and privacy review before use; no model-training collection is enabled."],
+        ["Promotion and reproducibility", "Record requested and actual model, prompt/rubric/data hashes, settings, timestamps, failures and usage. Do not use fallback outputs as results for the failed primary. Compare fast alternatives such as account-available small realtime models and Gemini Flash-Lite without silently changing production defaults. Billing telemetry and actual comparison batches still need completion."]
+      ]
+    },
+    {
+      "kicker": "06 / EVIDENCE AND LIMITATIONS",
+      "title": "What passed, what failed, what is still unknown",
+      "intro": "Software correctness is one layer of evidence. It cannot substitute for successful voice sessions, independent rubric judgments or recruiter outcome measures.",
+      "sections": [
+        ["Recorded software validation", "Final revision: 138 automated tests across 18 suites, 24 selected browser checks, changed-source lint and the production build passed. Browser checks include local invitation redemption, synthetic scheduled report persistence, stable judgments across reload, read-only completed human records, recovery and the benchmark workspace. The baseline had 122 tests across 16 suites. Provider responses in automated tests are mocked; deterministic empty assessment makes no provider request."],
+        ["Failures found and corrected", "A legacy candidate report still expected a percentage; the new evidence view replaces that path. Reviewer scheduling could use the ordinary pipeline when a reviewer was signed in; synthetic scheduling now selects separate storage explicitly. A mislabeled successful CV containing a server-error string bypassed validation; a regression test caught it and the validation boundary was corrected. The former separate realtime endpoint has been retired."],
+        ["Live tests not completed", "The last recorded OpenAI credential check returned HTTP 401; Gemini and DeepSeek host keys were absent. No successful live voice result, model-quality comparison, latency/cost benchmark or recruiter time-saving measurement is claimed. The final five-minute video has a shot list and narration plan but requires successful live footage. The HTTPS reviewer deployment has not been validated."],
+        ["Interpretation limits", "Exact quotation validation can reject invented text but cannot establish semantic relevance or eliminate bias. Adaptive follow-up quality is not proven by prompt instructions. Browser focus signals cannot identify another app's content, another device or the reason for losing focus. An ended session is a reviewable event, not an automatic hiring rejection. Resume/GitHub content may be incomplete or misleading."],
+        ["Release gate", "Replace credentials privately, run English voice and evidence acceptance, repeat the Indonesian extension, complete comparable model batches and human judgments, update this document with actual outcomes, record the video and verify the deployed invitation experience. Until then this is a prototype with documented gaps, not a production hiring assessment."]
+      ]
+    },
+    {
+      "kicker": "07 / ENGINEERING HANDOFF",
+      "title": "Access boundaries and the next production decisions",
+      "intro": "The prototype is runnable and reviewable. Production readiness requires durable controls around admission, records, billing, privacy and evidence validity.",
+      "sections": [
+        ["Access architecture", "BYOK credentials are used temporarily during a request, never persisted in backend records; the browser retains personal keys until removed. Demo uses server-only credentials with five starts per signed browser cookie/day and an eight-minute funding window. Reviewer invitations default to seven days, 30 starts/day, 12 operations/minute and 500 usage units, with revocation, shared session ceilings and one active lease."],
+        ["Hosting and governance", "Use HTTPS and a persistent Node runtime with private durable storage and a stable cookie secret. A reaper closes expired/revoked calls; downtime or provider failure can delay cleanup. Usage units bound operations, not exact currency spend. Set provider billing controls. Reviewer records and checkpoints are client-reported, not tamper-proof. Establish scoped candidate admission, server-authoritative configuration, retention/deletion tooling, access auditing and accommodations before real hiring."],
+        ["Where engineers should work", "Shared configuration: src/lib/interview/config.ts. Browser orchestration: src/lib/store/useInterviewStore.ts. Voice API: src/app/api/realtime/route.ts and src/lib/realtime/service.ts. Evaluation: src/lib/ai/assess.ts, evaluation.ts and evidence.ts. Access/limits: src/lib/access/reviewer.ts and src/lib/demo/ledger.ts. Human records: HumanReviewPanel and /api/reviewer/reviews. GitHub and PDF helpers are independent modules."],
+        ["Data and model improvement", "No candidate-data training pipeline is implemented. Use synthetic evaluation records first. Human judgments carry source/version/model/rubric, reviewer ID, notes, timestamp and source hash. A future improvement pipeline needs an explicit purpose, permission, minimization, retention and deletion design; cloud-hosted open-weight models do not automatically provide local-device privacy."],
+        ["Submission and ownership", "Run the Next.js app with npm install and npm run dev. Redeem a privately supplied invitation at /reviewer; ordinary visitors use /demo. Product_Sprint.md owns requirements and decisions; docs/README.md owns live progress; current-runbook.md owns setup and acceptance. Historical design is archived and frozen datasets remain available. The PDF is the primary case study; demo-script.md supports the final approximately five-minute recording."]
+      ]
+    }
+  ]
+}

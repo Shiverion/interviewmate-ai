@@ -76,6 +76,59 @@ export default function ReviewBrief({
   const sourceRef = useRef<HTMLElement>(null);
   const returnFocus = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
+    if (!session) return;
+    try {
+      localStorage.setItem(
+        "interviewmate-human-review-draft-v2",
+        JSON.stringify(session)
+      );
+    } catch {
+      setNotice(
+        "Browser storage is unavailable. Export your review before leaving."
+      );
+    }
+  }, [session]);
+  function restoreDraft() {
+    try {
+      const raw = localStorage.getItem("interviewmate-human-review-draft-v2");
+      if (!raw) throw Error("No saved review in this browser.");
+      const saved = JSON.parse(raw) as ReviewSession;
+      if (
+        !validateRequest(saved.input).ok ||
+        !validateDraft(saved.input, saved.currentDraft).ok ||
+        !CRITERIA.every((k) => typeof saved.checked?.[k] === "boolean")
+      )
+        throw Error("Saved review is incompatible with this version.");
+      setInput(saved.input);
+      setFixtureId(
+        fixtures.find((f) => f.input.transcriptId === saved.input.transcriptId)
+          ?.id || "imported"
+      );
+      setSession(saved);
+      setNotice("Saved source and judgments restored.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Cannot restore review.");
+    }
+  }
+  function submitReview() {
+    if (!session) return;
+    try {
+      const completed = markReviewed(session);
+      const record = exportReview(completed);
+      const id = `${record.generation.inputHash}-${Date.now()}`;
+      localStorage.setItem(
+        `interviewmate-human-review-completed-${id}`,
+        JSON.stringify(record)
+      );
+      setSession(completed);
+      setNotice(
+        "Completed review saved in this browser. Export JSON for a portable ground-truth record."
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save review.");
+    }
+  }
+  useEffect(() => {
     if (error) errorRef.current?.focus();
   }, [error]);
   useEffect(() => {
@@ -273,6 +326,24 @@ export default function ReviewBrief({
 
   return (
     <main className={styles.page}>
+      <div className={styles.actions}>
+        <button onClick={restoreDraft}>Restore saved review</button>
+        {session?.reviewedAt && (
+          <button
+            onClick={() =>
+              setSession(
+                createReview(
+                  session.input,
+                  session.currentDraft,
+                  session.generation
+                )
+              )
+            }
+          >
+            Start a new review
+          </button>
+        )}
+      </div>
       <header className={styles.header}>
         <Link href="/">
           InterviewMate <span> / Review workspace</span>
@@ -560,6 +631,7 @@ export default function ReviewBrief({
                                     : ""}
                                 </button>
                                 <button
+                                  disabled={!!session.reviewedAt}
                                   onClick={() =>
                                     setSession(
                                       removeClaim(
@@ -582,11 +654,15 @@ export default function ReviewBrief({
                             <p>{entry.followUp}</p>
                           </div>
                           <div className={styles.actions}>
-                            <button onClick={() => setEditing(key)}>
+                            <button
+                              disabled={!!session.reviewedAt}
+                              onClick={() => setEditing(key)}
+                            >
                               Edit criterion
                             </button>
                             {session.removed[key].length > 0 && (
                               <button
+                                disabled={!!session.reviewedAt}
                                 onClick={() =>
                                   setSession(restoreClaim(session, key))
                                 }
@@ -600,7 +676,7 @@ export default function ReviewBrief({
                       <label className={styles.check}>
                         <input
                           type="checkbox"
-                          disabled={editing !== null}
+                          disabled={editing !== null || !!session.reviewedAt}
                           checked={session.checked[key]}
                           onChange={(event) =>
                             setSession(
@@ -628,6 +704,7 @@ export default function ReviewBrief({
                 </label>
                 <input
                   id="reviewer"
+                  readOnly={!!session.reviewedAt}
                   maxLength={80}
                   value={session.reviewerId}
                   onChange={(event) =>
@@ -639,6 +716,7 @@ export default function ReviewBrief({
                 </label>
                 <textarea
                   id="reviewer-note"
+                  readOnly={!!session.reviewedAt}
                   maxLength={1000}
                   value={session.reviewerNote}
                   onChange={(event) =>
@@ -646,9 +724,10 @@ export default function ReviewBrief({
                   }
                 />
                 <p className={styles.small}>
-                  Set your ID and note before checking the criteria. Changing
-                  either clears all checks. Editing a criterion clears its check
-                  and the reviewed state.
+                  Your selections stay checked while you type. Editing a
+                  criterion requires that criterion to be checked again.
+                  Completed records remain saved; explicitly start a new review
+                  to make changes.
                 </p>
                 {valid && !valid.ok && (
                   <p role="alert" className={styles.error}>
@@ -662,9 +741,12 @@ export default function ReviewBrief({
                   <button
                     className={styles.primary}
                     disabled={
-                      !canReview(session) || editing !== null || loading
+                      !!session.reviewedAt ||
+                      !canReview(session) ||
+                      editing !== null ||
+                      loading
                     }
-                    onClick={() => setSession(markReviewed(session))}
+                    onClick={submitReview}
                   >
                     Mark reviewed
                   </button>
@@ -708,9 +790,10 @@ export default function ReviewBrief({
         </section>
       </div>
       <footer className={styles.footer}>
-        Local development prototype · Review edits live in this tab and are lost
-        on refresh. Export reviewed work before leaving. Synthetic model
-        attempts are recorded locally on the server.
+        Synthetic evaluation workspace · Review edits are saved in this browser.
+        Use Restore saved review after reopening; export completed work for your
+        evaluation dataset. Synthetic model attempts are stored privately on the
+        server.
       </footer>
     </main>
   );

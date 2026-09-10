@@ -80,6 +80,16 @@ export function saveEvaluationProvider(provider: AIProvider) {
 export function evaluationHeaders() {
   const provider = getEvaluationProvider();
   return {
+    ...(localStorage.getItem("interviewmate_allow_fallback") === "true"
+      ? {
+          "x-ai-allow-fallback": "true",
+          "x-ai-fallback-keys": JSON.stringify({
+            openai: getProviderKey("openai") || undefined,
+            gemini: getProviderKey("gemini") || undefined,
+            deepseek: getProviderKey("deepseek") || undefined,
+          }),
+        }
+      : {}),
     "x-ai-provider": provider,
     "x-ai-key": getProviderKey(provider) || "",
   };

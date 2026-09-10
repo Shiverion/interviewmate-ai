@@ -26,7 +26,7 @@ describe("Reviewer access", () => {
     cy.contains("button", "Start free voice demo").click();
     cy.wait("@startDemo");
     cy.location("pathname").should("eq", "/interview");
-    cy.contains("Hosted reviewer demo").should("be.visible");
+    cy.contains("Hosted voice").should("be.visible");
     cy.contains("button", "Start Interview").should("be.disabled");
     cy.contains("label", "Saya telah membaca").find("input").check();
     cy.contains("button", "Start Interview").should("be.enabled");

@@ -2,18 +2,24 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useControlStore } from "@/lib/integrity/control-store";
-import { ALERT_PATTERN, InterviewAlertAudio, type AlertLevel } from "@/lib/integrity/alert-audio";
+import {
+  ALERT_PATTERN,
+  InterviewAlertAudio,
+  type AlertLevel,
+} from "@/lib/integrity/alert-audio";
 
 export default function IntegrityAlert({
   language = "",
   onResume,
   onNewAttempt,
   floatingControls = false,
+  recoveryActions,
 }: {
   language?: string;
   onResume?: () => void | Promise<void>;
   onNewAttempt?: () => void;
   floatingControls?: boolean;
+  recoveryActions?: React.ReactNode;
 }) {
   const { record, storageFailed } = useControlStore();
   const [sound, setSound] = useState(true),
@@ -37,8 +43,14 @@ export default function IntegrityAlert({
     let active = true;
     const arm = () => {
       if (!useControlStore.getState().record) return;
-      void audio.current.arm().then(() => { if (active) setSoundUnavailable(false); })
-        .catch(() => { if (active) setSoundUnavailable(true); });
+      void audio.current
+        .arm()
+        .then(() => {
+          if (active) setSoundUnavailable(false);
+        })
+        .catch(() => {
+          if (active) setSoundUnavailable(true);
+        });
     };
     document.addEventListener("click", arm, true);
     document.addEventListener("keydown", arm, true);
@@ -61,7 +73,11 @@ export default function IntegrityAlert({
       if (!sound || !next || !(next in ALERT_PATTERN)) return;
       const level = next as AlertLevel;
       const play = () => {
-        try { player.play(level); } catch { setSoundUnavailable(true); }
+        try {
+          player.play(level);
+        } catch {
+          setSoundUnavailable(true);
+        }
       };
       if (playImmediately) play();
       const delay = ALERT_PATTERN[level].repeatMs;
@@ -72,7 +88,10 @@ export default function IntegrityAlert({
     const unsubscribe = useControlStore.subscribe((n, p) => {
       if (n.record?.phase !== p.record?.phase) schedule(n.record?.phase, true);
     });
-    return () => { unsubscribe(); clear(); };
+    return () => {
+      unsubscribe();
+      clear();
+    };
   }, [sound]);
   useEffect(() => {
     const player = audio.current;
@@ -86,7 +105,9 @@ export default function IntegrityAlert({
       return;
     }
     setSound(true);
-    void audio.current.arm().then(() => audio.current.play("paused"))
+    void audio.current
+      .arm()
+      .then(() => audio.current.play("paused"))
       .catch(() => setSoundUnavailable(true));
   }
   if (!record || phase === "completed") return null;
@@ -273,6 +294,7 @@ export default function IntegrityAlert({
                     New rehearsal
                   </button>
                 )}
+                {recoveryActions}
               </div>
             </div>
           </dialog>,

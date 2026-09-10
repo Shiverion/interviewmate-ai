@@ -1,3 +1,5 @@
+> Historical baseline observation from September 7. Source files have since changed; use commit history for the cited behavior. Current implementation is in the [runbook](../implementation/current-runbook.md).
+
 # Current product baseline: evidence and report affordances
 
 Recorded: 2026-09-07 (Asia/Jakarta). Status: **Offline source inventory executed; human task baseline and model behavior not measured.**

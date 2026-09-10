@@ -1,10 +1,12 @@
+> Historical baseline observation from September 7. Source files have since changed; use commit history for the cited behavior. Current implementation is in the [runbook](../implementation/current-runbook.md).
+
 # Problem, users and current workflow
 
 Updated: 2026-09-07. Status: desk research and explicit hypotheses.
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Phase 1](../phases/01-discovery-and-ux.md)
 
-Read this for the problem hypothesis and inherited workflow. The selected scope is recorded in [D01](../decisions/001-sprint-scope.md); source IDs refer to the [source register](source-register.md).
+Read this for the problem hypothesis and inherited workflow. The selected scope is recorded in [D01](../../archive/pre-evidence-v2/hr-product-sprint/decisions/001-sprint-scope.md); source IDs refer to the [source register](source-register.md).
 
 ## Discovery decision
 

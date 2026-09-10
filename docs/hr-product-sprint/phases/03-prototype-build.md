@@ -1,6 +1,10 @@
+> September 10 revision: see [current progress](../../README.md) and [implementation matrix](../implementation/revision-tracker.md). Earlier entries below are a dated phase history, not a claim that the expanded scope has passed live acceptance.
+
 # Phase 3: prototype build
 
-2026-09-09 update: keyless dashboard access, three-provider evaluation settings, redesigned workspace and limited reviewer voice are implemented. See the [access runbook](../implementation/reviewer-demo-and-access.md). Real voice acceptance is blocked by the OpenAI server credential returning HTTP 401; Gemini/DeepSeek host credentials are absent.
+September 10 implementation: shared GA realtime service, three access modes with private reviewer invitations, one interview configuration, evidence-v2 reports and contextual persistent human review. CV parsing and GitHub context have bounded validation/retrieval. See the [current runbook](../implementation/current-runbook.md) and [requirement matrix](../implementation/revision-tracker.md) for implemented scope and live acceptance gaps. Historical build details below describe the original review-brief baseline.
+
+2026-09-09 update: keyless dashboard access, three-provider evaluation settings, redesigned workspace and limited reviewer voice are implemented. See the [access runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). Real voice acceptance is blocked by the OpenAI server credential returning HTTP 401; Gemini/DeepSeek host credentials are absent.
 
 Status: **In progress — runnable prototype implemented; successful live generation verification pending provider access.**
 
@@ -12,7 +16,7 @@ Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 
 The local [review workspace](http://127.0.0.1:3000/review-brief) implements synthetic transcript input, four evidence criteria, exact candidate quotations, source inspection, corrections, review confirmation and JSON/text exports. It reuses the existing Next.js/React application, theme tokens and installed AI SDK. It has its own development-only page and API, outside the recruiter login/key gates.
 
-The [runbook and source map](../implementation/review-brief-runbook.md) is the canonical setup and maintenance guide. The [Phase 2 package](../design/README.md) remains the design reference; the [backlog](../implementation/phase-3-backlog.md) maps delivered behavior to B01–B06.
+The [runbook and source map](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md) is the canonical setup and maintenance guide. The [Phase 2 package](../../archive/pre-evidence-v2/hr-product-sprint/design/README.md) remains the design reference; the [backlog](../../archive/pre-evidence-v2/hr-product-sprint/implementation/phase-3-backlog.md) maps delivered behavior to B01–B06.
 
 An actual synthetic request reached the provider and returned **HTTP 503 / AI_UNAVAILABLE**. The configured server key or requested model was rejected; the adapter intentionally does not expose provider error text. The [original failed attempt](../implementation/verification/2026-09-08-provider-attempt.json) is preserved. No live model draft, quality measurement or time-saving result is claimed. Authored examples are fully interactive and permanently labelled.
 
@@ -59,7 +63,7 @@ Meaningful checks cover byte limits, malformed/duplicate/no-candidate requests, 
 - Kept voice, resume ranking, database persistence and the existing seven-score reports outside this prototype path.
 - Retained the original failed provider record. Authored examples are an explicit separate action, never a fallback presented as AI success.
 
-The repository's pre-existing Firebase configuration/rule edits and local agent work were left untouched. Inherited permission, candidate-entry and voice observations remain documented in the [source baseline](../evaluation/current-product-baseline.md) and [local development guide](../../product/local-development.md).
+The repository's pre-existing Firebase configuration/rule edits and local agent work were left untouched. Inherited permission, candidate-entry and voice observations remain documented in the [source baseline](../evaluation/current-product-baseline.md) and [local development guide](../../archive/pre-evidence-v2/product/local-development.md).
 
 ## Candidate session-integrity extension
 

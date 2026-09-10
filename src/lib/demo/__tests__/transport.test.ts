@@ -22,16 +22,14 @@ jest.mock("@/lib/audio/WebRTCAudioManager", () => ({
 }));
 test("hosted GA voice initiates a greeting without beta session updates or a personal token", async () => {
   const sendEvent = jest.fn();
-  jest
-    .mocked(WebRTCAudioManager)
-    .mockImplementation(
-      (config: WebRTCManagerConfig) =>
-        ({
-          connect: async () => config.onMessage?.("ready", null),
-          sendEvent,
-          disconnect: jest.fn(),
-        }) as unknown as WebRTCAudioManager
-    );
+  jest.mocked(WebRTCAudioManager).mockImplementation(
+    (config: WebRTCManagerConfig) =>
+      ({
+        connect: async () => config.onMessage?.("ready", null),
+        sendEvent,
+        disconnect: jest.fn(),
+      }) as unknown as WebRTCAudioManager
+  );
   const stream = { getTracks: () => [], getAudioTracks: () => [] };
   Object.defineProperty(navigator, "mediaDevices", {
     configurable: true,
@@ -58,4 +56,98 @@ test("hosted GA voice initiates a greeting without beta session updates or a per
     expect.objectContaining({ video: false })
   );
   useInterviewStore.getState().reset();
+});
+
+test("fillers do not advance; meaningful speech waits for the buffer and honors the turn budget", async () => {
+  jest.useFakeTimers();
+  let events: WebRTCManagerConfig["onMessage"];
+  const sendEvent = jest.fn();
+  jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
+    events = config.onMessage;
+    return {
+      connect: async () => {},
+      sendEvent,
+      disconnect: jest.fn(),
+    } as unknown as WebRTCAudioManager;
+  });
+  const stream = {
+    getTracks: () => [],
+    getAudioTracks: () => [{ readyState: "live" }],
+  };
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia: jest.fn().mockResolvedValue(stream) },
+  });
+  useInterviewStore.setState({
+    status: "setup",
+    transcript: [],
+    _sessionContext: {
+      sessionId: "demo-voice-policy",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_only",
+      candidateName: "Synthetic",
+      jobTitle: "Engineer",
+      startedAt: Date.now(),
+      questionCount: 1,
+    },
+  });
+  await useInterviewStore.getState().connect();
+  events?.("transcript_done", "What did you decide?");
+  events?.("audio_playback_done", null);
+  events?.("user_started_speaking", null);
+  events?.("user_stopped_speaking", null);
+  events?.("user_transcript_done", "uh hmm");
+  jest.advanceTimersByTime(3000);
+  expect(
+    sendEvent.mock.calls.filter(([e]) => e.type === "response.create")
+  ).toHaveLength(0);
+  expect(useInterviewStore.getState().transcript).toHaveLength(1);
+  events?.("user_started_speaking", null);
+  events?.("user_stopped_speaking", null);
+  events?.(
+    "user_transcript_done",
+    "I selected a queue after measuring retries."
+  );
+  jest.advanceTimersByTime(2499);
+  expect(
+    sendEvent.mock.calls.filter(([e]) => e.type === "response.create")
+  ).toHaveLength(0);
+  jest.advanceTimersByTime(1);
+  expect(sendEvent).toHaveBeenCalledWith(
+    expect.objectContaining({
+      type: "response.create",
+      response: expect.objectContaining({
+        instructions: expect.stringContaining("turn budget is exhausted"),
+      }),
+    })
+  );
+  useInterviewStore.getState().reset();
+  jest.useRealTimers();
+});
+
+test("a late transcription cannot advance while the candidate is speaking again", async () => {
+  jest.useFakeTimers();
+  let events: WebRTCManagerConfig["onMessage"];
+  const sendEvent = jest.fn();
+  jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
+    events = config.onMessage;
+    return {
+      connect: async () => {},
+      sendEvent,
+      disconnect: jest.fn(),
+    } as unknown as WebRTCAudioManager;
+  });
+  useInterviewStore.setState({ status: "setup", transcript: [] });
+  await useInterviewStore.getState().connect();
+  events?.("user_started_speaking", null);
+  events?.("user_stopped_speaking", null);
+  events?.("user_started_speaking", null);
+  events?.("user_transcript_done", "The first part of my answer.");
+  jest.advanceTimersByTime(3000);
+  expect(
+    sendEvent.mock.calls.filter(([e]) => e.type === "response.create")
+  ).toHaveLength(0);
+  useInterviewStore.getState().reset();
+  jest.useRealTimers();
 });

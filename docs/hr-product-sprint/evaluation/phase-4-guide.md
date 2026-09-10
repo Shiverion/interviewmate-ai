@@ -1,6 +1,6 @@
 # Phase 4 evaluation: run, inspect and continue
 
-[Evaluation home](README.md) · [Dataset](dataset/README.md) · [Phase 4 report](../phases/04-evaluation-and-iteration.md) · [Prototype runbook](../implementation/review-brief-runbook.md)
+[Evaluation home](README.md) · [Dataset](dataset/README.md) · [Phase 4 report](../phases/04-evaluation-and-iteration.md) · [Prototype runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md)
 
 Updated: 2026-09-08. The dataset and harness are ready. The first batch stopped on **AI_UNAVAILABLE** after one API attempt. No generated draft or semantic-quality result exists for this dataset yet.
 

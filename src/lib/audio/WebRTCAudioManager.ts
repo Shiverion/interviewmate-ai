@@ -4,8 +4,8 @@
  */
 
 export interface WebRTCManagerConfig {
-  ephemeralToken: string;
-  exchangeSdp?: (sdp: string) => Promise<string>;
+  ephemeralToken?: string;
+  exchangeSdp: (sdp: string) => Promise<string>;
   onClose?: () => void;
   onMessage?: (type: string, payload: unknown) => void;
   onTrack?: (track: MediaStreamTrack) => void;
@@ -100,9 +100,18 @@ export class WebRTCAudioManager {
             this.config.onMessage("user_transcript_done", parsed.transcript);
           } else if (eventType === "input_audio_buffer.speech_started") {
             this.config.onMessage("user_started_speaking", null);
+          } else if (eventType === "input_audio_buffer.speech_stopped") {
+            this.config.onMessage("user_stopped_speaking", null);
+          } else if (
+            eventType === "conversation.item.input_audio_transcription.failed"
+          ) {
+            this.config.onMessage("transcription_failed", null);
+          } else if (eventType === "output_audio_buffer.stopped") {
+            this.config.onMessage("audio_playback_done", null);
           } else if (eventType === "response.created") {
             this.config.onMessage("ai_thinking", null);
           } else if (
+            eventType === "output_audio_buffer.started" ||
             eventType === "response.audio.delta" ||
             eventType === "response.output_audio.delta"
           ) {
@@ -118,7 +127,7 @@ export class WebRTCAudioManager {
             this.config.onMessage("raw_event", parsed);
           }
         } catch (err) {
-          console.error("Error parsing data channel message", err);
+          void err; // Never log raw provider events or interview content.
         }
       }
     };
@@ -144,28 +153,7 @@ export class WebRTCAudioManager {
       return;
     }
 
-    const sdpResponse = await fetch(
-      `https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`,
-      {
-        method: "POST",
-        body: offer.sdp,
-        headers: {
-          Authorization: `Bearer ${this.config.ephemeralToken}`,
-          "Content-Type": "application/sdp",
-        },
-      }
-    );
-
-    if (!sdpResponse.ok) {
-      throw new Error(`WebRTC Connection Failed: ${sdpResponse.status}`);
-    }
-
-    const answerSdp = await sdpResponse.text();
-    const answer = {
-      type: "answer" as RTCSdpType,
-      sdp: answerSdp,
-    };
-    await this.pc.setRemoteDescription(answer);
+    throw Error("A shared realtime exchange is required.");
   }
 
   /**
@@ -183,7 +171,7 @@ export class WebRTCAudioManager {
    * Helper to send an explicit text message to the AI
    * and immediately mandate a text response.
    */
-  public sendTextMessage(text: string): void {
+  public sendTextMessage(text: string, instructions?: string): void {
     this.sendEvent({
       type: "conversation.item.create",
       item: {
@@ -194,7 +182,10 @@ export class WebRTCAudioManager {
     });
 
     // Trigger the AI to analyze and respond
-    this.sendEvent({ type: "response.create" });
+    this.sendEvent({
+      type: "response.create",
+      ...(instructions ? { response: { instructions } } : {}),
+    });
   }
 
   /**

@@ -16,7 +16,9 @@ const line = z.object({
 });
 export const checkpointSchema = z.object({
   version: z.literal(CONTROL.version),
-  controlPolicy: z.enum(["visibility-v1", "visibility-and-focus-v2"]).optional(),
+  controlPolicy: z
+    .enum(["visibility-v1", "visibility-and-focus-v2"])
+    .optional(),
   key: z.string().max(200),
   phase: z.enum([
     "setup",
@@ -29,6 +31,7 @@ export const checkpointSchema = z.object({
   ]),
   reason: z.string().max(120),
   remainingMs: z.number().min(0).max(CONTROL.durationMs),
+  unlimited: z.boolean().optional(),
   lastTick: z.number(),
   graceUntil: z.number(),
   awaySince: z.number().nullable(),
@@ -93,11 +96,11 @@ export function advance(
     lastTick: now,
     remainingMs: Math.max(
       0,
-      s.remainingMs - (s.phase === "running" ? elapsed : 0)
+      s.remainingMs - (s.phase === "running" && !s.unlimited ? elapsed : 0)
     ),
   };
   if (!online) return recover(n, now, "connection_lost");
-  if (!n.remainingMs)
+  if (!n.remainingMs && !n.unlimited)
     return log(
       { ...n, phase: "completed", reason: "time_limit" },
       "time_limit",

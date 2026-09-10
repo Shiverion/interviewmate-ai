@@ -5,7 +5,13 @@ import draft from "../../src/lib/review-brief/fixtures/practice-a.draft.json";
 describe("local synthetic review brief", () => {
   beforeEach(() => {
     cy.viewport(1280, 900);
-    cy.visit("http://127.0.0.1:3000/review-brief");
+    cy.task<string>("reviewerCookie", null, { log: false }).then((cookie) =>
+      cy.setCookie("interviewmate-reviewer", cookie, {
+        httpOnly: true,
+        log: false,
+      })
+    );
+    cy.visit("http://localhost:3000/review-brief");
   });
   const confirm = () =>
     cy.contains("label", "This role fits").find("input").check();
@@ -83,7 +89,7 @@ describe("local synthetic review brief", () => {
     cy.screenshot("review-brief-desktop", { capture: "viewport" });
   });
 
-  it("reviews sources, corrects a claim, exports original plus reviewed content, and relocks", () => {
+  it("reviews sources, corrects a claim, exports original plus reviewed content, and requires an explicit new review to edit", () => {
     authored();
     cy.contains("button", "Export JSON").should("be.disabled");
     cy.contains("button", "View source").first().click();
@@ -119,6 +125,8 @@ describe("local synthetic review brief", () => {
           expect(record.generation.modelRequested).to.equal(null);
         });
       });
+    cy.contains("button", "Edit criterion").first().should("be.disabled");
+    cy.contains("button", "Start a new review").click();
     cy.contains("button", "Edit criterion").first().click();
     cy.contains("button", "Export JSON").should("be.disabled");
     cy.get("article form textarea").first().type(" Updated.");
@@ -126,7 +134,7 @@ describe("local synthetic review brief", () => {
     cy.contains("button", "Export JSON").should("be.disabled");
   });
 
-  it("preserves stable removed claims and clears checks after notes change", () => {
+  it("preserves stable removed claims and keeps checks while notes change", () => {
     authored();
     const original = draft.criteria.R1.claims[0].text;
     cy.contains("button", "Remove claim").first().click();
@@ -135,11 +143,13 @@ describe("local synthetic review brief", () => {
     cy.contains(original).should("exist");
     cy.get("#reviewer").type("reviewer");
     checkAll();
-    cy.contains("button", "Mark reviewed").click();
-    cy.contains("button", "Export text").should("be.enabled");
     cy.get("#reviewer-note").type("New limitation.");
-    cy.get('article input[type="checkbox"]').should("not.be.checked");
-    cy.contains("button", "Export text").should("be.disabled");
+    cy.get('article input[type="checkbox"]').each((el) =>
+      cy.wrap(el).should("be.checked")
+    );
+    cy.contains("button", "Mark reviewed").click();
+    cy.get("#reviewer-note").should("have.attr", "readonly");
+    cy.contains("button", "Export text").should("be.enabled");
   });
   it("shows both conflicting accounts with source context on a 320px screen", () => {
     cy.viewport(320, 800);

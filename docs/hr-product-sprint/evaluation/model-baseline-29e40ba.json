@@ -1,0 +1,23 @@
+{
+  "baselineCommit": "29e40ba",
+  "capturedAt": "2026-09-10",
+  "files": [
+    {
+      "path": "src/lib/ai/catalog.ts",
+      "sha256": "da929b3ecfaef12538f4ae16cd5e3838b585285701a4e57e1e1d2bdea930916b"
+    },
+    {
+      "path": "src/lib/review-brief/prompt.md",
+      "sha256": "1b8e894f5d15dcc42d34ac861b97ec2dae74a2b250467a6b2a7d27a49a8104a5"
+    },
+    {
+      "path": "src/lib/benchmark/providers.ts",
+      "sha256": "55c074a41d67c4d68f9935c9fb88c04d2d66669a045c9ecadcf888b097928421"
+    },
+    {
+      "path": "docs/hr-product-sprint/evaluation/dataset/v1/freeze.json",
+      "sha256": "e11979a1189b701e63e5f27f652e527885fc235b7d1bf62fd3c18741bebc3406"
+    }
+  ],
+  "liveModelResults": "not measured"
+}

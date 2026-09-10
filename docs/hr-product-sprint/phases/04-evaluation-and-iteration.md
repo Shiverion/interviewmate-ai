@@ -1,6 +1,8 @@
+> September 10 revision: see [current progress](../../README.md) and [implementation matrix](../implementation/revision-tracker.md). Earlier entries below are a dated phase history, not a claim that the expanded scope has passed live acceptance.
+
 # Phase 4: evaluation and iteration
 
-2026-09-09 update: added automated access/quota/provider-routing checks for the [reviewer voice demo](../implementation/reviewer-demo-and-access.md). English remains the baseline and Indonesian the multilingual pilot. Real voice/model quality remains unverified: the current OpenAI server key returns HTTP 401, and Gemini/DeepSeek host keys are absent. Software test success is not model-quality evidence.
+2026-09-09 update: added automated access/quota/provider-routing checks for the [reviewer voice demo](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). English remains the baseline and Indonesian the multilingual pilot. Real voice/model quality remains unverified: the current OpenAI server key returns HTTP 401, and Gemini/DeepSeek host keys are absent. Software test success is not model-quality evidence.
 
 Status: **In progress — English-first comparison implemented; live provider access and human review pending.**
 
@@ -9,6 +11,8 @@ Updated: 2026-09-09 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 [Documentation home](../../README.md) · [Previous phase](03-prototype-build.md) · [Sprint index](../README.md) · [Next phase](05-case-study-and-handoff.md)
 
 ## Outcome and deliverables
+
+September 10 revision: evidence, access, persistence and recovery checks are recorded in the [revision validation](../evaluation/results/2026-09-10-evidence-revision.md). A [separate model/rubric comparison protocol](../evaluation/model-comparison-v2.md) preserves baseline provenance. Successful live provider comparison, transcript-embedded prestige counterfactuals and independent human calibration remain open; no model has been promoted.
 
 The [manual session-control validation checklist](../evaluation/session-control-validation.md) provides step-by-step rehearsal and live checks. The [owner's self-test](../evaluation/results/2026-09-09-session-control-self-test.md) reports A1–A10 passing on the previous implementation, with warning-delivery/default-sound caveats and a visible-window focus gap. Part B is blocked by sign-in; a read-only Firebase check confirmed `localhost` is authorized but `127.0.0.1` is not. The resulting focus/sound changes require fresh manual validation and do not change the model-quality evaluation status below.
 
@@ -63,7 +67,7 @@ node docs/hr-product-sprint/scripts/evaluate-phase-4.cjs --check
 node docs/scripts/check-docs.cjs
 ```
 
-The [guide](../evaluation/phase-4-guide.md) owns live-run commands, stop rules, record maintenance and semantic-review instructions. The frozen [acceptance plan](../design/acceptance-plan.md#measures-and-readiness-rules) still owns quality gates; software pass rates do not satisfy the model-quality gates.
+The [guide](../evaluation/phase-4-guide.md) owns live-run commands, stop rules, record maintenance and semantic-review instructions. The frozen [acceptance plan](../../archive/pre-evidence-v2/hr-product-sprint/design/acceptance-plan.md#measures-and-readiness-rules) still owns quality gates; software pass rates do not satisfy the model-quality gates.
 
 ## Failures, changes and remaining uncertainty
 
@@ -133,4 +137,4 @@ A final case study can already explain the scope, design, implementation and hon
 | 2026-09-08 | Implemented English-first three-provider benchmark and a separate Indonesian extension | Reference approval, shuffled review, gated ranking, export/import, setup guide and governance record; software checks pass, live and human judgments pending |
 | 2026-09-09 | Prepared the [manual session-control validation checklist](../evaluation/session-control-validation.md) | Ten rehearsal checks, five live-flow checks, expected observations and a blank result sheet; manual results remain Not run |
 | 2026-09-09 | Recorded the [owner's manual self-test and iteration requests](../evaluation/results/2026-09-09-session-control-self-test.md) | Rehearsal results retain caveats; Part B blocked by unauthorized hostname; follow-up sound/focus behavior needs retest |
-| 2026-09-09 | Clarified [Part B entry/setup steps](../evaluation/session-control-validation.md#choose-demo-room-first-then-schedule-interview) | Demo Room for initial B1–B3; scheduled sessions for B4/B5 saved-report checks; documented inherited UI/provider boundaries and remaining admission-clock gap |
+| 2026-09-09 | Clarified [Part B entry/setup steps](../evaluation/session-control-validation.md#choose-a-live-demo-first-then-schedule-interview) | Demo Room for initial B1–B3; scheduled sessions for B4/B5 saved-report checks; documented inherited UI/provider boundaries and remaining admission-clock gap |

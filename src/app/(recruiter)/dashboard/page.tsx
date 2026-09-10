@@ -47,6 +47,9 @@ export default function DashboardPage() {
           if (active)
             setSessions(
               snapshot.docs
+                .filter(
+                  (d) => !d.data().synthetic && !/^(demo|reviewer)-/.test(d.id)
+                )
                 .map((d) => ({ id: d.id, ...d.data() }))
                 .sort(
                   (a: Session, b: Session) =>
@@ -220,28 +223,9 @@ export default function DashboardPage() {
           )}
         </div>
       )}
-      {process.env.NODE_ENV === "development" && (
-        <div className="grid md:grid-cols-2 gap-6 mt-8">
-          <Link className="wm-panel" href="/review-brief">
-            <p className="wm-eyebrow">Evidence workspace</p>
-            <h3 className="text-xl mt-3 mb-2">
-              Read beyond the score <span aria-hidden="true">↗</span>
-            </h3>
-            <p className="wm-subtitle">
-              Connect claims to transcript evidence and leave a reviewed brief.
-            </p>
-          </Link>
-          <Link className="wm-panel" href="/review-brief/evaluation">
-            <p className="wm-eyebrow">Model evaluation</p>
-            <h3 className="text-xl mt-3 mb-2">
-              Compare before you choose <span aria-hidden="true">↗</span>
-            </h3>
-            <p className="wm-subtitle">
-              English-first tests with a separate Indonesian language extension.
-            </p>
-          </Link>
-        </div>
-      )}
+      <p className="mt-8 text-sm">
+        <Link href="/reviewer">Reviewer access and Evaluation Sandbox →</Link>
+      </p>
       <CreateInterviewModal
         isOpen={schedule}
         onClose={() => setSchedule(false)}

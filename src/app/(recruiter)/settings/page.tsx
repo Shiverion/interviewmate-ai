@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ProviderDiagnostics from "@/components/providers/ProviderDiagnostics";
 import {
   CheckIcon,
   ArrowRightIcon,
@@ -23,10 +24,14 @@ export default function SettingsPage() {
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [allowFallback, setAllowFallback] = useState(false);
   useEffect(() => {
     // Browser-only preference is read after hydration to match the server render.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelected(getEvaluationProvider());
+    setAllowFallback(
+      localStorage.getItem("interviewmate_allow_fallback") === "true"
+    );
     fetch("/api/ai/config")
       .then((r) => {
         if (!r.ok) throw Error();
@@ -63,6 +68,28 @@ export default function SettingsPage() {
     <div>
       <p className="wm-eyebrow">Workspace preferences</p>
       <h1 className="wm-heading">Models & access</h1>
+      <div className="wm-note my-5">
+        <Link href="/reviewer">
+          Redeem a reviewer invitation or open Reviewer Mode
+        </Link>
+      </div>
+      <label className="wm-note flex gap-3 my-5">
+        <input
+          type="checkbox"
+          checked={allowFallback}
+          onChange={(e) => {
+            setAllowFallback(e.target.checked);
+            localStorage.setItem(
+              "interviewmate_allow_fallback",
+              String(e.target.checked)
+            );
+          }}
+        />
+        Allow evaluation fallback to other configured providers (OpenAI, Gemini,
+        DeepSeek). This may send the same transcript to another provider. Off by
+        default.
+      </label>
+      <ProviderDiagnostics />
       <p className="wm-subtitle">
         Choose how your interviews run. Browse freely; connect a personal key
         only when you need it.

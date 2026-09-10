@@ -1,106 +1,129 @@
-import { NextResponse } from "next/server";
-
-export const dynamic = 'force-dynamic';
-
-interface GitHubRepo {
-    name: string;
-    description: string | null;
-    language: string | null;
-    stargazers_count: number;
-    forks_count: number;
-    topics: string[];
-    updated_at: string;
+import {
+  rankRepositories,
+  cleanReadme,
+  type Repository,
+} from "@/lib/github/relevance";
+import { limitedJson } from "@/lib/demo/http";
+export const dynamic = "force-dynamic";
+export async function POST(req: Request) {
+  try {
+    const { username, context } = await limitedJson(req, 9000);
+    if (
+      typeof username !== "string" ||
+      typeof context !== "string" ||
+      context.length > 6000
+    )
+      return Response.json(
+        { error: "Invalid enrichment input." },
+        { status: 400 }
+      );
+    const url = new URL(req.url);
+    url.searchParams.set("username", username);
+    url.searchParams.set("context", context);
+    return GET(new Request(url));
+  } catch {
+    return Response.json(
+      { error: "Invalid enrichment input." },
+      { status: 400 }
+    );
+  }
 }
-
-interface GitHubUser {
-    name: string | null;
-    bio: string | null;
-    public_repos: number;
-    followers: number;
-    company: string | null;
-    location: string | null;
-}
-
 export async function GET(req: Request) {
-    try {
-        const { searchParams } = new URL(req.url);
-        const username = searchParams.get("username");
-
-        if (!username) {
-            return NextResponse.json({ error: "username is required" }, { status: 400 });
-        }
-
-        const headers: Record<string, string> = {
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28"
-        };
-
-        // Use GitHub token from env if available to avoid rate limiting
-        if (process.env.GITHUB_TOKEN) {
-            headers["Authorization"] = `Bearer ${process.env.GITHUB_TOKEN}`;
-        }
-
-        const [profileRes, reposRes] = await Promise.all([
-            fetch(`https://api.github.com/users/${username}`, { headers }),
-            fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=30`, { headers })
-        ]);
-
-        if (!profileRes.ok) {
-            if (profileRes.status === 404) {
-                return NextResponse.json({ error: "GitHub user not found" }, { status: 404 });
+  const params = new URL(req.url).searchParams,
+    username = params.get("username") || "",
+    context = (params.get("context") || "").slice(0, 6000);
+  if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/.test(username))
+    return Response.json(
+      { error: "Enter a valid GitHub username." },
+      { status: 400 }
+    );
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    ...(process.env.GITHUB_TOKEN
+      ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+      : {}),
+  };
+  const get = (url: string) =>
+    fetch(url, {
+      headers,
+      signal: AbortSignal.timeout(8000),
+      redirect: "error",
+    });
+  try {
+    const result = await get(
+      `https://api.github.com/users/${encodeURIComponent(username)}/repos?sort=pushed&per_page=50`
+    );
+    if (!result.ok)
+      return Response.json(
+        {
+          success: false,
+          error: "GitHub context unavailable. Continue without enrichment.",
+        },
+        { status: result.status === 403 || result.status === 429 ? 429 : 502 }
+      );
+    const repos: Repository[] = await result.json();
+    const selected = rankRepositories(repos, context, username);
+    const top = await Promise.all(
+      selected.map(async (repo) => {
+        let readme = "",
+          readmeStatus = "unavailable";
+        try {
+          const r = await get(
+            `https://api.github.com/repos/${encodeURIComponent(username)}/${encodeURIComponent(repo.name)}/readme`
+          );
+          if (r.ok) {
+            const body = await r.json();
+            if (
+              body.encoding === "base64" &&
+              typeof body.content === "string" &&
+              body.content.length < 200000
+            ) {
+              readme = cleanReadme(
+                Buffer.from(body.content, "base64").toString("utf8")
+              );
+              readmeStatus = readme ? "read" : "empty";
             }
-            if (profileRes.status === 403) {
-                return NextResponse.json({ error: "GitHub API rate limit exceeded" }, { status: 429 });
-            }
-            throw new Error(`GitHub API error: ${profileRes.status}`);
-        }
-
-        const profile: GitHubUser = await profileRes.json();
-        const allRepos: GitHubRepo[] = reposRes.ok ? await reposRes.json() : [];
-
-        // Pick top repos by stars + recency, skip forks
-        const topRepos = allRepos
-            .filter(r => r.description || r.language)
-            .sort((a, b) => b.stargazers_count - a.stargazers_count)
-            .slice(0, 7)
-            .map(r => ({
-                name: r.name,
-                description: r.description,
-                language: r.language,
-                stars: r.stargazers_count,
-                forks: r.forks_count,
-                topics: r.topics?.slice(0, 5) || []
-            }));
-
-        // Extract top languages across all repos
-        const langCounts: Record<string, number> = {};
-        allRepos.forEach(r => {
-            if (r.language) langCounts[r.language] = (langCounts[r.language] || 0) + 1;
-        });
-        const topLanguages = Object.entries(langCounts)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([lang]) => lang);
-
-        const enrichment = {
-            profile: {
-                name: profile.name,
-                bio: profile.bio,
-                public_repos: profile.public_repos,
-                followers: profile.followers,
-                company: profile.company,
-                location: profile.location
-            },
-            top_repos: topRepos,
-            top_languages: topLanguages,
-            github_url: `https://github.com/${username}`
+          }
+        } catch {}
+        return {
+          name: repo.name,
+          description: repo.description,
+          language: repo.language,
+          stars: repo.stargazers_count,
+          topics: repo.topics || [],
+          readme,
+          readmeStatus,
+          relevanceScore: repo.relevanceScore,
+          reasons: repo.reasons,
         };
-
-        return NextResponse.json({ success: true, enrichment }, { status: 200 });
-
-    } catch (error: unknown) {
-        console.error("GitHub Enrich Error:", error);
-        const message = error instanceof Error ? error.message : "Internal Server Error";
-        return NextResponse.json({ error: message }, { status: 500 });
-    }
+      })
+    );
+    return Response.json({
+      success: true,
+      enrichment: {
+        profile: {
+          name: null,
+          bio: null,
+          public_repos: repos.length,
+          followers: 0,
+          company: null,
+        },
+        top_repos: top,
+        top_languages: [...new Set(top.map((r) => r.language).filter(Boolean))],
+        github_url: `https://github.com/${username}`,
+        selectionVersion: "relevance-v2",
+        warning:
+          "Public project context is not proof of the candidate's contribution.",
+      },
+    });
+  } catch {
+    return Response.json(
+      {
+        success: false,
+        error: "GitHub context unavailable. Continue without enrichment.",
+      },
+      { status: 502 }
+    );
+  }
 }

@@ -11,9 +11,9 @@ Updated: 2026-09-07. Use this guide when adding progress, changing scope or reco
 | Completed work, next action or blocker | The relevant file in [phase reports](hr-product-sprint/README.md#phase-reports) | Sprint status table if the phase status changes; documentation home and root README if their status summaries change |
 | New source or revised external claim | [Source register](hr-product-sprint/research/source-register.md) | Affected hypothesis or decision; cite its stable source ID |
 | New user observation or changed problem hypothesis | [Problem and workflow](hr-product-sprint/research/problem-and-workflow.md) | Phase 1 report and any affected decision |
-| Changed sprint scope | [D01](hr-product-sprint/decisions/001-sprint-scope.md), or a new numbered decision that supersedes it | Affected phase plans and sprint index |
+| Changed sprint scope | [Product_Sprint.md](../Product_Sprint.md), the authoritative specification | Affected phase reports and docs/README.md; preserve earlier decisions in the archive |
 | Finalized UX/AI behavior | A focused artifact linked from the [Phase 2 report](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) | Phase 2 checklist and Phase 3 implementation plan |
-| Setup command or implemented capability | [Local development](product/local-development.md) or [product overview](product/overview.md) | Link to the relevant source and verification record |
+| Setup command or implemented capability | [Current runbook](hr-product-sprint/implementation/current-runbook.md) | Link to source, validation record and requirement matrix |
 | Human session or AI evaluation run | A versioned record linked from the [evaluation guide](hr-product-sprint/evaluation/README.md) | Phase 4 results and the relevant phase log |
 | Completed submission artifact | [Phase 5 submission register](hr-product-sprint/phases/05-case-study-and-handoff.md#final-submission-register) | Phase 5 exit criteria and sprint status |
 
@@ -48,7 +48,7 @@ Phase statuses are **Planned**, **In progress**, **Complete**, or **Blocked**, f
 ## Files, links and recorded evidence
 
 - Use descriptive lowercase filenames with hyphens. Phase reports retain `01-` through `05-`; decision files use sequential numbers and stable IDs such as D01.
-- Use relative Markdown links within this repository. Wrap a destination containing spaces or parentheses in angle brackets; see the source links in the [product overview](product/overview.md#implementation-map).
+- Use relative Markdown links within this repository. Wrap a destination containing spaces or parentheses in angle brackets; see the source links in the [product overview](archive/pre-evidence-v2/product/overview.md#implementation-map).
 - Put new UX specs in a `design/` folder and later implementation guidance in an `implementation/` folder under the sprint when those artifacts exist. Link them from the relevant phase; do not create empty deliverables and call them complete.
 - Keep practice transcripts and facilitator references separate. P1-A/P1-B have been seen during development and can never become held-out cases. When changing a case, version its transcript and reference together and retain the version used by earlier runs.
 - Preserve the dated source audit as captured. Reruns write ignored scratch output; copy a result worth retaining into `evaluation/baselines/` with a new date/version and explain it in the baseline report.

@@ -10,7 +10,16 @@ import {
   evaluationHeaders,
 } from "@/lib/keys/store";
 import Link from "next/link";
-import { isFirebaseReady } from "@/lib/firebase/config";
+import { db, isFirebaseReady } from "@/lib/firebase/config";
+import { doc, updateDoc } from "firebase/firestore";
+import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
+import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
+import RecoveryActions from "@/components/interview/RecoveryActions";
+import { type EvidenceAssessment as EvidenceResult } from "@/lib/ai/evidence";
+import {
+  configurationFromContext,
+  defaultConfiguration,
+} from "@/lib/interview/config";
 import { useSessionIntegrity } from "@/lib/integrity/useSessionIntegrity";
 import {
   useInterviewControl,
@@ -64,6 +73,7 @@ export default function InterviewRoomPage() {
       <IntegrityAlert
         language={language}
         floatingControls
+        recoveryActions={<RecoveryActions retry={false} />}
         onResume={() => resumeControlled(true, language)}
       />
     </div>
@@ -71,6 +81,12 @@ export default function InterviewRoomPage() {
 }
 
 function InterviewRoomContent() {
+  const [evidenceResult, setEvidenceResult] = useState<EvidenceResult | null>(
+    null
+  );
+  const [evaluationModel, setEvaluationModel] = useState("not recorded");
+  const [evaluationProvider, setEvaluationProvider] = useState("not recorded");
+  const turnNotice = useInterviewStore((s) => s.turnNotice);
   const router = useRouter();
   const {
     avatarState,
@@ -138,6 +154,7 @@ function InterviewRoomContent() {
 
   // Control hook checkpoints and stops transport on unmount; answers survive recovery.
 
+  const evaluationRequested = useRef<string | null>(null);
   // Trigger automated evaluation asynchronously on completion
   useEffect(() => {
     // The moment the state transitions to 'completed' and we haven't already hit this toggle
@@ -146,29 +163,10 @@ function InterviewRoomContent() {
       control.record?.phase !== "ended" &&
       sessionId &&
       !isEvaluating &&
-      !evaluationDone
+      !evaluationDone &&
+      evaluationRequested.current !== sessionId
     ) {
-      const hasTranscript = transcript.some(
-        (line) => line.text && line.text.trim().length > 0
-      );
-      if (!hasTranscript) {
-        console.warn(
-          "[InterviewRoom] Skipping evaluation: no transcript captured."
-        );
-        queueMicrotask(() => {
-          setEvaluationError(
-            "No transcript captured, so a score could not be generated."
-          );
-          setEvaluationDone(true);
-        });
-        return;
-      }
-      if (!isDemoSession && !isFirebaseReady()) {
-        console.warn(
-          "[InterviewRoom] Skipping automated evaluation: Firebase not initialized."
-        );
-        return;
-      }
+      evaluationRequested.current = sessionId;
       queueMicrotask(() => setIsEvaluating(true));
       const sponsored = _sessionContext?.sponsored === true;
 
@@ -181,6 +179,11 @@ function InterviewRoomContent() {
         body: JSON.stringify({
           sessionId,
           provider: getEvaluationProvider(),
+          configuration: _sessionContext
+            ? configurationFromContext(_sessionContext)
+            : defaultConfiguration(),
+          allowFallback:
+            localStorage.getItem("interviewmate_allow_fallback") === "true",
           transcript,
           candidateName,
           jobTitle,
@@ -195,9 +198,50 @@ function InterviewRoomContent() {
           return data;
         })
         .then((data) => {
-          console.log("Evaluation complete:", data);
           if (data?.evaluation) {
-            setEvaluationResult(data.evaluation as EvaluationResult);
+            if (data.evaluation.schemaVersion === "competency-evidence-v2") {
+              setEvidenceResult(data.evaluation);
+              setEvaluationModel(data.model || "unknown");
+              setEvaluationProvider(data.provider || "unknown");
+              if (_sessionContext?.reviewSourceId)
+                void fetch("/api/reviewer/sessions", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    id: _sessionContext.reviewSourceId,
+                    evaluation: data.evaluation,
+                    transcript,
+                    model: data.model,
+                    provider: data.provider,
+                  }),
+                }).then((r) => {
+                  if (!r.ok)
+                    setEvaluationError(
+                      "Assessment saved locally; reviewer report saving failed."
+                    );
+                });
+              localStorage.setItem(
+                `interviewmate-assessment-${sessionId}`,
+                JSON.stringify({
+                  evaluation: data.evaluation,
+                  transcript,
+                  model: data.model,
+                  provider: data.provider,
+                  source: sessionId,
+                })
+              );
+              if (!isDemoSession && isFirebaseReady())
+                void updateDoc(doc(db, "interview_sessions", sessionId), {
+                  evaluation: data.evaluation,
+                  evaluation_model: data.model,
+                  evaluation_provider: data.provider,
+                  status: "evaluated",
+                }).catch(() =>
+                  setEvaluationError(
+                    "Assessment saved locally; hosted report saving failed."
+                  )
+                );
+            } else setEvaluationResult(data.evaluation as EvaluationResult);
           }
           setIsEvaluating(false);
           setEvaluationDone(true);
@@ -222,6 +266,7 @@ function InterviewRoomContent() {
     isEvaluating,
     evaluationDone,
     _sessionContext?.sponsored,
+    _sessionContext,
   ]);
 
   // Auto-scroll chat
@@ -239,6 +284,28 @@ function InterviewRoomContent() {
   };
 
   const isTextMode = _sessionContext?.interviewMode === "text";
+  if (status === "completed" && evidenceResult)
+    return (
+      <div className="wm-page max-w-4xl">
+        <h1 className="wm-heading">Interview evidence</h1>
+        <EvidenceAssessment assessment={evidenceResult} />
+        {_sessionContext?.accessMode === "reviewer" && (
+          <HumanReviewPanel
+            assessment={evidenceResult}
+            transcript={transcript}
+            source={{
+              sessionId: _sessionContext?.reviewSourceId || sessionId,
+              transcriptVersion: "live-transcript-v2",
+              model: evaluationModel,
+              provider: evaluationProvider,
+              synthetic: true,
+            }}
+          />
+        )}
+        {evaluationError && <p role="alert">{evaluationError}</p>}
+        <RecoveryActions retry={false} />
+      </div>
+    );
 
   if (status === "setup" || status === "error" || status === "paused") {
     return (
@@ -287,8 +354,8 @@ function InterviewRoomContent() {
           )}
           {_sessionContext?.sponsored && (
             <p className="wm-note">
-              Hosted reviewer demo · Eight minutes from reservation, including
-              pauses. Microphone only; no camera required.
+              Hosted voice · The displayed funding deadline includes pauses.
+              Microphone only; no camera required.
             </p>
           )}
 
@@ -300,6 +367,7 @@ function InterviewRoomContent() {
               ).catch(() => {});
             }}
             disabled={
+              !_sessionContext ||
               (!_sessionContext?.sponsored && !getOpenAIKey()) ||
               integrity.record?.acknowledgedAt == null ||
               ["ended", "completed"].includes(control.record?.phase || "")
@@ -308,6 +376,7 @@ function InterviewRoomContent() {
           >
             Start Interview
           </button>
+          <RecoveryActions retry={status === "paused" || status === "error"} />
         </div>
       </div>
     );
@@ -316,6 +385,7 @@ function InterviewRoomContent() {
   if (status === "connecting") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
+        <RecoveryActions retry={false} />
         <div className="w-12 h-12 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mb-4" />
         <p className="text-[var(--muted)] animate-pulse">
           Connecting to AI Server...
@@ -517,6 +587,21 @@ function InterviewRoomContent() {
 
   return (
     <div className="relative flex flex-col h-[calc(100vh-4rem)] bg-[var(--background)] overflow-hidden">
+      {turnNotice && (
+        <div role="status" className="wm-note text-center m-3">
+          {turnNotice}
+          <div className="flex justify-center gap-3 mt-2">
+            <button
+              onClick={() => useInterviewStore.getState().repeatQuestion()}
+            >
+              Repeat question
+            </button>
+            <button onClick={() => useInterviewStore.getState().skipQuestion()}>
+              Skip · No Evidence Collected
+            </button>
+          </div>
+        </div>
+      )}
       <IntegrityPanel
         language={_sessionContext?.preferredLanguage}
         showAlert={false}
@@ -578,8 +663,9 @@ function InterviewRoomContent() {
                   : "bg-[var(--surface-elevated)] border-[var(--border)] text-[var(--muted)]"
               }`}
             >
-              {Math.floor(timeLeft / 60)}:
-              {(timeLeft % 60).toString().padStart(2, "0")} left
+              {control.record?.unlimited
+                ? "Unlimited"
+                : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, "0")} left`}
             </div>
           )}
 

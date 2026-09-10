@@ -11,10 +11,16 @@ describe("English-first benchmark workspace", () => {
   };
   beforeEach(() => {
     cy.viewport(1280, 900);
-    cy.request("http://127.0.0.1:3000/api/benchmark").then((r) => {
+    cy.task<string>("reviewerCookie", null, { log: false }).then((cookie) =>
+      cy.setCookie("interviewmate-reviewer", cookie, {
+        httpOnly: true,
+        log: false,
+      })
+    );
+    cy.request("http://localhost:3000/api/benchmark").then((r) => {
       bootstrap = r.body;
     });
-    cy.visit("http://127.0.0.1:3000/review-brief/evaluation");
+    cy.visit("http://localhost:3000/review-brief/evaluation");
   });
   function mockRun(badQuote = false) {
     cy.intercept("POST", "/api/benchmark", (req) => {
@@ -144,7 +150,7 @@ describe("English-first benchmark workspace", () => {
     approve();
     cy.contains("button", "Export study").click();
     cy.readFile("cypress/downloads/interviewmate-study.json").then((saved) => {
-      cy.visit("http://127.0.0.1:3000/review-brief/evaluation");
+      cy.visit("http://localhost:3000/review-brief/evaluation");
       cy.get("input[type=file]").selectFile({
         contents: Cypress.Buffer.from(JSON.stringify(saved)),
         fileName: "study.json",

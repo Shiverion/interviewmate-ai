@@ -2,7 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { revokeInterviewSession } from "@/lib/firebase/interviews";
 import Link from "next/link";
@@ -19,7 +28,13 @@ type Session = {
   status?: string;
   created_at?: { toMillis: () => number };
   expires_at?: { toMillis: () => number };
-  evaluation?: { overallScore: number; is_passing: boolean };
+  synthetic?: boolean;
+  evaluation?: {
+    schemaVersion?: string;
+    status?: string;
+    overallScore: number | null;
+    is_passing?: boolean;
+  };
 };
 
 export default function InterviewsPage() {
@@ -77,7 +92,11 @@ export default function InterviewsPage() {
         return timeB - timeA;
       });
 
-      setSessions(fetchedSessions);
+      setSessions(
+        fetchedSessions.filter(
+          (s) => !s.synthetic && !/^(demo|reviewer)-/.test(s.id)
+        )
+      );
     } catch (err) {
       console.error("Error fetching sessions:", err);
     } finally {
@@ -123,16 +142,31 @@ export default function InterviewsPage() {
 
   const handleEvaluate = async (sessionId: string) => {
     try {
+      const ref = doc(db, "interview_sessions", sessionId);
+      const snapshot = await getDoc(ref);
+      if (!snapshot.exists() || snapshot.data().recruiter_id !== user?.uid)
+        throw Error("Session unavailable.");
+      const session = snapshot.data();
       const res = await fetch("/api/evaluate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...evaluationHeaders(),
         },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({
+          sessionId,
+          transcript: session.final_transcript || [],
+          configuration: session.configuration,
+        }),
       });
       const data = await res.json();
       if (data.success) {
+        await updateDoc(ref, {
+          evaluation: data.evaluation,
+          evaluation_provider: data.provider,
+          evaluation_model: data.model,
+          status: "evaluated",
+        });
         showToast("Success", "Evaluation completed successfully!", "success");
         fetchSessions(); // Refresh to show score
       } else {
@@ -178,8 +212,13 @@ export default function InterviewsPage() {
   const sortedSessions = [...filteredSessions].sort((a, b) => {
     if (sortOrder === "none") return 0;
 
-    const scoreA = a.evaluation?.overallScore || 0;
-    const scoreB = b.evaluation?.overallScore || 0;
+    if (
+      typeof a.evaluation?.overallScore !== "number" ||
+      typeof b.evaluation?.overallScore !== "number"
+    )
+      return 0;
+    const scoreA = a.evaluation.overallScore;
+    const scoreB = b.evaluation.overallScore;
 
     if (sortOrder === "desc") return scoreB - scoreA;
     return scoreA - scoreB;
@@ -331,7 +370,7 @@ export default function InterviewsPage() {
                     className="px-6 py-4 font-medium cursor-pointer hover:text-[var(--foreground)] transition-colors group flex items-center gap-2"
                     onClick={toggleSort}
                   >
-                    Evaluation Score
+                    Assessment · legacy score sorting
                     <span className="flex flex-col opacity-50 group-hover:opacity-100">
                       <svg
                         className={`w-3 h-3 -mb-1 ${sortOrder === "desc" ? "text-primary-400" : ""}`}
@@ -427,7 +466,13 @@ export default function InterviewsPage() {
                       </td>
                       <td className="px-6 py-4">
                         {session.status === "evaluated" &&
-                        session.evaluation?.overallScore !== undefined ? (
+                        session.evaluation?.schemaVersion ===
+                          "competency-evidence-v2" ? (
+                          <span className="text-xs">
+                            {session.evaluation.status}
+                          </span>
+                        ) : typeof session.evaluation?.overallScore ===
+                          "number" ? (
                           <div className="flex items-center gap-2 font-bold text-[var(--foreground)]">
                             <div
                               className={`flex items-center justify-center w-5 h-5 rounded-full text-white ${session.evaluation.is_passing ? "bg-green-500" : "bg-red-500"}`}

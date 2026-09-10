@@ -8,6 +8,7 @@ import {
   CheckIcon,
 } from "@radix-ui/react-icons";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
+import { configurationSchema } from "@/lib/interview/config";
 import { PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
 import { saveEvaluationProvider } from "@/lib/keys/store";
 type Availability = {
@@ -58,6 +59,13 @@ export default function ReviewerDemoPage() {
         _sessionContext: {
           sessionId: data.sessionId,
           sponsored: true,
+          accessMode: "demo",
+          returnTo: "/demo",
+          configuration: configurationSchema.parse({
+            language,
+            maxTurns: 8,
+            durationMinutes: 10,
+          }),
           demoExpiresAt: data.expiresAt,
           candidateName: "Demo reviewer",
           jobTitle: "Frontend Engineer",
@@ -81,6 +89,11 @@ export default function ReviewerDemoPage() {
     availability?.remaining === 0 || availability?.sharedRemaining === 0;
   return (
     <div className="wm-page">
+      <p className="text-sm">
+        <Link href="/reviewer">
+          Have an invitation? Open Reviewer Mode for extended access.
+        </Link>
+      </p>
       <div className="wm-hero-grid">
         <section>
           <p className="wm-eyebrow">Reviewer access · No account required</p>

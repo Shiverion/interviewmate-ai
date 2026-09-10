@@ -1,3 +1,5 @@
+> September 10 revision: see [current progress](../../README.md) and [implementation matrix](../implementation/revision-tracker.md). Earlier entries below are a dated phase history, not a claim that the expanded scope has passed live acceptance.
+
 # Phase 2: solution design and AI logic
 
 Status: **Complete — design package and authored wireframe ready for Phase 3.**
@@ -8,7 +10,7 @@ Started: 2026-09-07. Updated/completed: 2026-09-08 (Asia/Jakarta). Planned alloc
 
 ## Outcome
 
-Defined InterviewMate Review Brief as four evidence-based criterion entries with traceable candidate quotations, explicit limitations, reviewer corrections and a reviewed export. [D02](../decisions/002-review-brief-design.md) records the selected architecture: one structured server-side generation, deterministic checks and human review, with no numeric hiring score.
+Defined InterviewMate Review Brief as four evidence-based criterion entries with traceable candidate quotations, explicit limitations, reviewer corrections and a reviewed export. [D02](../../archive/pre-evidence-v2/hr-product-sprint/decisions/002-review-brief-design.md) records the selected architecture: one structured server-side generation, deterministic checks and human review, with no numeric hiring score.
 
 The [clickable wireframe](../design/wireframe.html) uses authored examples to illustrate the experience. The live API/product flow remains Phase 3 work. Recruiter validation, human timing and model-quality evaluation remain outstanding.
 
@@ -16,12 +18,12 @@ The [clickable wireframe](../design/wireframe.html) uses authored examples to il
 
 | Read | Artifact | What is specified |
 |---|---|---|
-| 1 | [Design package and wireframe](../design/README.md) | Complete artifact index, authored examples and how to run checks |
-| 2 | [UX and interaction specification](../design/ux-spec.md) | Input, source inspection, edits, review states, export, errors and responsive/accessibility behavior |
-| 3 | [Role and evidence rubric](../design/role-rubric.md) | Four provisional criteria, anchors, five shared questions and no score/ranking |
-| 4 | [AI/data contract](../design/ai-contract.md) and [exact prompt](../design/prompts/review-brief-v1.md) | Request/output shape, validation, model configuration, provenance, failures and review/export state |
-| 5 | [Acceptance plan](../design/acceptance-plan.md) | Software/UX expectations, eight-case evaluation plan, split and fixed readiness rules |
-| 6 | [Phase 3 backlog](../implementation/phase-3-backlog.md) | Six ordered tasks within the eight-hour planning allocation |
+| 1 | [Design package and wireframe](../../archive/pre-evidence-v2/hr-product-sprint/design/README.md) | Complete artifact index, authored examples and how to run checks |
+| 2 | [UX and interaction specification](../../archive/pre-evidence-v2/hr-product-sprint/design/ux-spec.md) | Input, source inspection, edits, review states, export, errors and responsive/accessibility behavior |
+| 3 | [Role and evidence rubric](../../archive/pre-evidence-v2/hr-product-sprint/design/role-rubric.md) | Four provisional criteria, anchors, five shared questions and no score/ranking |
+| 4 | [AI/data contract](../../archive/pre-evidence-v2/hr-product-sprint/design/ai-contract.md) and [exact prompt](../../archive/pre-evidence-v2/hr-product-sprint/design/prompts/review-brief-v1.md) | Request/output shape, validation, model configuration, provenance, failures and review/export state |
+| 5 | [Acceptance plan](../../archive/pre-evidence-v2/hr-product-sprint/design/acceptance-plan.md) | Software/UX expectations, eight-case evaluation plan, split and fixed readiness rules |
+| 6 | [Phase 3 backlog](../../archive/pre-evidence-v2/hr-product-sprint/implementation/phase-3-backlog.md) | Six ordered tasks within the eight-hour planning allocation |
 
 ## Verification and limits
 

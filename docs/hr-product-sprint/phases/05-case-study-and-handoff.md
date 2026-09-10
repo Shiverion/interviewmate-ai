@@ -1,8 +1,12 @@
+> September 10 revision: see [current progress](../../README.md) and [implementation matrix](../implementation/revision-tracker.md). Earlier entries below are a dated phase history, not a claim that the expanded scope has passed live acceptance.
+
 # Phase 5: case study and engineering handoff
 
-2026-09-09 update: the [reviewer access runbook](../implementation/reviewer-demo-and-access.md) now documents the redesigned workspace, free voice architecture, key setup, persistent-server requirement and remaining manual checks. Final case study and recording remain pending successful live evidence.
+2026-09-09 update: the [reviewer access runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md) now documents the redesigned workspace, free voice architecture, key setup, persistent-server requirement and remaining manual checks. Final case study and recording remain pending successful live evidence.
 
-Status: **Planned — submission artifacts not yet produced.**
+Status: **In progress — PDF and recording script produced; live footage and deployed reviewer acceptance pending.**
+
+September 10 deliverables: [seven-page case study PDF](../../../deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](../../../deliverables/case-study-content.json), [five-minute demo script](../../../deliverables/demo-script.md), [current setup/handoff](../implementation/current-runbook.md), and [validation record](../evaluation/results/2026-09-10-evidence-revision.md). The PDF separates software results from unmeasured model quality and records release limitations. Later historical planning below remains for traceability.
 
 Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
@@ -54,7 +58,7 @@ Never describe saved output as a live model response. If using a replay for reco
 
 | Required deliverable | Location | Status |
 |---|---|---|
-| Runnable prototype / interactive workflow | [Review runbook](../implementation/review-brief-runbook.md), [benchmark workspace](../evaluation/english-first-pilot.md) | Implemented locally; successful live generation pending |
+| Runnable prototype / interactive workflow | [Review runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md), [benchmark workspace](../evaluation/english-first-pilot.md) | Implemented locally; successful live generation pending |
 | Case study and engineering handoff Markdown | To be produced here or linked as a final artifact | Pending Phases 1-4 |
 | Five-minute Loom or screen-recorded video | No recording yet | Pending verified demonstration |
 

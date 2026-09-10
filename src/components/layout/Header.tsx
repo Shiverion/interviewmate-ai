@@ -16,10 +16,7 @@ export default function Header() {
   const links = user
     ? [
         ["Workspace", "/dashboard"],
-        ["Interviews", "/interviews"],
-        ...(process.env.NODE_ENV === "development"
-          ? [["Review brief", "/review-brief"]]
-          : []),
+        ["Pipeline", "/interviews"],
         ["Models & access", "/settings"],
       ]
     : [

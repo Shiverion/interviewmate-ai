@@ -106,13 +106,13 @@ test("remove and restore use stable IDs, preserve edits and block an invalid emp
   );
 });
 test.each(["identity", "note"])(
-  "changing %s clears every check and review attestation",
+  "changing %s preserves criterion checks while invalidating only submission attestation",
   (kind) => {
     const state =
       kind === "identity"
         ? setReviewer(reviewed(), "someone-else")
         : setNote(reviewed(), "New caveat");
-    expect(Object.values(state.checked)).toEqual([false, false, false, false]);
+    expect(Object.values(state.checked)).toEqual([true, true, true, true]);
     expect(canExport(state)).toBe(false);
   }
 );
