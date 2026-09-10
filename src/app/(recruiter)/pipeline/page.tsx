@@ -1,53 +1,20 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/providers/AuthProvider";
-import ConfigurationFields from "@/components/interview/ConfigurationFields";
-import {
-  configurationSchema,
-  defaultConfiguration,
-  type InterviewConfiguration,
-} from "@/lib/interview/config";
-import {
-  createScheduledInterview,
-  type InterviewSession,
-} from "@/lib/firebase/interviews";
 import {
   savePipelineCandidate,
   updatePipelineCandidate,
 } from "@/lib/firebase/pipeline";
 import { validatedCvText, type ParsingResult } from "@/lib/pdf/result";
-
-type AtsScore = NonNullable<InterviewSession["ats_score"]>;
-type CandidateStatus = "queued" | "parsing" | "scoring" | "ready" | "error";
-type InviteStatus = "idle" | "creating" | "created" | "error";
-
-type PipelineCandidate = {
-  id: string;
-  file: File;
-  fileName: string;
-  candidateName: string;
-  candidateEmail: string;
-  resumeText: string;
-  parsing?: ParsingResult;
-  atsScore?: AtsScore;
-  status: CandidateStatus;
-  inviteStatus: InviteStatus;
-  sessionId?: string;
-  pipelineId?: string;
-  error?: string;
-  selected: boolean;
-};
-
-const MAX_FILES = 50;
-
-function localDateTime(ms: number) {
-  const date = new Date(ms);
-  return new Date(ms - date.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
-}
+import {
+  MAX_FILES,
+  usePipelineDraft,
+  type AtsScore,
+  type PipelineCandidate,
+} from "./PipelineDraftContext";
 
 function candidateNameFromFile(file: File) {
   const name = file.name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").trim();
@@ -106,21 +73,26 @@ function statusLabel(candidate: PipelineCandidate) {
 
 export default function PipelinePage() {
   const { user } = useAuthContext();
+  const router = useRouter();
+  const { draft, setDraft } = usePipelineDraft();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [jobTitle, setJobTitle] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [configuration, setConfiguration] = useState<InterviewConfiguration>(
-    defaultConfiguration()
-  );
-  const [candidates, setCandidates] = useState<PipelineCandidate[]>([]);
-  const [topLimit, setTopLimit] = useState<"all" | "5" | "10" | "20">("20");
-  const [starts, setStarts] = useState(localDateTime(Date.now() - 60000));
-  const [ends, setEnds] = useState(localDateTime(Date.now() + 3 * 86400000));
+  const [jobTitle, setJobTitle] = useState(draft.jobTitle);
+  const [jobDescription, setJobDescription] = useState(draft.jobDescription);
+  const [candidates, setCandidates] = useState<PipelineCandidate[]>(draft.candidates);
+  const [topLimit, setTopLimit] = useState<"all" | "5" | "10" | "20">(draft.topLimit);
   const [analyzing, setAnalyzing] = useState(false);
-  const [inviting, setInviting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setDraft((current) => ({
+      ...current,
+      jobTitle,
+      jobDescription,
+      candidates,
+      topLimit,
+    }));
+  }, [candidates, jobDescription, jobTitle, setDraft, topLimit]);
 
   const rankedCandidates = useMemo(
     () =>
@@ -246,7 +218,7 @@ export default function PipelinePage() {
               candidate_email: extractedEmail,
               job_title: jobTitle.trim(),
               job_description: jobDescription.trim(),
-              configuration,
+              configuration: draft.configuration,
               file_name: candidate.fileName,
               resume_text: resumeText.slice(0, 24000),
               cv_parsing: parsing,
@@ -310,94 +282,24 @@ export default function PipelinePage() {
     );
   }
 
-  async function createInvitations() {
-    if (!user || inviting) return;
+  function continueToSchedule() {
     setError("");
-    setMessage("");
+    if (!readyCandidates.length) {
+      setError("Analyze at least one resume before continuing to Step 4.");
+      return;
+    }
     if (!selectedCandidates.length) {
-      setError("Select at least one ranked candidate first.");
+      setError("Select at least one ranked candidate before continuing to Step 4.");
       return;
     }
-    const missingEmail = selectedCandidates.find((candidate) => !candidate.candidateEmail.trim());
-    if (missingEmail) {
-      setError(`Add a sign-in email for ${missingEmail.candidateName} before creating the link.`);
-      return;
-    }
-    if (new Date(ends) <= new Date(starts)) {
-      setError("The invitation expiry must be after its start time.");
-      return;
-    }
-    let config: InterviewConfiguration;
-    try {
-      config = configurationSchema.parse({
-        ...configuration,
-        allowedModes: "audio_and_text",
-        customQuestions: configuration.customQuestions.map((question) => question.trim()).filter(Boolean),
-      });
-    } catch {
-      setError("Review the interview settings before creating invitations.");
-      return;
-    }
-    setInviting(true);
-    let created = 0;
-    for (const candidate of selectedCandidates) {
-      updateCandidate(candidate.id, { inviteStatus: "creating" });
-      try {
-        const sessionId = await createScheduledInterview(
-          user.uid,
-          jobTitle.trim(),
-          jobDescription.trim(),
-          "",
-          "",
-          config.maxTurns,
-          config.customQuestions,
-          config.language,
-          candidate.candidateName,
-          `CAND-${crypto.randomUUID().slice(0, 8)}`,
-          candidate.candidateEmail,
-          candidate.file,
-          new Date(starts),
-          new Date(ends),
-          "audio_and_text",
-          config.githubUsername,
-          config.visualPanel,
-          config.codeDiff,
-          config,
-          candidate.parsing,
-          candidate.atsScore
-        );
-        updateCandidate(candidate.id, { inviteStatus: "created", sessionId });
-        if (candidate.pipelineId) {
-          await updatePipelineCandidate(candidate.pipelineId, {
-            status: "invited",
-            session_id: sessionId,
-          }).catch(() => undefined);
-        }
-        created++;
-      } catch (caught) {
-        updateCandidate(candidate.id, {
-          inviteStatus: "error",
-          error: caught instanceof Error ? caught.message : "Could not create invitation.",
-        });
-      }
-    }
-    await Promise.all(
-      candidates
-        .filter((candidate) => candidate.status === "ready" && !candidate.selected && candidate.pipelineId)
-        .map((candidate) => updatePipelineCandidate(candidate.pipelineId!, { status: "not_invited" }).catch(() => undefined))
-    );
-    setInviting(false);
-    setMessage(
-      `${created} invitation${created === 1 ? "" : "s"} created. Copy each link below and send it to the matching candidate.`
-    );
-  }
-
-  async function copyLink(candidate: PipelineCandidate) {
-    if (!candidate.sessionId) return;
-    const link = `${window.location.origin}/apply/${candidate.sessionId}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedId(candidate.id);
-    window.setTimeout(() => setCopiedId((current) => (current === candidate.id ? null : current)), 1600);
+    setDraft((current) => ({
+      ...current,
+      jobTitle,
+      jobDescription,
+      candidates,
+      topLimit,
+    }));
+    router.push("/pipeline/schedule");
   }
 
   return (
@@ -410,13 +312,27 @@ export default function PipelinePage() {
             Upload a batch of resumes, rank them against one role, then choose which candidates should receive a structured interview link.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
           <Link href="/interviews" className="wm-button secondary shrink-0">Review interview records</Link>
           <Link href="/ats-check" className="wm-button secondary shrink-0">Open single resume check</Link>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <nav aria-label="Pipeline progress" className="mb-6 grid gap-2 sm:grid-cols-4">
+        {[
+          { number: "1", label: "Role brief", complete: true },
+          { number: "2", label: "Upload CVs", complete: true },
+          { number: "3", label: "Review ranking", complete: rankedCandidates.length > 0 },
+          { number: "4", label: "Create links", complete: false },
+        ].map((step) => (
+          <div key={step.number} className={`rounded-xl border px-4 py-3 ${step.complete ? "border-primary-500/50 bg-primary-500/10" : "border-[var(--border)] bg-[var(--surface-elevated)]"}`}>
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary-400">Step {step.number}</span>
+            <p className="mt-1 text-sm font-medium">{step.label}</p>
+          </div>
+        ))}
+      </nav>
+
+      <div>
         <section className="space-y-6">
           <section className="wm-panel space-y-4">
             <div className="flex items-center justify-between gap-3">
@@ -487,7 +403,7 @@ export default function PipelinePage() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-xs uppercase tracking-wider text-[var(--muted)]">
-                    <tr><th className="px-5 py-3">Invite</th><th className="px-5 py-3">Rank</th><th className="px-5 py-3">Candidate</th><th className="px-5 py-3">ATS score</th><th className="px-5 py-3">Email for link</th><th className="px-5 py-3">Status</th><th className="px-5 py-3 text-right">Link</th></tr>
+                    <tr><th className="px-5 py-3">Invite</th><th className="px-5 py-3">Rank</th><th className="px-5 py-3">Candidate</th><th className="px-5 py-3">ATS score</th><th className="px-5 py-3">Candidate sign-in email</th><th className="px-5 py-3">Status</th><th className="px-5 py-3 text-right">Link</th></tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
                     {rankedCandidates.map((candidate, index) => {
@@ -496,7 +412,7 @@ export default function PipelinePage() {
                       return (
                         <tr key={candidate.id} className="align-top hover:bg-[var(--surface-elevated)]/60">
                           <td className="px-5 py-4">
-                            <input type="checkbox" checked={candidate.selected} disabled={candidate.status !== "ready" || linkReady || inviting} onChange={(event) => updateCandidate(candidate.id, { selected: event.target.checked })} aria-label={`Invite ${candidate.candidateName}`} className="h-4 w-4 accent-[var(--primary)]" />
+                            <input type="checkbox" checked={candidate.selected} disabled={candidate.status !== "ready" || linkReady} onChange={(event) => updateCandidate(candidate.id, { selected: event.target.checked })} aria-label={`Invite ${candidate.candidateName}`} className="h-4 w-4 accent-[var(--primary)]" />
                           </td>
                           <td className="px-5 py-4 font-mono text-[var(--muted)]">{score === undefined ? "—" : `#${index + 1}`}</td>
                           <td className="px-5 py-4">
@@ -507,9 +423,9 @@ export default function PipelinePage() {
                           <td className="px-5 py-4">
                             {score === undefined ? <span className="text-[var(--muted)]">—</span> : <span className={`text-lg font-bold ${scoreColor(score)}`}>{score}%</span>}
                           </td>
-                          <td className="px-5 py-4"><input type="email" value={candidate.candidateEmail} disabled={linkReady || inviting} onChange={(event) => updateCandidate(candidate.id, { candidateEmail: event.target.value })} placeholder="candidate@company.com" className="w-52 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-2 text-xs focus:border-primary-500 focus:outline-none" /></td>
+                          <td className="px-5 py-4"><input type="email" value={candidate.candidateEmail} disabled={linkReady} onChange={(event) => updateCandidate(candidate.id, { candidateEmail: event.target.value })} placeholder="candidate@company.com" className="w-52 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-2 text-xs focus:border-primary-500 focus:outline-none" /><p className="mt-1 max-w-[13rem] text-[11px] text-[var(--muted)]">Used only to admit this candidate to their own interview.</p></td>
                           <td className="px-5 py-4"><span className={`text-xs ${candidate.status === "error" || candidate.inviteStatus === "error" ? "text-red-400" : candidate.inviteStatus === "created" ? "text-emerald-400" : "text-[var(--muted)]"}`}>{statusLabel(candidate)}</span></td>
-                          <td className="px-5 py-4 text-right">{linkReady ? <div className="flex items-center justify-end gap-2"><a className="text-xs text-[var(--muted)] hover:text-[var(--foreground)]" href={`/apply/${candidate.sessionId}`} target="_blank" rel="noreferrer">Open</a><button type="button" className="text-xs font-semibold text-primary-400 hover:text-primary-300" onClick={() => void copyLink(candidate)}>{copiedId === candidate.id ? "Copied" : "Copy link"}</button></div> : <span className="text-xs text-[var(--muted)]">—</span>}</td>
+                          <td className="px-5 py-4 text-right">{linkReady ? <a className="text-xs text-primary-400 hover:text-primary-300" href={`/apply/${candidate.sessionId}`} target="_blank" rel="noreferrer">Open link</a> : <span className="text-xs text-[var(--muted)]">—</span>}</td>
                         </tr>
                       );
                     })}
@@ -518,25 +434,15 @@ export default function PipelinePage() {
               </div>
             </section>
           )}
-        </section>
-
-        <aside className="space-y-6">
-          <section className="wm-panel space-y-4 lg:sticky lg:top-6">
+          <section className="wm-panel flex flex-col gap-4 border-primary-500/30 bg-primary-500/5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Step 4</p>
-              <h2 className="mt-1 text-xl font-semibold">Create interview links</h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">{selectedCandidates.length} candidate{selectedCandidates.length === 1 ? "" : "s"} selected</p>
+              <h2 className="mt-1 text-xl font-semibold">Create interview links on the next page</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">{selectedCandidates.length} candidate{selectedCandidates.length === 1 ? "" : "s"} selected. Review settings and schedule windows separately after ranking.</p>
             </div>
-            <details open className="rounded-lg border border-[var(--border)] p-3">
-              <summary className="cursor-pointer text-sm font-semibold">Interview settings</summary>
-              <div className="mt-4 space-y-4"><ConfigurationFields value={configuration} onChange={setConfiguration} /></div>
-            </details>
-            <label className="wm-field">Link valid from<input type="datetime-local" value={starts} onChange={(event) => setStarts(event.target.value)} /></label>
-            <label className="wm-field">Link expires<input type="datetime-local" value={ends} onChange={(event) => setEnds(event.target.value)} /></label>
-            <button type="button" className="wm-button w-full" disabled={!selectedCandidates.length || inviting || analyzing} onClick={() => void createInvitations()}>{inviting ? "Creating invitations…" : "Create selected invitations"}</button>
-            <p className="text-xs leading-relaxed text-[var(--muted)]">Each link is tied to the email in its row. Candidates can only open their own active session; the ranking and transcripts remain in the recruiter workspace.</p>
+            <button type="button" className="wm-button shrink-0" onClick={continueToSchedule}>Continue to Step 4 <span aria-hidden="true">→</span></button>
           </section>
-        </aside>
+        </section>
       </div>
 
       {message && <p role="status" className="wm-note mt-6 border-emerald-500/30 bg-emerald-500/5 text-emerald-300">{message}</p>}

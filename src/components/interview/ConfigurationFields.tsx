@@ -2,17 +2,23 @@
 import { useState } from "react";
 import {
   ADDITIONAL_COMPETENCY_OPTIONS,
+  slugifyCompetencyId,
   type InterviewConfiguration,
 } from "@/lib/interview/config";
 import { LANGUAGES } from "@/lib/interview/language";
+const CUSTOM_COMPETENCY_VALUE = "__custom__";
 export default function ConfigurationFields({
   value,
   onChange,
+  showGithubUsername = true,
 }: {
   value: InterviewConfiguration;
   onChange: (value: InterviewConfiguration) => void;
+  showGithubUsername?: boolean;
 }) {
   const [selectedCompetency, setSelectedCompetency] = useState("");
+  const [customLabel, setCustomLabel] = useState("");
+  const [customDescription, setCustomDescription] = useState("");
   function change<K extends keyof InterviewConfiguration>(
     key: K,
     next: InterviewConfiguration[K]
@@ -20,6 +26,20 @@ export default function ConfigurationFields({
     onChange({ ...value, [key]: next });
   }
   function addCompetency() {
+    if (selectedCompetency === CUSTOM_COMPETENCY_VALUE) {
+      const label = customLabel.trim();
+      const description = customDescription.trim();
+      if (!label || !description) return;
+      const id = slugifyCompetencyId(
+        label,
+        value.competencies.map((c) => c.id)
+      );
+      change("competencies", [...value.competencies, { id, label, description }]);
+      setCustomLabel("");
+      setCustomDescription("");
+      setSelectedCompetency("");
+      return;
+    }
     const option = ADDITIONAL_COMPETENCY_OPTIONS.find(
       (candidate) => candidate.id === selectedCompetency
     );
@@ -187,25 +207,32 @@ export default function ConfigurationFields({
         <textarea
           rows={3}
           value={value.customQuestions.join("\n")}
+          placeholder={
+            "e.g. Walk me through a recent project you owned end to end.\nHow do you decide when to introduce a new dependency?"
+          }
           onChange={(e) =>
             change("customQuestions", e.target.value.split("\n"))
           }
         />
       </label>
-      <label className="wm-field sm:col-span-2">
-        GitHub username · Optional
-        <input
-          maxLength={39}
-          value={value.githubUsername}
-          onChange={(e) => change("githubUsername", e.target.value)}
-        />
-      </label>
+      {showGithubUsername && (
+        <label className="wm-field sm:col-span-2">
+          GitHub username · Optional
+          <input
+            maxLength={39}
+            value={value.githubUsername}
+            placeholder="e.g. octocat"
+            onChange={(e) => change("githubUsername", e.target.value)}
+          />
+        </label>
+      )}
       {value.visualPanel === "code_review" && (
         <label className="wm-field sm:col-span-2">
           Code diff
           <textarea
             rows={4}
             value={value.codeDiff}
+            placeholder={"diff --git a/file.ts b/file.ts\n@@ -1,3 +1,3 @@\n..."}
             onChange={(e) => change("codeDiff", e.target.value)}
           />
         </label>
@@ -234,16 +261,69 @@ export default function ConfigurationFields({
                 {option.label}
               </option>
             ))}
+            <option value={CUSTOM_COMPETENCY_VALUE}>
+              Describe your own…
+            </option>
           </select>
-          <button
-            type="button"
-            className="wm-button secondary"
-            onClick={addCompetency}
-            disabled={!selectedCompetency || value.competencies.length >= 8}
-          >
-            Add competency
-          </button>
+          {selectedCompetency !== CUSTOM_COMPETENCY_VALUE && (
+            <button
+              type="button"
+              className="wm-button secondary"
+              onClick={addCompetency}
+              disabled={!selectedCompetency || value.competencies.length >= 8}
+            >
+              Add competency
+            </button>
+          )}
         </div>
+        {selectedCompetency === CUSTOM_COMPETENCY_VALUE && (
+          <div className="wm-field mt-3">
+            <label htmlFor="custom-competency-label">Competency name</label>
+            <input
+              id="custom-competency-label"
+              maxLength={100}
+              value={customLabel}
+              onChange={(e) => setCustomLabel(e.target.value)}
+              placeholder="e.g. Cross-team communication"
+            />
+            <label htmlFor="custom-competency-description" className="mt-3">
+              What evidence should count
+            </label>
+            <textarea
+              id="custom-competency-description"
+              rows={2}
+              maxLength={500}
+              value={customDescription}
+              onChange={(e) => setCustomDescription(e.target.value)}
+              placeholder="Describe what counts as evidence for this competency."
+            />
+            <div className="flex gap-2 mt-3">
+              <button
+                type="button"
+                className="wm-button secondary"
+                onClick={addCompetency}
+                disabled={
+                  !customLabel.trim() ||
+                  !customDescription.trim() ||
+                  value.competencies.length >= 8
+                }
+              >
+                Add custom competency
+              </button>
+              <button
+                type="button"
+                className="wm-button quiet"
+                onClick={() => {
+                  setSelectedCompetency("");
+                  setCustomLabel("");
+                  setCustomDescription("");
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
         <div className="grid sm:grid-cols-2 gap-3 mt-3">
           {value.competencies.map((c, i) => (
             <div key={c.id} className="wm-field">
