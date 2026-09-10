@@ -83,12 +83,15 @@ function evaluationLabel(session: Session) {
                 100
             )
           : null;
-    return typeof score === "number"
-      ? `Evidence ${Math.round(score)}/100`
+    if (typeof score === "number") return `Evidence ${Math.round(score)}/100`;
+    return /evaluat|pending/i.test(evaluation.status || "")
+      ? "Evaluation pending"
       : evaluation.status || "Evidence ready";
   }
-  return typeof evaluation.overallScore === "number"
-    ? `${Math.round(evaluation.overallScore)}%`
+  if (typeof evaluation.overallScore === "number")
+    return `${Math.round(evaluation.overallScore)}%`;
+  return /evaluat|pending/i.test(evaluation.status || "")
+    ? "Evaluation pending"
     : evaluation.status || "Evaluation ready";
 }
 
@@ -141,8 +144,8 @@ export default function InterviewsPage() {
 
       // Sort by created_at descending in memory
       fetchedSessions.sort((a, b) => {
-        const timeA = a.created_at?.toMillis() || 0;
-        const timeB = b.created_at?.toMillis() || 0;
+        const timeA = millis(a.created_at);
+        const timeB = millis(b.created_at);
         return timeB - timeA;
       });
 
@@ -206,16 +209,25 @@ export default function InterviewsPage() {
       if (!snapshot.exists() || !canManageInterview(user, snapshot.data()))
         throw Error("Session unavailable.");
       const session = snapshot.data();
+      const token = user ? await user.getIdToken() : null;
       const res = await fetch("/api/evaluate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...evaluationHeaders(),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           sessionId,
           transcript: session.final_transcript || [],
           configuration: session.configuration,
+          role: [
+            session.role_snapshot?.job_title,
+            session.role_snapshot?.job_description,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+          cv: session.cv_parsing?.text || "",
         }),
       });
       const data = await res.json();
@@ -643,7 +655,7 @@ export default function InterviewsPage() {
                           <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 text-xs font-medium text-accent-500 animate-pulse">
                               <div className="w-2 h-2 rounded-full bg-accent-500" />
-                              Evaluating...
+                              Evaluation pending
                             </div>
                             <button
                               onClick={() => {

@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { assessEvidence } from "@/lib/ai/assess";
-import { isProvider, type AIProvider } from "@/lib/ai/catalog";
+import { isProvider, PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
 import { configurationSchema } from "@/lib/interview/config";
 import { limitedJson } from "@/lib/demo/http";
+import { isVerifiedAdminRequest } from "@/lib/firebase/server-auth";
 export const dynamic = "force-dynamic";
 const input = z.object({
   sessionId: z.string().max(200).optional(),
@@ -25,29 +26,61 @@ export async function POST(req: Request) {
   )
     return Response.json({ error: "Invalid origin." }, { status: 403 });
   try {
-    const body = input.parse(await limitedJson(req, 150000)),
-      provider = req.headers.get("x-ai-provider") || "openai";
-    if (!isProvider(provider))
+    const body = input.parse(await limitedJson(req, 150000));
+    const requestedProvider = req.headers.get("x-ai-provider") || "openai";
+    if (!isProvider(requestedProvider))
       return Response.json({ error: "Unknown provider." }, { status: 400 });
-    const key =
+    let provider: AIProvider = requestedProvider;
+    let key =
       req.headers.get("x-ai-key") ||
       (provider === "openai" ? req.headers.get("x-openai-key") : "") ||
       undefined;
+    // Recruiters can review and retry evaluations with the server-side
+    // workspace provider. Candidate browsers still need their own key for
+    // personal interviews, while the verified administrator never needs to
+    // copy a provider key into the browser.
+    const hostedAdmin = !key && (await isVerifiedAdminRequest(req));
+    if (hostedAdmin) {
+      const configured = PROVIDERS.filter((item) =>
+        process.env[item.env]?.trim()
+      );
+      const selected =
+        configured.find((item) => item.id === requestedProvider) || configured[0];
+      if (selected) {
+        provider = selected.id;
+        key = process.env[selected.env]?.trim();
+      }
+    }
     let fallbackKeys: Partial<Record<AIProvider, string>> | undefined;
-    if (req.headers.get("x-ai-allow-fallback") === "true")
-      fallbackKeys = z
+    if (req.headers.get("x-ai-allow-fallback") === "true" || hostedAdmin) {
+      const browserKeys = z
         .object({
           openai: z.string().max(500).optional(),
           gemini: z.string().max(500).optional(),
           deepseek: z.string().max(500).optional(),
         })
         .parse(JSON.parse(req.headers.get("x-ai-fallback-keys") || "{}"));
+      const serverKeys = hostedAdmin
+        ? Object.fromEntries(
+            PROVIDERS.filter((item) => process.env[item.env]?.trim()).map(
+              (item) => [item.id, process.env[item.env]!.trim()]
+            )
+          )
+        : {};
+      fallbackKeys = { ...serverKeys, ...browserKeys } as Partial<
+        Record<AIProvider, string>
+      >;
+    }
     const result = await assessEvidence(
       provider,
       key,
       body.transcript,
       body.configuration || configurationSchema.parse({}),
-      { fallbackKeys, jobContext: { role: body.role, cvText: body.cv } }
+      {
+        fallbackKeys,
+        host: hostedAdmin,
+        jobContext: { role: body.role, cvText: body.cv },
+      }
     );
     return Response.json(
       {
