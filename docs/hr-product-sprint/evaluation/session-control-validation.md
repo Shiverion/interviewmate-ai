@@ -116,7 +116,7 @@ For manual timing, use two seconds to cross the one-second pause threshold, seve
 
 ### Choose a live demo first, then Schedule Interview
 
-For no-account, host-funded voice, use [Reviewer demo](http://localhost:3000/demo) and its [setup runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). It supports B1–B3 within an eight-minute wall-clock funding window that includes pauses; it does not verify scheduled report saving. Dashboard access no longer requires a key. The personal demo steps below remain available.
+For signed-in, host-funded voice, use [Demo](http://localhost:3000/demo) and its [setup runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). The login page gates this route before the demo opens. It supports B1–B3 within an eight-minute wall-clock funding window that includes pauses; it does not verify scheduled report saving. Dashboard access no longer requires a key. The personal demo steps below remain available.
 
 | Entry point | Use for | What it exercises |
 |---|---|---|

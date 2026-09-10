@@ -8,7 +8,11 @@ import {
 } from "@radix-ui/react-icons";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useKeys } from "@/components/providers/KeyProvider";
-import { interviewScope, isWorkspaceAdmin } from "@/lib/firebase/access";
+import {
+  interviewScope,
+  isPrimaryWorkspaceAdmin,
+  isWorkspaceAdmin,
+} from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
 import DemoRoomModal from "@/components/dashboard/DemoRoomModal";
@@ -89,11 +93,13 @@ export default function DashboardPage() {
         .finally(() => {
           if (active) setBusy(false);
         });
-      void setDoc(
-        doc(db, "app_config", "admin"),
-        { uid: user.uid },
-        { merge: true }
-      ).catch(() => undefined);
+      if (isPrimaryWorkspaceAdmin(user)) {
+        void setDoc(
+          doc(db, "app_config", "admin"),
+          { uid: user.uid },
+          { merge: true }
+        ).catch(() => undefined);
+      }
       user
         .getIdToken()
         .then((token) =>
@@ -252,7 +258,7 @@ export default function DashboardPage() {
         <p className="wm-note mt-5">
           You can explore this workspace without a key. Personal voice sessions
           require an OpenAI key in <Link href="/settings">Models & access</Link>
-          , or use the hosted reviewer demo.
+          , or use the hosted demo.
         </p>
       )}
       <div className="wm-stats">

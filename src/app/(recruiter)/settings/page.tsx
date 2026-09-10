@@ -235,7 +235,7 @@ export default function SettingsPage() {
               needed. Provider access must be configured by the host.
             </p>
             <Link href="/demo" className="wm-button secondary mt-5">
-              Open reviewer demo <ArrowRightIcon />
+              Open demo <ArrowRightIcon />
             </Link>
           </section>
           <section id="privacy" className="py-8">

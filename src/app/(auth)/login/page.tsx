@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { auth, isFirebaseReady } from "@/lib/firebase/config";
 import {
   signInWithEmailAndPassword,
@@ -20,13 +20,25 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDemoGate, setShowDemoGate] = useState(false);
+  const [demoIntent, setDemoIntent] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("gate") === "demo") {
+      setShowDemoGate(true);
+      setDemoIntent(true);
+    }
+  }, []);
 
   function destination() {
+    if (demoIntent) return "/demo";
     const requested = new URLSearchParams(window.location.search).get(
       "returnUrl"
     );
     return requested &&
-      /^\/(apply\/|dashboard$|pipeline(?:\/|$)|candidates(?:\/|$)|interviews(?:\/|$)|settings$|invitations(?:\/|$)?$|reviewer(?:\?|$)|my-results(?:\?|$)?$)/.test(
+      /^(\/demo$|\/apply\/|\/dashboard$|\/pipeline(?:\/|$)|\/candidates(?:\/|$)|\/interviews(?:\/|$)|\/settings$|\/invitations(?:\/|$)?$|\/reviewer(?:\?|$)|\/my-results(?:\?|$)?$)/.test(
         requested
       ) &&
       !requested.includes("\\")
@@ -124,12 +136,19 @@ export default function LoginPage() {
             <div>
               <h3>Here to review the prototype?</h3>
               <p>
-                Try a hosted voice interview without creating an account or
-                supplying an API key.
+                Try a hosted voice interview after signing in. No personal API
+                key is needed.
               </p>
-              <Link href="/demo" className="wm-button secondary mt-5">
-                Open free reviewer demo <ArrowRightIcon />
-              </Link>
+              <button
+                type="button"
+                className="wm-button secondary mt-5"
+                onClick={() => {
+                  setDemoIntent(true);
+                  setShowDemoGate(true);
+                }}
+              >
+                Open free demo <ArrowRightIcon />
+              </button>
             </div>
           </div>
         </div>
@@ -153,6 +172,7 @@ export default function LoginPage() {
             <label htmlFor="login-email">Email address</label>
             <input
               id="login-email"
+              ref={emailRef}
               type="email"
               required
               autoComplete="email"
@@ -195,6 +215,7 @@ export default function LoginPage() {
         </button>
         <button
           className="text-sm text-primary-500 mt-7 w-full"
+          type="button"
           onClick={() => {
             setIsSignUp(!isSignUp);
             setError(null);
@@ -204,12 +225,70 @@ export default function LoginPage() {
             ? "Already have an account? Sign in"
             : "New here? Create an account"}
         </button>
-        <Link
-          href="/demo"
-          className="block mt-6 text-xs text-center text-[var(--muted)] underline"
+        <button
+          type="button"
+          className="block mt-6 w-full text-xs text-center text-[var(--muted)] underline"
+          onClick={() => {
+            setDemoIntent(true);
+            setShowDemoGate(true);
+          }}
         >
-          Explore the reviewer demo without signing in
-        </Link>
+          Open the demo after signing in
+        </button>
+        {showDemoGate && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="demo-gate-title"
+          >
+            <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl">
+              <p className="wm-eyebrow">Demo access</p>
+              <h3 id="demo-gate-title" className="mt-2 text-2xl">
+                You must sign in or sign up first.
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                A signed-in session keeps the demo allowance and your browser
+                recovery state together. After authentication, we will open the
+                live demo automatically.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="wm-button"
+                  onClick={() => {
+                    setIsSignUp(false);
+                    setShowDemoGate(false);
+                    emailRef.current?.focus();
+                  }}
+                >
+                  Sign in <ArrowRightIcon />
+                </button>
+                <button
+                  type="button"
+                  className="wm-button secondary"
+                  onClick={() => {
+                    setIsSignUp(true);
+                    setShowDemoGate(false);
+                    emailRef.current?.focus();
+                  }}
+                >
+                  Create account
+                </button>
+                <button
+                  type="button"
+                  className="text-sm text-[var(--muted)] underline"
+                  onClick={() => {
+                    setDemoIntent(false);
+                    setShowDemoGate(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

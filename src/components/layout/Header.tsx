@@ -18,7 +18,7 @@ export default function Header() {
   const links = !user
     ? [
         ["Overview", "/"],
-        ["Reviewer demo", "/demo"],
+        ["Demo", "/demo"],
         ["Resume check", "/ats-check"],
       ]
     : admin
@@ -30,7 +30,11 @@ export default function Header() {
           ["Resume check", "/ats-check"],
           ["Models & access", "/settings"],
         ]
-      : [];
+      : [
+          ["Overview", "/"],
+          ["Demo", "/demo"],
+          ["Resume check", "/ats-check"],
+        ];
   return (
     <header className="wm-header">
       <div className="wm-header-inner">

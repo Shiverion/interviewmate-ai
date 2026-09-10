@@ -6,5 +6,8 @@ export function authErrorMessage(error: unknown, hostname: string, projectId?: s
       : "";
     return `This address (${hostname}) is not authorized for sign-in. In Firebase project ${projectId || "configured for this app"}, open Authentication → Settings → Authorized domains and add ${hostname} (without a protocol or port).${local}`;
   }
+  if (details.code === "auth/operation-not-allowed") {
+    return "Email/password sign-in is disabled for this Firebase project. Enable Authentication → Sign-in method → Email/Password, then refresh this page.";
+  }
   return details.message || "Unable to sign in. Please try again.";
 }

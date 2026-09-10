@@ -25,7 +25,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="wm-subtitle mt-5 text-xs">
-            Reviewer access · No personal API key required for the hosted demo
+            Demo access · Sign in first; no personal API key is required
           </p>
         </div>
         <div className="wm-hero-panel">
@@ -76,7 +76,7 @@ export default function HomePage() {
             [
               "01",
               "Set the context",
-              "Choose the role and language. Use a fictional profile to explore the reviewer demo.",
+              "Choose the role and language. Use a fictional profile to explore the demo.",
             ],
             [
               "02",

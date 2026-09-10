@@ -8,6 +8,7 @@ import {
   CheckIcon,
 } from "@radix-ui/react-icons";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
+import { useAuthContext } from "@/components/providers/AuthProvider";
 import { configurationSchema } from "@/lib/interview/config";
 import { PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
 import { saveEvaluationProvider } from "@/lib/keys/store";
@@ -21,6 +22,7 @@ type Availability = {
 };
 export default function ReviewerDemoPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuthContext();
   const [availability, setAvailability] = useState<Availability | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -32,6 +34,14 @@ export default function ReviewerDemoPage() {
   const [provider, setProvider] = useState<AIProvider>("openai");
   const [configured, setConfigured] = useState<string[]>([]);
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace(
+        `/login?returnUrl=${encodeURIComponent("/demo")}&gate=demo`
+      );
+    }
+  }, [authLoading, router, user]);
+  useEffect(() => {
+    if (authLoading || !user) return;
     fetch("/api/ai/config")
       .then((r) => r.json())
       .then((data) =>
@@ -42,15 +52,16 @@ export default function ReviewerDemoPage() {
         )
       )
       .catch(() => {});
-  }, []);
+  }, [authLoading, user]);
   useEffect(() => {
+    if (authLoading || !user) return;
     fetch("/api/demo/voice")
       .then((r) => r.json())
       .then(setAvailability)
       .catch(() =>
         setError("We couldn't check the demo allowance. Refresh to try again.")
       );
-  }, []);
+  }, [authLoading, user]);
   async function start() {
     setBusy(true);
     setError("");
@@ -99,6 +110,14 @@ export default function ReviewerDemoPage() {
   }
   const exhausted =
     availability?.remaining === 0 || availability?.sharedRemaining === 0;
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
+        <p className="text-sm text-[var(--muted)]">Checking demo access…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="wm-page">
       <p className="text-sm">
@@ -108,7 +127,7 @@ export default function ReviewerDemoPage() {
       </p>
       <div className="wm-hero-grid">
         <section>
-          <p className="wm-eyebrow">Reviewer access · No account required</p>
+          <p className="wm-eyebrow">Demo access · Sign-in required</p>
           <h1>
             Your next eight minutes.
             <br />

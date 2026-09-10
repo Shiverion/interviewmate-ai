@@ -469,7 +469,7 @@ function InterviewRoomContent() {
             <p className="wm-note">
               Voice transcription needs an OpenAI key.{" "}
               <Link href="/settings">Add one in Models & access</Link> or{" "}
-              <Link href="/demo">try the free reviewer demo</Link>.
+              <Link href="/demo">try the free demo</Link>.
             </p>
           )}
           {_sessionContext?.sponsored && (

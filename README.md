@@ -16,6 +16,10 @@ The inherited Next.js application is the baseline. This revision replaces unexpl
 
 Use Node 20.9 or newer. Run `npm install`, then `npm run dev`; open http://localhost:3000. Add personal provider keys in Settings, or configure host credentials for Demo/Reviewer Mode as described in the runbook. Signing in does not force API-key setup.
 
-Reviewers enter a private invitation at `/reviewer`. Ordinary visitors use `/demo`. Production hosting requires a persistent Node runtime and durable private usage storage; this sponsored voice implementation is not ready for ephemeral hosting.
+Reviewers enter a private invitation at `/reviewer`. Signed-in visitors use `/demo` for the hosted voice demo; the demo allowance is tied to the authenticated browser session. Production hosting requires a persistent Node runtime and durable private usage storage; this sponsored voice implementation is not ready for ephemeral hosting.
 
-Prototype status: 138 automated tests and 24 selected browser checks pass, along with source lint and the production build. Successful live voice, model-quality benchmarks, independent human review and final video footage remain release gates. No hiring-validity or time-saving claim is established.
+### Reviewer admin login
+
+The owner creates a separate seven-day email/password account for portfolio reviewers in Firebase Console: `reviewer@interviewmate.demo`. Keep account creation private, then share its password privately with reviewers. This demo account expires on 18 September 2026 at 00:00 UTC; update the cutoff in `src/lib/firebase/access.ts`, `firestore.rules` and `storage.rules` before issuing a new review window. It opens the full workspace without using the owner's Google account. The owner's UID pointer in `app_config/admin` remains controlled by the primary administrator.
+
+Prototype status: 190 automated tests and 24 selected browser checks pass, along with scoped source lint and the production build. Successful live voice, model-quality benchmarks, independent human review and final video footage remain release gates. No hiring-validity or time-saving claim is established.

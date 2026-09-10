@@ -3,6 +3,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function admin() {
+      return signedIn()
+        && (request.auth.token.email.lower() == 'reviewer@interviewmate.demo'
+          && request.time < timestamp.date(2026, 9, 18)
+          || (request.auth.token.email_verified == true
+            && request.auth.token.email.lower() == 'miqbal.izzulhaq@gmail.com'));
+    }
+    function primaryAdmin() {
       return signedIn() && request.auth.token.email_verified == true
         && request.auth.token.email.lower() == 'miqbal.izzulhaq@gmail.com';
     }
@@ -33,7 +40,7 @@ service cloud.firestore {
     }
     match /app_config/{id} {
       allow get: if signedIn();
-      allow write: if admin();
+      allow write: if primaryAdmin();
     }
     match /interview_sessions/{sessionId} {
       allow get, list: if manages(resource.data) || ownRecord(resource.data);

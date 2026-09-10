@@ -2,9 +2,17 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     function admin() {
-      return request.auth != null && request.auth.token.email_verified == true
-        && request.auth.token.email.lower() == 'miqbal.izzulhaq@gmail.com';
+      return request.auth != null
+        && (request.auth.token.email.lower() == 'reviewer@interviewmate.demo'
+          && request.time < timestamp.date(2026, 9, 18)
+          || (request.auth.token.email_verified == true
+            && request.auth.token.email.lower() == 'miqbal.izzulhaq@gmail.com'));
     }
+    // Matches the account behind ADMIN_EMAIL — hardcoded, not read via
+    // firestore.get(app_config/admin), because that's a genuine cross-service
+    // read (Storage rules calling into Firestore) and proved unreliable here,
+    // unlike the same-service get() calls Firestore's own rules use elsewhere.
+    function isAdminUid(uid) { return uid == 'wN6yreVnvOMVwshVZO5l3dCYkNc2'; }
     function owner(uid) { return request.auth != null && request.auth.uid == uid; }
     function candidate(sessionId) {
       let session = firestore.get(/databases/(default)/documents/interview_sessions/$(sessionId)).data;
@@ -14,11 +22,32 @@ service firebase.storage {
         && session.status in ['active', 'completed', 'evaluated']
         && request.time >= session.valid_from && request.time < session.expires_at;
     }
+    // Own-record access for a finished session, independent of the live
+    // admission window (used only to let someone delete their own old CV) —
+    // but not once revoked, matching Firestore's ownRecord() rule.
+    function candidateOwnsRecord(sessionId) {
+      let session = firestore.get(/databases/(default)/documents/interview_sessions/$(sessionId)).data;
+      return request.auth != null && request.auth.token.email_verified == true
+        && session.candidate_email is string && session.candidate_email != ''
+        && request.auth.token.email.lower() == session.candidate_email.lower()
+        && session.status in ['active', 'completed', 'evaluated'];
+    }
+    // A brand-new reviewer-invitation session doesn't exist in Firestore yet
+    // at CV-upload time (the app writes the file before the doc), so this
+    // can't cross-check against an existing session the way candidate()/
+    // candidateOwnsRecord() do. It trusts any verified sign-in the same way
+    // the matching Firestore create rule does — scoped only to files under
+    // the administrator's own path, and only reachable via a sessionId the
+    // uploader just generated client-side.
+    function reviewerInvitationOwner(ownerId) {
+      return request.auth != null && request.auth.token.email_verified == true
+        && isAdminUid(ownerId);
+    }
     match /resumes/{ownerId}/{sessionId}/{fileName} {
       allow read: if owner(ownerId) || admin() || (candidate(sessionId)
         && firestore.get(/databases/(default)/documents/interview_sessions/$(sessionId)).data.recruiter_id == ownerId);
-      allow delete: if owner(ownerId) || admin();
-      allow create, update: if (owner(ownerId) || admin())
+      allow delete: if owner(ownerId) || admin() || candidateOwnsRecord(sessionId);
+      allow create, update: if (owner(ownerId) || admin() || reviewerInvitationOwner(ownerId))
         && request.resource.size <= 10 * 1024 * 1024
         && request.resource.contentType == 'application/pdf';
     }
