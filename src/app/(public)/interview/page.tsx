@@ -681,6 +681,8 @@ function InterviewRoomContent() {
   const micClass = isMicMuted
     ? "bg-error/10 text-error hover:bg-error/20 border-error/20"
     : "bg-[var(--surface-elevated)] text-[var(--foreground)] hover:bg-[var(--border)] border-[var(--border)]";
+  const interviewerBusy =
+    avatarState === "speaking" || avatarState === "thinking";
 
   return (
     <div
@@ -881,9 +883,10 @@ function InterviewRoomContent() {
             </div>
             <span className="wm-tag">Voice + text</span>
           </div>
-          <p className="text-sm text-[var(--muted)] mb-4">
-            Speak naturally. Your transcript stays here as a draft so you can
-            correct names, terms or language before the interviewer continues.
+          <p className="text-sm text-[var(--muted)] mb-4" aria-live="polite">
+            {interviewerBusy
+              ? "The interviewer is finishing this question. Your microphone is paused until it ends."
+              : "Speak naturally. Your transcript stays here as a draft so you can correct names, terms or language before the interviewer continues."}
           </p>
           <textarea
             aria-label="Editable answer transcript"

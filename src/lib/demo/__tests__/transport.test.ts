@@ -129,6 +129,104 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
   jest.useRealTimers();
 });
 
+test("speech pauses append to the editable draft until the candidate sends it", async () => {
+  let events: WebRTCManagerConfig["onMessage"];
+  jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
+    events = config.onMessage;
+    return {
+      connect: async () => {},
+      sendEvent: jest.fn(),
+      sendTextMessage: jest.fn(),
+      disconnect: jest.fn(),
+    } as unknown as WebRTCAudioManager;
+  });
+  const stream = {
+    getTracks: () => [],
+    getAudioTracks: () => [{ readyState: "live" }],
+  };
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia: jest.fn().mockResolvedValue(stream) },
+  });
+  useInterviewStore.setState({
+    status: "setup",
+    transcript: [],
+    candidateDeltaMessage: "",
+    _sessionContext: {
+      sessionId: "demo-draft-append",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_and_text",
+      candidateName: "Synthetic",
+      jobTitle: "Engineer",
+      startedAt: Date.now(),
+    },
+  });
+  await useInterviewStore.getState().connect();
+  events?.("audio_playback_done", null);
+  events?.("user_started_speaking", null);
+  events?.("user_transcript_partial", "I built");
+  events?.("user_stopped_speaking", null);
+  events?.("user_transcript_done", "I built a queue.");
+  events?.("user_started_speaking", null);
+  events?.("user_transcript_partial", "and measured");
+  events?.("user_stopped_speaking", null);
+  events?.("user_transcript_done", "and measured retries.");
+  expect(useInterviewStore.getState().candidateDeltaMessage).toBe(
+    "I built a queue. and measured retries."
+  );
+  useInterviewStore.getState().reset();
+});
+
+test("microphone capture is disabled while the interviewer is thinking or speaking", async () => {
+  let events: WebRTCManagerConfig["onMessage"];
+  const track = { readyState: "live", enabled: true, stop: jest.fn() };
+  const sendTextMessage = jest.fn();
+  jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
+    events = config.onMessage;
+    return {
+      connect: async () => {},
+      sendEvent: jest.fn(),
+      sendTextMessage,
+      disconnect: jest.fn(),
+    } as unknown as WebRTCAudioManager;
+  });
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: jest.fn().mockResolvedValue({
+        getTracks: () => [track],
+        getAudioTracks: () => [track],
+      }),
+    },
+  });
+  useInterviewStore.setState({
+    status: "setup",
+    transcript: [],
+    _sessionContext: {
+      sessionId: "demo-capture-lock",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_and_text",
+      candidateName: "Synthetic",
+      jobTitle: "Engineer",
+      startedAt: Date.now(),
+    },
+  });
+  await useInterviewStore.getState().connect();
+  events?.("audio_playback_done", null);
+  expect(track.enabled).toBe(true);
+  events?.("ai_thinking", null);
+  expect(track.enabled).toBe(false);
+  useInterviewStore.getState().sendTextMessage("A candidate answer");
+  expect(sendTextMessage).not.toHaveBeenCalled();
+  events?.("ai_speaking", null);
+  expect(track.enabled).toBe(false);
+  events?.("audio_playback_done", null);
+  expect(track.enabled).toBe(true);
+  useInterviewStore.getState().reset();
+});
+
 test("a late transcription cannot advance while the candidate is speaking again", async () => {
   jest.useFakeTimers();
   let events: WebRTCManagerConfig["onMessage"];

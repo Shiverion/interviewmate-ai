@@ -141,15 +141,28 @@ export const useInterviewStore = create<InterviewState>()(
         get()
           .localStream?.getAudioTracks()
           .forEach((t) => {
-            t.enabled = !next;
+            t.enabled =
+              !next &&
+              get().avatarState !== "speaking" &&
+              get().avatarState !== "thinking";
           });
         set({
           isMicMuted: next,
-          turnNotice: next ? "Microphone muted. This is not scored." : "",
+          turnNotice: next
+            ? "Microphone muted. This is not scored."
+            : get().avatarState === "speaking" ||
+                get().avatarState === "thinking"
+              ? "Please wait until the interviewer finishes speaking."
+              : "",
         });
       },
       sendTextMessage: (text) => {
-        if (get().status !== "active" || speechKind(text) !== "meaningful")
+        if (
+          get().status !== "active" ||
+          speechKind(text) !== "meaningful" ||
+          get().avatarState === "speaking" ||
+          get().avatarState === "thinking"
+        )
           return;
         clearTimeout(turnTimer);
         get().addTranscriptLine("user", text);
@@ -164,7 +177,12 @@ export const useInterviewStore = create<InterviewState>()(
       },
       editCandidateDraft: (text) => set({ candidateDeltaMessage: text }),
       repeatQuestion: () => {
-        if (get().status !== "active") return;
+        if (
+          get().status !== "active" ||
+          get().avatarState === "speaking" ||
+          get().avatarState === "thinking"
+        )
+          return;
         set({ turnNotice: "" });
         repeatRequested = true;
         clearTimeout(turnTimer);
@@ -179,7 +197,12 @@ export const useInterviewStore = create<InterviewState>()(
         });
       },
       skipQuestion: () => {
-        if (get().status !== "active") return;
+        if (
+          get().status !== "active" ||
+          get().avatarState === "speaking" ||
+          get().avatarState === "thinking"
+        )
+          return;
         get().addTranscriptLine(
           "user",
           "[No Evidence Collected — candidate skipped this question]"
@@ -267,9 +290,16 @@ export const useInterviewStore = create<InterviewState>()(
           let candidateSpeaking = false,
             waitingSince = 0,
             repeatPending = false,
-            playbackActive = false;
+            playbackActive = false,
+            candidateDraftBase = "";
+          const setCandidateCapture = (enabled: boolean) => {
+            localStream.getAudioTracks().forEach((track) => {
+              track.enabled = enabled && !get().isMicMuted;
+            });
+          };
           const waitForCandidate = () => {
             waitingSince = Date.now();
+            setCandidateCapture(true);
             set({ avatarState: "listening", turnNotice: "" });
           };
           const managerConfig: WebRTCManagerConfig = {
@@ -332,14 +362,28 @@ export const useInterviewStore = create<InterviewState>()(
               } else if (type === "ready") {
                 manager.sendEvent({ type: "response.create" });
               } else if (type === "user_started_speaking") {
+                if (playbackActive || get().avatarState === "thinking") {
+                  set({
+                    turnNotice:
+                      "Please wait until the interviewer finishes speaking.",
+                  });
+                  return;
+                }
+                if (!candidateSpeaking)
+                  candidateDraftBase = get().candidateDeltaMessage.trim();
                 candidateSpeaking = true;
                 clearTimeout(turnTimer);
                 set({ turnNotice: "", avatarState: "listening" });
               } else if (type === "user_stopped_speaking") {
                 candidateSpeaking = false;
               } else if (type === "user_transcript_partial") {
-                set({ candidateDeltaMessage: text });
+                if (playbackActive || get().avatarState === "thinking") return;
+                const combined = [candidateDraftBase, text.trim()]
+                  .filter(Boolean)
+                  .join(" ");
+                set({ candidateDeltaMessage: combined });
               } else if (type === "user_transcript_done") {
+                if (playbackActive || get().avatarState === "thinking") return;
                 if (speechKind(text) !== "meaningful") {
                   if (!candidateSpeaking)
                     set({
@@ -350,14 +394,18 @@ export const useInterviewStore = create<InterviewState>()(
                 }
                 waitingSince = 0;
                 clearTimeout(turnTimer);
+                candidateDraftBase = [candidateDraftBase, text.trim()]
+                  .filter(Boolean)
+                  .join(" ");
                 set({
-                  candidateDeltaMessage: text,
+                  candidateDeltaMessage: candidateDraftBase,
                   turnNotice:
                     "Review your transcript. Edit it if needed, then choose Send answer.",
                   avatarState: "listening",
                 });
               } else if (type === "ai_thinking") {
                 waitingSince = 0;
+                setCandidateCapture(false);
                 set({
                   avatarState: "thinking",
                   activeDeltaMessage: "",
@@ -366,6 +414,7 @@ export const useInterviewStore = create<InterviewState>()(
               } else if (type === "ai_speaking") {
                 waitingSince = 0;
                 playbackActive = true;
+                setCandidateCapture(false);
                 set({ avatarState: "speaking" });
               } else if (type === "transcript_delta")
                 set((s) => ({
@@ -388,12 +437,9 @@ export const useInterviewStore = create<InterviewState>()(
                 }));
               } else if (type === "audio_playback_done") {
                 playbackActive = false;
+                setCandidateCapture(true);
                 waitForCandidate();
-              } else if (
-                type === "ai_done" &&
-                !playbackActive &&
-                context.interviewMode === "text"
-              )
+              } else if (type === "ai_done" && !playbackActive)
                 waitForCandidate();
               else if (type === "end_interview") get().endInterview();
               else if (type === "transcription_failed") {
