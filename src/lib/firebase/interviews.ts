@@ -18,6 +18,7 @@ import {
 import type { ParsingResult } from "@/lib/pdf/result";
 
 export type VisualPanel = "none" | "code" | "whiteboard" | "code_review";
+export type InterviewRecordKind = "production_invitation" | "reviewer_test";
 
 export interface InterviewTemplate {
   id?: string;
@@ -53,7 +54,9 @@ export interface InterviewSession {
   valid_from?: Timestamp | FieldValue | Date;
   expires_at: Timestamp | Date;
   created_at?: Timestamp | FieldValue | Date;
-  source?: "reviewer_invitation";
+  /** Distinguishes production candidate invitations from reviewer QA runs. */
+  record_kind?: InterviewRecordKind;
+  source?: "pipeline_invitation" | "reviewer_invitation";
   invitation_id?: string;
   /** ATS pre-screen snapshot captured when the recruiter creates the link. */
   ats_score?: {
@@ -67,6 +70,18 @@ export interface InterviewSession {
     strengths?: string[];
     summary?: string;
   };
+}
+
+/** Reviewer invitations are QA data and must stay out of production reports. */
+export function isReviewerTestSession(data: unknown) {
+  // The source check keeps older reviewer sessions separate after the kind
+  // field was introduced.
+  if (!data || typeof data !== "object") return false;
+  const record = data as { record_kind?: unknown; source?: unknown };
+  return (
+    record.record_kind === "reviewer_test" ||
+    record.source === "reviewer_invitation"
+  );
 }
 
 export async function createScheduledInterview(
@@ -149,6 +164,8 @@ export async function createScheduledInterview(
     resume_url: "",
     ...(resumeFile ? { resume_storage_path: storagePath } : {}),
     status: "active",
+    record_kind: "production_invitation",
+    source: "pipeline_invitation",
     allowed_modes: allowedModes,
     visual_panel: visualPanel,
     valid_from: startDate,
@@ -239,6 +256,7 @@ export async function createReviewerSourcedInterview(
     valid_from: now,
     expires_at: new Date(now.getTime() + 24 * 60 * 60 * 1000),
     created_at: serverTimestamp(),
+    record_kind: "reviewer_test",
     source: "reviewer_invitation",
     ...(invitationId ? { invitation_id: invitationId } : {}),
   };

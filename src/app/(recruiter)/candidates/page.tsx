@@ -14,6 +14,7 @@ import { db, isFirebaseReady } from "@/lib/firebase/config";
 import {
   deleteInterviewSession,
   revokeInterviewSession,
+  isReviewerTestSession,
 } from "@/lib/firebase/interviews";
 import {
   deletePipelineCandidate,
@@ -97,7 +98,12 @@ export default function CandidatesPage() {
       );
       const sessions: CandidateRecord[] = snapshot.docs
         .map((item) => ({ id: item.id, ...item.data() }) as CandidateRecord)
-        .filter((record) => !record.synthetic && !/^(demo|reviewer)-/.test(record.id))
+        .filter(
+          (record) =>
+            !record.synthetic &&
+            !/^(demo|reviewer)-/.test(record.id) &&
+            !isReviewerTestSession(record)
+        );
       let pipelineRecords: CandidateRecord[] = [];
       try {
         const pipelineSnapshot = await getDocs(

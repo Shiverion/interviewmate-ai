@@ -14,6 +14,7 @@ import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
 import DemoRoomModal from "@/components/dashboard/DemoRoomModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/providers/ToastProvider";
+import { isReviewerTestSession } from "@/lib/firebase/interviews";
 type Session = {
   id: string;
   candidate_name?: string;
@@ -68,7 +69,10 @@ export default function DashboardPage() {
             setSessions(
               snapshot.docs
                 .filter(
-                  (d) => !d.data().synthetic && !/^(demo|reviewer)-/.test(d.id)
+                  (d) =>
+                    !d.data().synthetic &&
+                    !/^(demo|reviewer)-/.test(d.id) &&
+                    !isReviewerTestSession(d.data())
                 )
                 .map((d) => ({ id: d.id, ...d.data() }))
                 .sort(

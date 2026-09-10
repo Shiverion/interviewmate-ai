@@ -15,6 +15,7 @@ import { useAuthContext } from "@/components/providers/AuthProvider";
 import {
   revokeInterviewSession,
   deleteInterviewSession,
+  isReviewerTestSession,
 } from "@/lib/firebase/interviews";
 import Link from "next/link";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -34,6 +35,10 @@ type Session = {
   synthetic?: boolean;
   resume_storage_path?: string;
   source?: string;
+  record_kind?: string;
+  ats_score?: {
+    overall_match?: number;
+  };
   role_snapshot?: {
     job_title?: string;
     job_description?: string;
@@ -177,7 +182,10 @@ export default function InterviewsPage() {
 
       setSessions(
         fetchedSessions.filter(
-          (s) => !s.synthetic && !/^(demo|reviewer)-/.test(s.id)
+          (s) =>
+            !s.synthetic &&
+            !/^(demo|reviewer)-/.test(s.id) &&
+            !isReviewerTestSession(s)
         )
       );
     } catch {
@@ -431,7 +439,7 @@ export default function InterviewsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1080px] text-left text-sm">
+            <table className="w-full min-w-[1210px] text-left text-sm">
               <thead className="bg-[var(--surface-elevated)] border-b border-[var(--border)] text-[var(--muted)]">
                 <tr>
                   <th className="w-[220px] px-6 py-4 font-medium">Candidate</th>
@@ -439,6 +447,7 @@ export default function InterviewsPage() {
                   <th className="w-[125px] px-6 py-4 font-medium">Link Status</th>
                   <th className="w-[190px] px-6 py-4 font-medium">Created On</th>
                   <th className="w-[190px] px-6 py-4 font-medium">Completed On</th>
+                  <th className="w-[135px] px-6 py-4 font-medium">ATS score</th>
                   <th className="w-[175px] px-6 py-4 font-medium">
                     <button
                       type="button"
@@ -507,6 +516,7 @@ export default function InterviewsPage() {
                       ? `${window.location.origin}/apply/${session.id}`
                       : "";
                   const assessment = evaluationLabel(session);
+                  const atsScore = session.ats_score?.overall_match;
 
                   return (
                     <tr
@@ -551,6 +561,23 @@ export default function InterviewsPage() {
                             ? new Date(completedMillis(session)).toLocaleString()
                             : "—"
                           : "—"}
+                      </td>
+                      <td className="px-6 py-4">
+                        {typeof atsScore === "number" ? (
+                          <span
+                            className={`text-xs font-semibold ${
+                              atsScore >= 75
+                                ? "text-emerald-400"
+                                : atsScore >= 50
+                                  ? "text-amber-400"
+                                  : "text-red-400"
+                            }`}
+                          >
+                            {Math.round(atsScore)}%
+                          </span>
+                        ) : (
+                          <span className="text-[var(--muted)]">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         {assessment ? (
