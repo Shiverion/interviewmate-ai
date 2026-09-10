@@ -17,6 +17,7 @@ export async function assessEvidence(
   options: {
     host?: boolean;
     fallbackKeys?: Partial<Record<AIProvider, string>>;
+    jobContext?: { role?: string; cvText?: string };
   } = {}
 ) {
   if (!eligibleEvidence(lines))
@@ -50,6 +51,8 @@ export async function assessEvidence(
         EVIDENCE_PROMPT,
         JSON.stringify({
           rubric: configuration.competencies,
+          role: options.jobContext?.role?.slice(0, 6500) || "",
+          validatedCvContext: options.jobContext?.cvText?.slice(0, 24000) || "",
           transcript: lines.map((l, i) => ({ turn: i + 1, ...l })),
         })
       );

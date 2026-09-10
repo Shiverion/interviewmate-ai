@@ -1,5 +1,9 @@
 "use client";
-import { type InterviewConfiguration } from "@/lib/interview/config";
+import { useState } from "react";
+import {
+  ADDITIONAL_COMPETENCY_OPTIONS,
+  type InterviewConfiguration,
+} from "@/lib/interview/config";
 import { LANGUAGES } from "@/lib/interview/language";
 export default function ConfigurationFields({
   value,
@@ -8,11 +12,20 @@ export default function ConfigurationFields({
   value: InterviewConfiguration;
   onChange: (value: InterviewConfiguration) => void;
 }) {
+  const [selectedCompetency, setSelectedCompetency] = useState("");
   function change<K extends keyof InterviewConfiguration>(
     key: K,
     next: InterviewConfiguration[K]
   ) {
     onChange({ ...value, [key]: next });
+  }
+  function addCompetency() {
+    const option = ADDITIONAL_COMPETENCY_OPTIONS.find(
+      (candidate) => candidate.id === selectedCompetency
+    );
+    if (!option || value.competencies.some((c) => c.id === option.id)) return;
+    change("competencies", [...value.competencies, { ...option }]);
+    setSelectedCompetency("");
   }
   return (
     <fieldset className="grid sm:grid-cols-2 gap-4">
@@ -199,8 +212,38 @@ export default function ConfigurationFields({
       )}
       <div className="sm:col-span-2">
         <p className="text-sm font-medium">
-          Competency rubric · {value.rubricVersion}
+          Additional competency rubric · Optional
         </p>
+        <p className="text-xs text-[var(--muted)] mt-1">
+          Leave this empty to derive competencies from the job description and
+          validated CV context. Add an option only when you want to assess an
+          extra area explicitly.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 mt-3">
+          <select
+            aria-label="Additional competency"
+            value={selectedCompetency}
+            onChange={(e) => setSelectedCompetency(e.target.value)}
+            className="flex-1"
+          >
+            <option value="">Choose an additional competency</option>
+            {ADDITIONAL_COMPETENCY_OPTIONS.filter(
+              (option) => !value.competencies.some((c) => c.id === option.id)
+            ).map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="wm-button secondary"
+            onClick={addCompetency}
+            disabled={!selectedCompetency || value.competencies.length >= 8}
+          >
+            Add competency
+          </button>
+        </div>
         <div className="grid sm:grid-cols-2 gap-3 mt-3">
           {value.competencies.map((c, i) => (
             <label key={c.id} className="wm-field">

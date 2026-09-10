@@ -76,12 +76,10 @@ test("reaper retries failures and removes only successfully stopped calls", asyn
   await hangupCalls();
   expect((await ownedLease("guest", lease.id)).callIds).toEqual([]);
 });
-test("evaluation attempts are bounded per provider and owned session", async () => {
+test("evaluation attempts can be repeated for an owned session", async () => {
   const lease = await reserve("guest", undefined, false);
   await claimEvaluation("guest", lease.id, "gemini");
-  await expect(claimEvaluation("guest", lease.id, "gemini")).rejects.toThrow(
-    "used"
-  );
+  await claimEvaluation("guest", lease.id, "gemini");
   await expect(claimEvaluation("other", lease.id, "openai")).rejects.toThrow();
   await claimEvaluation("guest", lease.id, "openai");
 });

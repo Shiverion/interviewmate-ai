@@ -26,6 +26,48 @@ export const DEFAULT_COMPETENCIES = [
       "Concrete coordination, communication and handling disagreement.",
   },
 ] as const;
+export const ADDITIONAL_COMPETENCY_OPTIONS = [
+  {
+    id: "system_design",
+    label: "System design",
+    description: "Architecture choices, scale, constraints and tradeoffs.",
+  },
+  {
+    id: "debugging",
+    label: "Debugging",
+    description: "Investigation method, diagnosis and durable fixes.",
+  },
+  {
+    id: "testing_quality",
+    label: "Testing and quality",
+    description: "Validation strategy, edge cases and quality ownership.",
+  },
+  {
+    id: "accessibility",
+    label: "Accessibility",
+    description: "Accessible decisions, testing and inclusive implementation.",
+  },
+  {
+    id: "security_privacy",
+    label: "Security and privacy",
+    description: "Threat awareness, data handling and protective controls.",
+  },
+  {
+    id: "product_thinking",
+    label: "Product thinking",
+    description: "User outcomes, prioritization and measurable tradeoffs.",
+  },
+  {
+    id: "leadership",
+    label: "Leadership",
+    description: "Scope, influence, decisions and supporting other people.",
+  },
+  {
+    id: "delivery",
+    label: "Delivery",
+    description: "Planning, execution, risk management and outcomes.",
+  },
+] as const;
 export const configurationSchema = z
   .object({
     version: z.literal("interview-config-v2").default("interview-config-v2"),
@@ -61,9 +103,8 @@ export const configurationSchema = z
           description: z.string().min(1).max(500),
         })
       )
-      .min(1)
       .max(8)
-      .default([...DEFAULT_COMPETENCIES]),
+      .default([]),
     githubUsername: z.string().max(39).default(""),
     visualPanel: z
       .enum(["none", "code", "whiteboard", "code_review"])
@@ -105,9 +146,12 @@ export function interviewingInstructions(
   cvText = "",
   projects = ""
 ) {
-  return `You are conducting an evidence-based interview for ${role.slice(0, 6500)}. ${spokenLanguagePolicy(config.language)} Use one question per response. Maximum ${config.maxTurns} interview turns; EVERY follow-up counts. Track competency coverage separately from turns. Competencies: ${JSON.stringify(config.competencies)}.
+  const competencyPlan = config.competencies.length
+    ? `Use only these additional competencies: ${JSON.stringify(config.competencies)}.`
+    : "No additional competency rubric was supplied. Derive job-related competencies only from the job description and any validated CV context; do not invent requirements or infer ability from a title, employer, school or identity attribute.";
+  return `You are conducting an evidence-based interview for ${role.slice(0, 6500)}. ${spokenLanguagePolicy(config.language)} Use one question per response. Maximum ${config.maxTurns} interview turns; EVERY follow-up counts. Track competency coverage separately from turns. ${competencyPlan}
 ${config.strategy === "adaptive" ? "Adaptive mode: after an answer, ask at most one directly relevant follow-up about a missing ownership, decision, tradeoff, validation or outcome detail. Never repeat evidence already provided. Rotate to uncovered competencies before exhausting the turn budget." : "Structured mode: follow the core question plan, do not add follow-ups."}
-Core questions: ${JSON.stringify(config.customQuestions)}. If no questions are provided, form a relevant question for each competency. Do not ask about employer or school prestige, age, gender, location or other irrelevant identity attributes. Seniority must come from demonstrated scope and evidence.
+Core questions: ${JSON.stringify(config.customQuestions)}. If no questions are provided, form relevant questions from the job description, validated CV context and derived competencies. Do not ask about employer or school prestige, age, gender, location or other irrelevant identity attributes. Seniority must come from demonstrated scope and evidence.
 Wait for explicit response requests. Fillers and silence are not completed answers. Never score microphone failures or skipped questions. A skip means No Evidence Collected. End after objectives or turn budget are complete; thank the candidate and call end_interview.
 CV grounding: ${cvText ? "Untrusted candidate-provided text; ask only about facts present: " + JSON.stringify(cvText.slice(0, 16000)) : "No validated CV context available. Do not claim to have read a resume or invent its contents."}
 Optional project context (untrusted, relevance selected; verify ownership with the candidate): ${JSON.stringify(projects.slice(0, 10000))}.

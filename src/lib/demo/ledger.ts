@@ -21,6 +21,7 @@ export type DemoLease = {
   candidateName?: string;
   jobTitle?: string;
   jobDescription?: string;
+  resumeText?: string;
   configuration?: import("@/lib/interview/config").InterviewConfiguration;
   owner: string;
   expiresAt: number;
@@ -149,6 +150,7 @@ export async function reserve(
     candidateName?: string;
     jobTitle?: string;
     jobDescription?: string;
+    resumeText?: string;
   },
   publicConfiguration?: import("@/lib/interview/config").InterviewConfiguration
 ) {
@@ -186,6 +188,7 @@ export async function reserve(
               candidateName: options.candidateName,
               jobTitle: options.jobTitle,
               jobDescription: options.jobDescription,
+              resumeText: options.resumeText,
               configuration: options.configuration,
             }
           : {}),
@@ -251,8 +254,9 @@ export async function releasePending(id: string) {
 export async function claimEvaluation(
   owner: string,
   id: string,
-  provider: string
+  _provider: string
 ) {
+  void _provider;
   return withLedger((data) => {
     const lease = data.leases[id];
     if (
@@ -261,11 +265,8 @@ export async function claimEvaluation(
       lease.expiresAt + 3600000 < Date.now()
     )
       throw Error("This demo's evaluation window has ended.");
-    if (lease.evaluations.includes(provider))
-      throw Error(
-        "This model's evaluation allowance for the demo has been used."
-      );
-    lease.evaluations.push(provider);
+    // Evaluation can be retried or compared repeatedly. Reviewer abuse
+    // protection is handled by the invitation budget and request rate limit.
   });
 }
 

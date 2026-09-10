@@ -24,6 +24,8 @@ const input = z.object({
       })
     )
     .max(100),
+  role: z.string().max(6500).optional(),
+  cv: z.string().max(24000).optional(),
 });
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return reply(req, { error: "Invalid origin." }, 403);
@@ -38,8 +40,10 @@ export async function POST(req: NextRequest) {
       process.env[p.env]?.trim()
     );
     const selectedProvider = grant
-      ? (configuredProviders.find((p) => p.id === body.provider) ||
-          configuredProviders[0])?.id || "openai"
+      ? (
+          configuredProviders.find((p) => p.id === body.provider) ||
+          configuredProviders[0]
+        )?.id || "openai"
       : body.provider;
     await claimEvaluation(owner, body.sessionId, selectedProvider);
     if (grant) await consumeReviewer(grant, 3);
@@ -54,7 +58,16 @@ export async function POST(req: NextRequest) {
       process.env[provider.env],
       body.transcript,
       lease.configuration || configurationSchema.parse({}),
-      { host: true, fallbackKeys }
+      {
+        host: true,
+        fallbackKeys,
+        jobContext: {
+          role:
+            body.role ||
+            [lease.jobTitle, lease.jobDescription].filter(Boolean).join("\n"),
+          cvText: lease.resumeText || body.cv,
+        },
+      }
     );
     await saveEvaluation(owner, body.sessionId, {
       transcript: body.transcript,

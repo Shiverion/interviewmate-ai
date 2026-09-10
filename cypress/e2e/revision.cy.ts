@@ -18,11 +18,25 @@ describe("Evidence revision", () => {
     cy.visit("/reviewer");
     cy.contains("Set up your interview").should("be.visible");
     cy.contains("Evaluation Sandbox").should("not.exist");
+    cy.contains("Additional competency rubric · Optional").should("be.visible");
+    cy.get('[aria-label="Additional competency"]').should("be.visible");
+    cy.contains("Personal ownership").should("not.exist");
     cy.request({
       method: "POST",
       url: "/api/evaluate",
       headers: { Origin: "http://localhost:3000" },
-      body: { transcript: [] },
+      body: {
+        transcript: [],
+        configuration: {
+          competencies: [
+            {
+              id: "ownership",
+              label: "Personal ownership",
+              description: "Demonstrated responsibility and decisions.",
+            },
+          ],
+        },
+      },
     }).then(({ body }) => {
       expect(body.evaluation.overallScore).to.eq(null);
       cy.request({

@@ -1,4 +1,8 @@
-import { defaultConfiguration, configurationSchema } from "./config";
+import {
+  DEFAULT_COMPETENCIES,
+  defaultConfiguration,
+  configurationSchema,
+} from "./config";
 import { speechKind, silenceAction } from "./turn-policy";
 import {
   finalizeEvidence,
@@ -7,7 +11,9 @@ import {
 } from "../ai/evidence";
 import { validatedCvText, parsingFailure } from "../pdf/result";
 import { rankRepositories, cleanReadme } from "../github/relevance";
-const config = defaultConfiguration();
+const config = configurationSchema.parse({
+  competencies: [...DEFAULT_COMPETENCIES],
+});
 const lines = [
   {
     role: "user" as const,
@@ -26,6 +32,32 @@ const draft: EvidenceDraft = {
     },
   ],
 };
+test("new interview configuration leaves additional competency rubric empty", () => {
+  expect(defaultConfiguration().competencies).toEqual([]);
+});
+test("an empty rubric accepts competencies derived from the role context", () => {
+  const derived = finalizeEvidence(
+    {
+      competencies: [
+        {
+          id: "api_design",
+          label: "API design",
+          description: "Designing reliable interfaces.",
+          level: 3,
+          relevance: "direct",
+          consistency: "consistent",
+          quotes: [{ turn: 1, quote: lines[0].text }],
+          rationale: "The answer describes a concrete interface decision.",
+        },
+      ],
+    },
+    lines,
+    defaultConfiguration()
+  );
+  expect(derived.competencies).toHaveLength(1);
+  expect(derived.competencies[0].label).toBe("API design");
+  expect(derived.dimensions.competencyCoverage.total).toBe(1);
+});
 test.each([
   "",
   "uh hmm",

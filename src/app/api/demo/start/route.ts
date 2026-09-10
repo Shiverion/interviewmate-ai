@@ -67,6 +67,10 @@ export async function POST(req: NextRequest) {
               typeof payload.jobDescription === "string"
                 ? payload.jobDescription.slice(0, 6000)
                 : undefined,
+            resumeText:
+              typeof payload.resumeText === "string"
+                ? payload.resumeText.slice(0, 24000)
+                : undefined,
           }
         : undefined,
       grant ? undefined : config

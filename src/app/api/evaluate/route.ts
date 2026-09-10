@@ -15,6 +15,8 @@ const input = z.object({
     )
     .max(100),
   configuration: configurationSchema.optional(),
+  role: z.string().max(6500).optional(),
+  cv: z.string().max(24000).optional(),
 });
 export async function POST(req: Request) {
   if (
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
       key,
       body.transcript,
       body.configuration || configurationSchema.parse({}),
-      { fallbackKeys }
+      { fallbackKeys, jobContext: { role: body.role, cvText: body.cv } }
     );
     return Response.json(
       {

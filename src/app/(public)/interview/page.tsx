@@ -191,7 +191,9 @@ function InterviewRoomContent() {
           transcript,
           candidateName,
           jobTitle,
+          role: [jobTitle, jobDescription].filter(Boolean).join("\n"),
           jobDescription: jobDescription || "",
+          cv: _sessionContext?.resumeText || "",
         }),
       })
         .then(async (res) => {

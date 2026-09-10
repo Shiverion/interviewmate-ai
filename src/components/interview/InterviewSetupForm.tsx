@@ -194,6 +194,7 @@ export default function InterviewSetupForm({
             candidateName: name || "Reviewer",
             jobTitle,
             jobDescription,
+            resumeText,
           }),
         });
         const data = await r.json();
