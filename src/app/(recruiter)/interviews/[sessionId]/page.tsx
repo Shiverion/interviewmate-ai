@@ -13,6 +13,7 @@ import { reportText } from "@/lib/integrity/policy";
 import SessionControlReport from "@/components/interview/SessionControlReport";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
 import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
+import InterviewFeedbackSummary from "@/components/interview/InterviewFeedbackSummary";
 
 export default function CandidateReportPage() {
   const params = useParams();
@@ -144,6 +145,7 @@ export default function CandidateReportPage() {
             synthetic: sessionData.synthetic === true,
           }}
         />
+        <InterviewFeedbackSummary value={sessionData.candidate_feedback} />
         <section className="wm-panel">
           <h2 className="text-xl mb-4">Transcript</h2>
           {(final_transcript || []).map(
@@ -591,6 +593,7 @@ export default function CandidateReportPage() {
       )}
 
       {/* Transcript Viewer */}
+      <InterviewFeedbackSummary value={sessionData.candidate_feedback} />
       <div className="mt-12">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold font-heading flex items-center gap-2">

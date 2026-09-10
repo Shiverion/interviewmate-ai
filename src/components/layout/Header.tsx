@@ -27,7 +27,6 @@ export default function Header() {
           ["Pipeline", "/pipeline"],
           ["Candidates", "/candidates"],
           ["Interview history", "/interviews"],
-          ["Invitations", "/invitations"],
           ["Resume check", "/ats-check"],
           ["Models & access", "/settings"],
         ]

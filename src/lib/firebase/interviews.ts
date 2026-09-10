@@ -70,6 +70,15 @@ export interface InterviewSession {
     strengths?: string[];
     summary?: string;
   };
+  candidate_feedback?: {
+    overall_experience: number;
+    interviewer_clarity: number;
+    transcription_accuracy: number;
+    question_relevance: number;
+    technical_reliability: number;
+    comments?: string;
+    submitted_at?: Timestamp | FieldValue | Date;
+  };
 }
 
 /** Reviewer invitations are QA data and must stay out of production reports. */

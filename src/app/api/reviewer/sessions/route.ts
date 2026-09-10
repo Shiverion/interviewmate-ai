@@ -141,14 +141,29 @@ export async function PUT(req: NextRequest) {
         evaluation: z.unknown().optional(),
         model: z.string().max(100).optional(),
         provider: z.string().max(50).optional(),
+        feedback: z
+          .object({
+            overall_experience: z.number().int().min(1).max(5),
+            interviewer_clarity: z.number().int().min(1).max(5),
+            transcription_accuracy: z.number().int().min(1).max(5),
+            question_relevance: z.number().int().min(1).max(5),
+            technical_reliability: z.number().int().min(1).max(5),
+            comments: z.string().max(1000),
+          })
+          .optional(),
       })
       .parse(await limitedJson(req, 180000));
     await withLedger((d) => {
       const s = d.reviewerSessions?.[body.id];
       if (!s || s.owner !== grant.id) throw Error("Session unavailable.");
+      const nextStatus = body.evaluation
+        ? "evaluated"
+        : s.status === "evaluated"
+          ? "evaluated"
+          : "completed";
       Object.assign(s, {
         ...body,
-        status: body.evaluation ? "evaluated" : "completed",
+        status: nextStatus,
       });
     });
     return Response.json({ saved: true });

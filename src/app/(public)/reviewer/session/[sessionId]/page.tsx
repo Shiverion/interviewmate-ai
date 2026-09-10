@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
 import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
+import InterviewFeedbackSummary from "@/components/interview/InterviewFeedbackSummary";
+import type { InterviewFeedback } from "@/components/interview/InterviewFeedbackForm";
 import type { EvidenceAssessment as Assessment } from "@/lib/ai/evidence";
 import Link from "next/link";
 export default function ReviewerSession() {
@@ -12,6 +14,7 @@ export default function ReviewerSession() {
       transcript?: unknown;
       model?: string;
       provider?: string;
+      feedback?: InterviewFeedback;
       candidateName: string;
     } | null>(null),
     [error, setError] = useState("");
@@ -44,6 +47,7 @@ export default function ReviewerSession() {
               synthetic: true,
             }}
           />
+          <InterviewFeedbackSummary value={session.feedback} />
         </>
       ) : (
         <p>No completed assessment saved yet.</p>

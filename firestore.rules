@@ -54,7 +54,8 @@ service cloud.firestore {
         && !(resource.data.status == 'completed' && request.resource.data.status == 'active')
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'started_at', 'completed_at', 'status', 'final_transcript',
-          'session_control', 'session_integrity', 'code_workspace', 'whiteboard_workspace'
+          'session_control', 'session_integrity', 'code_workspace', 'whiteboard_workspace',
+          'candidate_feedback'
         ]);
     }
     match /interview_templates/{templateId} {

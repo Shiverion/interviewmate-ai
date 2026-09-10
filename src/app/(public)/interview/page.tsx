@@ -22,6 +22,7 @@ import { canManageInterview } from "@/lib/firebase/access";
 import { auth } from "@/lib/firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
+import InterviewFeedbackForm from "@/components/interview/InterviewFeedbackForm";
 import RecoveryActions from "@/components/interview/RecoveryActions";
 import { type EvidenceAssessment as EvidenceResult } from "@/lib/ai/evidence";
 import {
@@ -142,6 +143,9 @@ function InterviewRoomContent() {
   const visualPanel = _sessionContext?.visualPanel ?? "none";
   const codeDiff = _sessionContext?.codeDiff ?? "";
   const isDemoSession = !!sessionId && sessionId.startsWith("demo-");
+  const reviewerSessionId =
+    _sessionContext?.reviewSourceId ||
+    (_sessionContext?.sponsored ? _sessionContext?.voiceLeaseId : undefined);
   const hasVisualPanel = visualPanel !== "none" && status === "active";
   const control = useInterviewControl(
     sessionId || "standalone-interview",
@@ -405,6 +409,12 @@ function InterviewRoomContent() {
         <h1 className="wm-heading">Interview evidence</h1>
         <EvidenceAssessment assessment={evidenceResult} />
         {evaluationError && <p role="alert">{evaluationError}</p>}
+        <InterviewFeedbackForm
+          sessionId={sessionId}
+          reviewerSessionId={reviewerSessionId}
+          sponsored={_sessionContext?.sponsored}
+          language={_sessionContext?.preferredLanguage}
+        />
         <RecoveryActions retry={false} />
       </div>
     );
@@ -681,6 +691,14 @@ function InterviewRoomContent() {
                 recorded and processed. You may now close this tab safely.
               </p>
             </>
+          )}
+          {!isEvaluating && (
+            <InterviewFeedbackForm
+              sessionId={sessionId}
+              reviewerSessionId={reviewerSessionId}
+              sponsored={_sessionContext?.sponsored}
+              language={_sessionContext?.preferredLanguage}
+            />
           )}
         </div>
       </div>
