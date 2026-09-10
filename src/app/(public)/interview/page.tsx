@@ -701,7 +701,7 @@ function InterviewRoomContent() {
   return (
     <div
       ref={roomRef}
-      className="relative flex h-full min-h-0 flex-col bg-[var(--background)] overflow-hidden"
+      className="relative flex min-h-[calc(100vh-5rem)] flex-col bg-[var(--background)] overflow-x-hidden"
     >
       {turnNotice && (
         <div role="status" className="wm-note text-center m-3">
@@ -732,11 +732,11 @@ function InterviewRoomContent() {
 
       {/* Main Stage — split layout when visual panel is active */}
       <div
-        className={`flex-1 min-h-0 ${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6"} p-4 pb-8 overflow-hidden`}
+        className={`${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6"} flex-none p-4 pb-24 overflow-visible`}
       >
         {/* AI Interviewer Column */}
         <div
-          className={`flex h-full min-h-0 w-full flex-col items-center justify-start pt-4 ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
+          className={`flex min-h-0 w-full flex-col items-center justify-start pt-4 ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
         >
           <div className="relative w-40 h-40 sm:w-56 sm:h-56 mb-6 shrink-0">
             {/* Subtle pulse ring when active */}
@@ -784,11 +784,11 @@ function InterviewRoomContent() {
           {/* Conditional View: Voice Subtitles vs Text Chat — inside AI column */}
           {isTextMode ? (
             <div
-              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-[10rem] sm:min-h-[12rem] max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
+              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} h-[20rem] sm:h-[24rem] shrink-0 flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
             >
               <div
                 ref={scrollRef}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth"
+                className="h-full overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth"
               >
                 {transcript.map((item, i) => (
                   <div
@@ -833,11 +833,11 @@ function InterviewRoomContent() {
             </div>
           ) : (
             <div
-              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-[10rem] sm:min-h-[12rem] max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
+              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} h-[20rem] sm:h-[24rem] shrink-0 flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
             >
               <div
                 ref={scrollRef}
-                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth text-center"
+                className="h-full overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth text-center"
               >
                 {transcript.map((item, i) => (
                   <p key={i} className="text-lg text-[var(--foreground)]">

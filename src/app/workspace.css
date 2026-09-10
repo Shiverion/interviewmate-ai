@@ -527,8 +527,6 @@ textarea {
   height: 38px;
 }
 .wm-interview {
-  height: 100%;
-  min-height: 0;
   background: var(--background);
 }
 .wm-interview .glass-card {
