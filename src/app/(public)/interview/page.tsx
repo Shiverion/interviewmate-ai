@@ -754,10 +754,10 @@ function InterviewRoomContent() {
         {hasVisualPanel && sessionId && (
           <div className="flex-1 min-h-0 pl-4 overflow-hidden">
             {visualPanel === "code" && (
-              <CodeEditor sessionId={sessionId} isCandidate={true} />
+              <CodeEditor key={sessionId} sessionId={sessionId} isCandidate={true} />
             )}
             {visualPanel === "whiteboard" && (
-              <Whiteboard sessionId={sessionId} isCandidate={true} />
+              <Whiteboard key={sessionId} sessionId={sessionId} isCandidate={true} />
             )}
             {visualPanel === "code_review" && <CodeReview diff={codeDiff} />}
           </div>

@@ -1,16 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { db } from "@/lib/firebase/config";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
-
-interface DrawPoint {
-    x: number;
-    y: number;
-    type: "start" | "draw" | "end";
-    color: string;
-    size: number;
-}
+import { useEffect, useRef, useState } from "react";
+import { usePanelSync, panelSyncMessage } from "./usePanelSync";
 
 interface WhiteboardProps {
     sessionId: string;
@@ -26,8 +17,7 @@ export default function Whiteboard({ sessionId, isCandidate }: WhiteboardProps) 
     const [color, setColor] = useState("#e2e8f0");
     const [brushSize, setBrushSize] = useState(3);
     const [tool, setTool] = useState<"pen" | "eraser">("pen");
-    const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const isDemoSession = sessionId.startsWith("demo-");
+    const sync = usePanelSync(sessionId, "whiteboard_workspace", isCandidate, SYNC_INTERVAL_MS);
 
     const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
 
@@ -51,39 +41,23 @@ export default function Whiteboard({ sessionId, isCandidate }: WhiteboardProps) 
         };
     };
 
-    const syncToFirestore = useCallback(() => {
-        if (isDemoSession || !isCandidate || !canvasRef.current) return;
-        if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(async () => {
-            try {
-                const dataUrl = canvasRef.current?.toDataURL("image/png", 0.7) ?? "";
-                const wbRef = doc(db, "interview_whiteboard", sessionId);
-                await setDoc(wbRef, { snapshot: dataUrl, updated_at: new Date().toISOString() }, { merge: true });
-            } catch (e) {
-                console.error("Whiteboard sync error:", e);
-            }
-        }, SYNC_INTERVAL_MS);
-    }, [sessionId, isDemoSession, isCandidate]);
+    const syncToFirestore = () => {
+        if (!isCandidate || !canvasRef.current || sync.status !== "live") return;
+        sync.save({ snapshot: canvasRef.current.toDataURL("image/png"), updated_at: new Date().toISOString() });
+    };
 
-    // Recruiter live view via Firestore snapshots
     useEffect(() => {
-        if (isDemoSession || isCandidate) return;
-        const wbRef = doc(db, "interview_whiteboard", sessionId);
-        const unsub = onSnapshot(wbRef, (snap) => {
-            if (!snap.exists()) return;
-            const { snapshot } = snap.data();
-            if (!snapshot || !canvasRef.current) return;
-            const img = new Image();
-            img.onload = () => {
-                const ctx = getCtx();
-                if (!ctx || !canvasRef.current) return;
-                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-                ctx.drawImage(img, 0, 0);
-            };
-            img.src = snapshot;
-        });
-        return () => unsub();
-    }, [sessionId, isDemoSession, isCandidate]);
+        if (isCandidate || typeof sync.data?.snapshot !== "string") return;
+        const img = new Image();
+        img.onload = () => {
+            const ctx = getCtx();
+            if (!ctx || !canvasRef.current) return;
+            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+            ctx.drawImage(img, 0, 0);
+        };
+        img.src = sync.data.snapshot;
+        return () => { img.onload = null; };
+    }, [isCandidate, sync.data]);
 
     // Initialize canvas background
     useEffect(() => {
@@ -141,7 +115,7 @@ export default function Whiteboard({ sessionId, isCandidate }: WhiteboardProps) 
             <div className="flex items-center justify-between px-4 py-2 bg-[#16213e] border-b border-[#2a2a4e] shrink-0 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-gray-400 uppercase tracking-wider">Whiteboard</span>
-                    {!isCandidate && (
+                    {!isCandidate && sync.status === "live" && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-500/20 text-accent-400 border border-accent-500/30 font-medium">LIVE</span>
                     )}
                 </div>
@@ -192,6 +166,9 @@ export default function Whiteboard({ sessionId, isCandidate }: WhiteboardProps) 
                 )}
             </div>
 
+            <p role="status" className="px-4 py-2 text-xs text-gray-400">
+                {panelSyncMessage(sync.status, isCandidate)}
+            </p>
             {/* Canvas */}
             <div className="flex-1 min-h-0 relative overflow-hidden">
                 <canvas
@@ -210,7 +187,7 @@ export default function Whiteboard({ sessionId, isCandidate }: WhiteboardProps) 
                 />
                 {!isCandidate && (
                     <div className="absolute bottom-3 left-3 text-xs text-gray-500 bg-black/40 px-2 py-1 rounded">
-                        Read-only — candidate is drawing
+                        Read-only
                     </div>
                 )}
             </div>

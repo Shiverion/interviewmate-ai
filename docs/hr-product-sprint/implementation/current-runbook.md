@@ -45,6 +45,12 @@ All voice rooms use `/api/realtime` and `src/lib/realtime/service.ts`. Old token
 
 ## Engineer handoff
 
+### Panel sync fix (2026-09-10)
+
+The code editor and whiteboard previously accessed `interview_code` and `interview_whiteboard`, which the repository's Firestore rules deny. Their listeners also lacked error callbacks. Both panels now use fields `code_workspace` and `whiteboard_workspace` on an existing `interview_sessions` document, after Firebase authentication. No rules were broadened or deployed. Demo, Reviewer Mode and unauthenticated rooms remain local; their panel work is not saved or shared, as indicated in the panel. Permission failures retain the candidate's open panel and display the same limitation. Pending saves are cancelled on sign-out, session change or unmount.
+
+Validation: 13 targeted automated tests passed for local-session isolation, authentication, both panel writes, denied reads/writes, missing records, read-only viewing and save cancellation. These use mocked Firestore; deployed permissions still need a signed-in browser check. Start a scheduled interview with Code Editor, type a short snippet, wait two seconds and check `code_workspace` on that session. Repeat with Whiteboard and `whiteboard_workspace`. Confirm Demo/Reviewer panels say Local only and produce no Firestore permission error. Do not mark live syncing verified until that check passes.
+
 Configuration: `src/lib/interview/config.ts`; turn policy: `turn-policy.ts`; connection orchestration: `src/lib/store/useInterviewStore.ts`; evidence validation: `src/lib/ai/evidence.ts`; provider adapter: `evaluation.ts`; access/usage: `src/lib/access/reviewer.ts` and `src/lib/demo/ledger.ts`. Human reviews persist locally and, with an invitation, to private host files. No training job or analytics export consumes these records automatically.
 
 Run `npm test -- --runInBand`, `npx tsc --noEmit`, `npm run build`, and `npx cypress run --spec "cypress/e2e/revision.cy.ts,cypress/e2e/reviewer-demo.cy.ts,cypress/e2e/integrity.cy.ts"`. The revision browser test requires a valid local invitation and writes clearly synthetic local records. It does not call a paid model.
