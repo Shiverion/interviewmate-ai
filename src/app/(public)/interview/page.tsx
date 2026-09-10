@@ -508,10 +508,6 @@ function InterviewRoomContent() {
   if (status === "completed") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 text-center">
-        <IntegrityPanel
-          language={_sessionContext?.preferredLanguage}
-          showAlert={false}
-        />
         <div className="max-w-2xl w-full glass-card p-8 md:p-10 space-y-6 relative overflow-hidden">
           {control.record?.phase === "ended" ? (
             <>
