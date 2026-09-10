@@ -110,10 +110,11 @@ export class WebRTCAudioManager {
               this.partialTranscripts.delete(parsed.item_id);
               this.pendingUserAudioItemIds.add(parsed.item_id);
             }
-            this.config.onMessage(
-              "user_transcript_partial",
-              [...this.partialTranscripts.values()].join(" ")
-            );
+            const remainingDraft = [...this.partialTranscripts.values()]
+              .join(" ")
+              .trim();
+            if (remainingDraft)
+              this.config.onMessage("user_transcript_partial", remainingDraft);
             this.config.onMessage("user_transcript_done", parsed.transcript);
           } else if (
             eventType === "conversation.item.input_audio_transcription.delta"

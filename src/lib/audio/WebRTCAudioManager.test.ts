@@ -69,10 +69,11 @@ test("streaming drafts are separate from committed text and duplicate completion
     onMessage.mock.calls.filter(([type]) => type === "user_transcript_done")
   ).toEqual([["user_transcript_done", "I built a queue."]]);
   expect(
-    onMessage.mock.calls
-      .filter(([type]) => type === "user_transcript_partial")
-      .at(-1)
-  ).toEqual(["user_transcript_partial", ""]);
+    onMessage.mock.calls.filter(([type]) => type === "user_transcript_partial")
+  ).toEqual([
+    ["user_transcript_partial", "I built "],
+    ["user_transcript_partial", "I built a queue."],
+  ]);
   manager.disconnect();
 });
 test("repeat and recovery response instructions preserve the configured spoken language", async () => {
