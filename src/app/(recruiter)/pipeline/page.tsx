@@ -53,6 +53,36 @@ function emailFromText(text: string) {
   return text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/i)?.[0]?.toLowerCase() || "";
 }
 
+function nameFromText(text: string, fallback: string) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 8);
+  const isName = (line: string) =>
+    line.length >= 3 &&
+    line.length <= 80 &&
+    line.split(" ").length >= 2 &&
+    line.split(" ").length <= 5 &&
+    !line.includes("@") &&
+    !/resume|curriculum|vitae|profile|experience|skills|education|linkedin|phone/i.test(line) &&
+    /^[\p{L}][\p{L}' .-]+$/u.test(line);
+  const detected = lines.find(isName);
+  if (detected) return detected;
+
+  // Some PDF extractors flatten the header into one line. Use the text before
+  // the first email as a safe fallback for the common "Name  email" layout.
+  const emailIndex = text.search(/[\w.+-]+@[\w-]+\.[\w.-]+/i);
+  const header = emailIndex >= 0
+    ? text.slice(0, emailIndex).replace(/[|•]+/g, " ").replace(/\s+/g, " ").trim()
+    : "";
+  const flattened = header.split(/(?:target title|location|phone)\s*:?/i)[0].trim();
+  if (isName(flattened)) return flattened;
+  const detectedFromHeader = flattened.match(/[\p{L}][\p{L}'-]+(?:\s+[\p{L}][\p{L}'-]+){1,4}/u)?.[0];
+  if (detectedFromHeader && isName(detectedFromHeader)) return detectedFromHeader;
+  return fallback;
+}
+
 function scoreColor(score: number) {
   if (score >= 75) return "text-emerald-400";
   if (score >= 50) return "text-amber-400";
@@ -174,6 +204,10 @@ export default function PipelinePage() {
           status: "scoring",
           parsing,
           resumeText,
+          candidateName:
+            candidate.candidateName === candidateNameFromFile(candidate.file)
+              ? nameFromText(resumeText, candidate.candidateName)
+              : candidate.candidateName,
           candidateEmail: candidate.candidateEmail || emailFromText(resumeText),
         });
 
