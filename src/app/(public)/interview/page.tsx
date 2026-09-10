@@ -718,10 +718,6 @@ function InterviewRoomContent() {
           </div>
         </div>
       )}
-      <IntegrityPanel
-        language={_sessionContext?.preferredLanguage}
-        showAlert={false}
-      />
       {demoSeconds !== null && (
         <p
           className="text-center text-xs text-[var(--muted)] py-2"
@@ -740,7 +736,7 @@ function InterviewRoomContent() {
       >
         {/* AI Interviewer Column */}
         <div
-          className={`flex min-h-0 w-full flex-col items-center justify-start pt-4 ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
+          className={`flex h-full min-h-0 w-full flex-col items-center justify-start pt-4 ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
         >
           <div className="relative w-40 h-40 sm:w-56 sm:h-56 mb-6 shrink-0">
             {/* Subtle pulse ring when active */}
@@ -788,7 +784,7 @@ function InterviewRoomContent() {
           {/* Conditional View: Voice Subtitles vs Text Chat — inside AI column */}
           {isTextMode ? (
             <div
-              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-0 max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
+              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-[10rem] sm:min-h-[12rem] max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
             >
               <div
                 ref={scrollRef}
@@ -837,7 +833,7 @@ function InterviewRoomContent() {
             </div>
           ) : (
             <div
-              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-0 max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
+              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-[10rem] sm:min-h-[12rem] max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
             >
               <div
                 ref={scrollRef}
