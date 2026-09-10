@@ -6,7 +6,7 @@ Updated: 2026-09-11. This note documents the first implementation of the recruit
 
 Recruiters can now open `/pipeline`, paste one role brief, upload multiple CV PDFs, rank the CVs with the existing `/api/ats-score` logic used by `/ats-check`, select candidates, and create interview invitation links in one flow. The primary navigation points to `/pipeline`; `/interviews` remains available for existing interview records.
 
-The **Candidates** navigation item opens `/candidates`, a compact dashboard of persisted candidate sessions. Rows show rank, candidate, email, ATS score and status; expanding a row reveals the invitation, role setup, ATS evidence, evaluation state and parsed-CV details without turning the default view into a wide data grid.
+The **Candidates** navigation item opens `/candidates`, a compact dashboard of persisted pipeline candidates and interview sessions. Rows show rank, candidate, email, ATS score and status; expanding a row reveals the invitation, role setup, ATS evidence, evaluation state and parsed-CV details without turning the default view into a wide data grid. Candidates remain visible with `screened` or `not_invited` status even when the recruiter does not create a link.
 
 ## Recruiter flow
 
@@ -27,6 +27,7 @@ PDFs are sent to the existing parser for text extraction. The original PDF is up
 |---|---|---|
 | Bulk UI | `src/app/(recruiter)/pipeline/page.tsx` | Upload, parse, score, sort, select and create links |
 | Candidate dashboard | `src/app/(recruiter)/candidates/page.tsx` | Minimal ranking table with expandable candidate details |
+| Pipeline persistence | `src/lib/firebase/pipeline.ts` and `firestore.rules` | Owner-scoped `pipeline_candidates` records linked to interview sessions |
 | Detail route | `src/app/(recruiter)/pipeline/[sessionId]/page.tsx` | Canonical pipeline report URL; reuses the existing report page |
 | ATS scoring | `src/app/api/ats-score/route.ts` | Deterministic keyword, skill and experience scoring |
 | PDF parsing | `src/app/api/parse-resume/route.ts` | Bounded PDF text extraction and warnings |
@@ -39,6 +40,8 @@ PDFs are sent to the existing parser for text extraction. The original PDF is up
 - Targeted ESLint passed for the pipeline, navigation, session creation and linked pages.
 - `npm test -- --runInBand` passed: 24 suites, 180 tests.
 - `npm run build` passed and emitted `/pipeline` and `/pipeline/[sessionId]` routes.
+
+The Firebase rules deployment must include the `pipeline_candidates` match before relying on persistence. Until then, `/pipeline` still ranks resumes locally and `/candidates` shows any existing interview sessions with a visible availability notice.
 
 ## Known limits
 
