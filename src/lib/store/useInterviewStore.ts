@@ -180,12 +180,17 @@ export const useInterviewStore = create<InterviewState>()(
         if (
           get().status !== "active" ||
           get().completionCountdown !== null ||
-          speechKind(text) !== "meaningful" ||
-          get().avatarState === "speaking" ||
-          get().avatarState === "thinking"
-        )
-          return;
+           speechKind(text) !== "meaningful" ||
+           get().avatarState === "speaking" ||
+           get().avatarState === "thinking" ||
+           responsePending
+         )
+           return;
         clearTimeout(turnTimer);
+        // Lock immediately, before the provider emits ai_thinking. Without
+        // this small gap two fast clicks could create two response.create
+        // events and make the interviewer answer twice.
+        responsePending = true;
         get().addTranscriptLine("user", text);
         set({ candidateDeltaMessage: "", turnNotice: "" });
         get().manager?.sendTextMessage(
