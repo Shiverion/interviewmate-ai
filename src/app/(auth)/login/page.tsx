@@ -6,12 +6,18 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signOut,
   GoogleAuthProvider,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRightIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { authErrorMessage } from "@/lib/firebase/auth-error";
+import {
+  DEMO_ADMIN_EMAIL,
+  DEMO_ADMIN_EXPIRES_AT,
+  isDemoAdminActive,
+} from "@/lib/firebase/access";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +28,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showDemoGate, setShowDemoGate] = useState(false);
   const [demoIntent, setDemoIntent] = useState(false);
+  const [showInactiveAccount, setShowInactiveAccount] = useState(false);
+  const [inactiveReason, setInactiveReason] = useState<"expired" | "disabled">("expired");
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -55,17 +63,36 @@ export default function LoginPage() {
       return;
     }
     setError(null);
+    setShowInactiveAccount(false);
     setLoading(true);
 
     try {
       if (isSignUp) {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        if (
+          credential.user.email?.toLowerCase() === DEMO_ADMIN_EMAIL &&
+          !isDemoAdminActive()
+        ) {
+          await signOut(auth);
+          setInactiveReason("expired");
+          setShowInactiveAccount(true);
+          return;
+        }
       }
       router.push(destination());
     } catch (err: unknown) {
       console.error("Auth error:", err);
+      const code =
+        err && typeof err === "object" && "code" in err
+          ? (err as { code?: string }).code
+          : undefined;
+      if (code === "auth/user-disabled") {
+        setInactiveReason("disabled");
+        setShowInactiveAccount(true);
+        return;
+      }
       setError(
         authErrorMessage(
           err,
@@ -286,6 +313,50 @@ export default function LoginPage() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+        {showInactiveAccount && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="inactive-account-title"
+          >
+            <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl">
+              <p className="wm-eyebrow">Reviewer access inactive</p>
+              <h3 id="inactive-account-title" className="mt-2 text-2xl">
+                {inactiveReason === "disabled"
+                  ? "This reviewer account is inactive."
+                  : "This reviewer account has expired."}
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                Contact the administrator to reactivate access or receive a new
+                review window.
+              </p>
+              <a
+                className="mt-4 block text-sm font-medium text-primary-400 underline underline-offset-4"
+                href={`mailto:${"miqbal.izzulhaq@gmail.com"}?subject=${encodeURIComponent("Reactivate InterviewMate reviewer access")}`}
+              >
+                Contact miqbal.izzulhaq@gmail.com
+              </a>
+              {inactiveReason === "expired" && (
+                <p className="mt-4 text-xs text-[var(--muted)]">
+                  The previous access window ended on{" "}
+                  {new Date(DEMO_ADMIN_EXPIRES_AT).toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                  .
+                </p>
+              )}
+              <button
+                type="button"
+                className="wm-button secondary mt-6"
+                onClick={() => setShowInactiveAccount(false)}
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
