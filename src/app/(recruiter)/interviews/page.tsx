@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { interviewScope, canManageInterview } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
 import {
@@ -29,12 +29,30 @@ type Session = {
   candidate_email?: string;
   status?: string;
   created_at?: { toMillis: () => number };
+  started_at?: { toMillis: () => number };
   completed_at?: { toMillis: () => number };
   updated_at?: { toMillis: () => number };
   expires_at?: { toMillis: () => number };
   synthetic?: boolean;
   resume_storage_path?: string;
   source?: string;
+  role_snapshot?: {
+    job_title?: string;
+    job_description?: string;
+  };
+  configuration?: {
+    language?: string;
+    durationMinutes?: number | "unlimited";
+    maxTurns?: number;
+    strategy?: string;
+    voiceProvider?: string;
+    transcriptionModel?: string;
+    customQuestions?: string[];
+  };
+  final_transcript?: Array<{
+    role: "user" | "assistant";
+    text: string;
+  }>;
   evaluation?: {
     schemaVersion?: string;
     status?: string;
@@ -45,6 +63,14 @@ type Session = {
       evidenceQuality?: number | null;
       competencyCoverage?: { assessed?: number; total?: number };
     };
+    competencies?: Array<{
+      id: string;
+      label?: string;
+      level?: number;
+      status?: string;
+      rationale?: string;
+      quotes?: Array<{ turn: number; quote: string }>;
+    }>;
   };
 };
 
@@ -64,6 +90,11 @@ function completedMillis(session: Session) {
       ? millis(session.created_at)
       : 0)
   );
+}
+
+function dateLabel(value: unknown) {
+  const timestamp = millis(value);
+  return timestamp ? new Date(timestamp).toLocaleString() : "—";
 }
 
 function evaluationLabel(session: Session) {
@@ -102,6 +133,7 @@ export default function InterviewsPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Confirmation State
   const [confirmConfig, setConfirmConfig] = useState<{
@@ -529,9 +561,13 @@ export default function InterviewsPage() {
                       : "";
                   const assessment = evaluationLabel(session);
 
+                  const expanded = expandedId === session.id;
+                  const transcript = Array.isArray(session.final_transcript)
+                    ? session.final_transcript
+                    : [];
                   return (
+                    <Fragment key={session.id}>
                     <tr
-                      key={session.id}
                       className="hover:bg-[var(--surface-elevated)] transition-colors"
                     >
                       <td className="px-6 py-4">
@@ -695,7 +731,19 @@ export default function InterviewsPage() {
                           <span className="text-[var(--muted)]">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right flex items-center justify-end gap-3">
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedId(expanded ? null : session.id)
+                          }
+                          aria-expanded={expanded}
+                          className="text-primary-400 hover:text-primary-300 transition-colors text-xs font-medium"
+                        >
+                          {expanded ? "Hide details" : "Expand details"}
+                        </button>
+                        <span className="text-[var(--border)]">|</span>
                         {displayStatus === "Active" && (
                           <>
                             <button
@@ -729,8 +777,112 @@ export default function InterviewsPage() {
                         >
                           Delete
                         </button>
+                        </div>
                       </td>
                     </tr>
+                    {expanded && (
+                      <tr className="bg-[var(--surface-elevated)]/45">
+                        <td colSpan={7} className="p-0">
+                          <div className="border-t border-[var(--border)] px-6 py-6">
+                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
+                              <div className="space-y-5">
+                                <section>
+                                  <p className="text-xs uppercase tracking-[0.18em] text-primary-400">
+                                    Interview details
+                                  </p>
+                                  <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                                    <div>
+                                      <dt className="text-xs text-[var(--muted)]">Role</dt>
+                                      <dd className="mt-1">{session.role_snapshot?.job_title || "Role not recorded"}</dd>
+                                    </div>
+                                    <div>
+                                      <dt className="text-xs text-[var(--muted)]">Candidate email</dt>
+                                      <dd className="mt-1 break-all">{session.candidate_email || "Email not recorded"}</dd>
+                                    </div>
+                                    <div>
+                                      <dt className="text-xs text-[var(--muted)]">Started</dt>
+                                      <dd className="mt-1 text-[var(--muted)]">{dateLabel(session.started_at)}</dd>
+                                    </div>
+                                    <div>
+                                      <dt className="text-xs text-[var(--muted)]">Completed</dt>
+                                      <dd className="mt-1 text-[var(--muted)]">{dateLabel(session.completed_at || session.updated_at || session.created_at)}</dd>
+                                    </div>
+                                  </dl>
+                                  {session.role_snapshot?.job_description && (
+                                    <div className="mt-4">
+                                      <p className="text-xs text-[var(--muted)]">Job description</p>
+                                      <p className="mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
+                                        {session.role_snapshot.job_description}
+                                      </p>
+                                    </div>
+                                  )}
+                                </section>
+                                <section>
+                                  <p className="text-xs uppercase tracking-[0.18em] text-primary-400">Interview configuration</p>
+                                  <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                                    <p><span className="text-[var(--muted)]">Language:</span> {session.configuration?.language || "—"}</p>
+                                    <p><span className="text-[var(--muted)]">Duration:</span> {session.configuration?.durationMinutes || "—"}</p>
+                                    <p><span className="text-[var(--muted)]">Turns:</span> {session.configuration?.maxTurns || "—"}</p>
+                                    <p><span className="text-[var(--muted)]">Approach:</span> {session.configuration?.strategy || "—"}</p>
+                                    <p><span className="text-[var(--muted)]">Voice:</span> {session.configuration?.voiceProvider || "—"}</p>
+                                    <p><span className="text-[var(--muted)]">Transcription:</span> {session.configuration?.transcriptionModel || "—"}</p>
+                                  </div>
+                                  {session.configuration?.customQuestions?.length ? (
+                                    <div className="mt-3">
+                                      <p className="text-xs text-[var(--muted)]">Custom questions</p>
+                                      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+                                        {session.configuration.customQuestions.map((question) => <li key={question}>{question}</li>)}
+                                      </ul>
+                                    </div>
+                                  ) : null}
+                                </section>
+                              </div>
+                              <div className="space-y-5">
+                                <section>
+                                  <div className="flex items-center justify-between gap-3">
+                                    <p className="text-xs uppercase tracking-[0.18em] text-primary-400">Transcript</p>
+                                    <span className="text-xs text-[var(--muted)]">{transcript.length} messages</span>
+                                  </div>
+                                  <div className="mt-3 max-h-[26rem] overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--background)] p-4">
+                                    {transcript.length ? transcript.map((item, index) => (
+                                      <div key={`${session.id}-transcript-${index}`} className="mb-4 last:mb-0">
+                                        <p className="text-[10px] uppercase tracking-wider text-[var(--muted)]">{item.role === "assistant" ? "AI interviewer" : "Candidate"}</p>
+                                        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{item.text}</p>
+                                      </div>
+                                    )) : <p className="text-sm text-[var(--muted)]">No saved transcript is available for this record.</p>}
+                                  </div>
+                                </section>
+                                <section>
+                                  <div className="flex items-center justify-between gap-3">
+                                    <p className="text-xs uppercase tracking-[0.18em] text-primary-400">Assessment detail</p>
+                                    <span className="text-sm font-semibold text-accent-400">{evaluationLabel(session) || "Not evaluated"}</span>
+                                  </div>
+                                  {session.evaluation?.status && <p className="mt-2 text-sm text-[var(--muted)]">{session.evaluation.status}</p>}
+                                  {session.evaluation?.competencies?.length ? (
+                                    <div className="mt-3 space-y-2">
+                                      {session.evaluation.competencies.map((competency) => (
+                                        <details key={competency.id} className="rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2">
+                                          <summary className="cursor-pointer text-sm font-medium">
+                                            {competency.label || competency.id} · {competency.level ?? 0}/4
+                                          </summary>
+                                          <p className="mt-2 text-xs text-[var(--muted)]">{competency.status || "Not assessed"}{competency.rationale ? ` · ${competency.rationale}` : ""}</p>
+                                          {competency.quotes?.length ? <ul className="mt-2 space-y-1 text-xs text-[var(--muted)]">{competency.quotes.map((quote) => <li key={`${competency.id}-${quote.turn}-${quote.quote}`}>Turn {quote.turn}: “{quote.quote}”</li>)}</ul> : null}
+                                        </details>
+                                      ))}
+                                    </div>
+                                  ) : <p className="mt-3 text-sm text-[var(--muted)]">Detailed competency evidence is not available for this record.</p>}
+                                </section>
+                              </div>
+                            </div>
+                            <div className="mt-5 flex flex-wrap gap-3 border-t border-[var(--border)] pt-4">
+                              <Link href={`/interviews/${session.id}`} className="text-xs font-medium text-accent-400 hover:text-accent-300">Open full record →</Link>
+                              {session.candidate_id && <span className="text-xs text-[var(--muted)]">Candidate ID: {session.candidate_id}</span>}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })}
               </tbody>
