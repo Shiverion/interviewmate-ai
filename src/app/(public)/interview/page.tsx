@@ -16,13 +16,13 @@ import { canManageInterview } from "@/lib/firebase/access";
 import { auth } from "@/lib/firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
-import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
 import RecoveryActions from "@/components/interview/RecoveryActions";
 import { type EvidenceAssessment as EvidenceResult } from "@/lib/ai/evidence";
 import {
   configurationFromContext,
   defaultConfiguration,
 } from "@/lib/interview/config";
+import { speechKind } from "@/lib/interview/turn-policy";
 import { useSessionIntegrity } from "@/lib/integrity/useSessionIntegrity";
 import {
   useInterviewControl,
@@ -87,8 +87,6 @@ function InterviewRoomContent() {
   const [evidenceResult, setEvidenceResult] = useState<EvidenceResult | null>(
     null
   );
-  const [evaluationModel, setEvaluationModel] = useState("not recorded");
-  const [evaluationProvider, setEvaluationProvider] = useState("not recorded");
   const turnNotice = useInterviewStore((s) => s.turnNotice);
   const router = useRouter();
   const {
@@ -103,11 +101,13 @@ function InterviewRoomContent() {
     candidateDeltaMessage,
     _sessionContext,
     sendTextMessage,
+    editCandidateDraft,
   } = useInterviewStore();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [chatInput, setChatInput] = useState("");
+  const lastDraftRef = useRef("");
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationDone, setEvaluationDone] = useState(false);
   const [evaluationResult, setEvaluationResult] =
@@ -205,8 +205,6 @@ function InterviewRoomContent() {
           if (data?.evaluation) {
             if (data.evaluation.schemaVersion === "competency-evidence-v2") {
               setEvidenceResult(data.evaluation);
-              setEvaluationModel(data.model || "unknown");
-              setEvaluationProvider(data.provider || "unknown");
               if (_sessionContext?.reviewSourceId)
                 void fetch("/api/reviewer/sessions", {
                   method: "PUT",
@@ -289,11 +287,20 @@ function InterviewRoomContent() {
     }
   }, [transcript, activeDeltaMessage]);
 
-  const handleSendChat = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (candidateDeltaMessage !== lastDraftRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Mirror the external realtime draft into the local composer.
+      setChatInput(candidateDeltaMessage);
+      lastDraftRef.current = candidateDeltaMessage;
+    }
+  }, [candidateDeltaMessage]);
+
+  const handleSendChat = (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
     sendTextMessage(chatInput.trim());
     setChatInput("");
+    lastDraftRef.current = "";
   };
 
   const isTextMode = _sessionContext?.interviewMode === "text";
@@ -302,19 +309,6 @@ function InterviewRoomContent() {
       <div className="wm-page max-w-4xl">
         <h1 className="wm-heading">Interview evidence</h1>
         <EvidenceAssessment assessment={evidenceResult} />
-        {_sessionContext?.accessMode === "reviewer" && (
-          <HumanReviewPanel
-            assessment={evidenceResult}
-            transcript={transcript}
-            source={{
-              sessionId: _sessionContext?.reviewSourceId || sessionId,
-              transcriptVersion: "live-transcript-v2",
-              model: evaluationModel,
-              provider: evaluationProvider,
-              synthetic: true,
-            }}
-          />
-        )}
         {evaluationError && <p role="alert">{evaluationError}</p>}
         <RecoveryActions retry={false} />
       </div>
@@ -543,31 +537,32 @@ function InterviewRoomContent() {
                 </div>
               )}
 
-              <button
-                onClick={() =>
-                  router.push(
-                    _sessionContext?.sponsored ? "/demo" : "/dashboard"
-                  )
-                }
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl gradient-primary text-white font-medium shadow-lg hover:-translate-y-0.5 transition-all"
-              >
-                {_sessionContext?.sponsored
-                  ? "Back to reviewer demo"
-                  : "Back to Dashboard"}
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              {_sessionContext?.sponsored ? (
+                <p className="wm-note">
+                  Your evaluation is complete. The administrator received the
+                  result. You can close this tab now.
+                </p>
+              ) : (
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl gradient-primary text-white font-medium shadow-lg hover:-translate-y-0.5 transition-all"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-              </button>
+                  Back to Dashboard
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
+                  </svg>
+                </button>
+              )}
             </>
           ) : (
             <>
@@ -644,11 +639,11 @@ function InterviewRoomContent() {
 
       {/* Main Stage — split layout when visual panel is active */}
       <div
-        className={`flex-1 min-h-0 flex ${hasVisualPanel ? "flex-row gap-0" : "flex-col items-center justify-center"} p-4 overflow-hidden`}
+        className={`flex-1 min-h-0 ${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6 items-center"} p-4 overflow-hidden`}
       >
         {/* AI Interviewer Column */}
         <div
-          className={`flex flex-col items-center justify-center ${hasVisualPanel ? "w-72 shrink-0 border-r border-[var(--border)] pr-4" : "flex-1 min-h-0 w-full"}`}
+          className={`flex min-h-0 w-full flex-col items-center justify-center ${hasVisualPanel ? "border-r border-[var(--border)] pr-4" : ""}`}
         >
           <div className="relative w-40 h-40 sm:w-56 sm:h-56 mb-6 shrink-0">
             {/* Subtle pulse ring when active */}
@@ -722,7 +717,7 @@ function InterviewRoomContent() {
                     className="text-sm text-[var(--text-muted)]"
                     aria-label="Draft candidate transcript"
                   >
-                    You (transcribing): {candidateDeltaMessage}
+                    Draft — edit and send: {candidateDeltaMessage}
                   </p>
                 )}
                 {activeDeltaMessage && (
@@ -768,7 +763,7 @@ function InterviewRoomContent() {
                     className="text-sm text-[var(--text-muted)]"
                     aria-label="Draft candidate transcript"
                   >
-                    You (transcribing): {candidateDeltaMessage}
+                    Draft — edit and send: {candidateDeltaMessage}
                   </p>
                 )}
                 {activeDeltaMessage && (
@@ -790,9 +785,65 @@ function InterviewRoomContent() {
           )}
         </div>
 
+        <section
+          aria-label="Answer composer"
+          className="w-full max-w-xl justify-self-center self-center rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        >
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-primary-400">
+                Your answer
+              </p>
+              <h2 className="text-lg font-semibold mt-1">
+                Review before sending
+              </h2>
+            </div>
+            <span className="wm-tag">Voice + text</span>
+          </div>
+          <p className="text-sm text-[var(--muted)] mb-4">
+            Speak naturally. Your transcript stays here as a draft so you can
+            correct names, terms or language before the interviewer continues.
+          </p>
+          <textarea
+            aria-label="Editable answer transcript"
+            rows={7}
+            value={chatInput}
+            onChange={(e) => {
+              setChatInput(e.target.value);
+              lastDraftRef.current = e.target.value;
+              editCandidateDraft(e.target.value);
+            }}
+            placeholder="Your spoken answer will appear here. You can also type directly."
+            className="w-full resize-y rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
+          />
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-[var(--muted)]">
+              {chatInput.trim()
+                ? speechKind(chatInput) === "meaningful"
+                  ? "Ready to send"
+                  : "Add a little more detail"
+                : "Waiting for your answer"}
+            </p>
+            <button
+              type="button"
+              onClick={handleSendChat}
+              disabled={
+                status !== "active" ||
+                !chatInput.trim() ||
+                speechKind(chatInput) !== "meaningful" ||
+                avatarState === "speaking" ||
+                avatarState === "thinking"
+              }
+              className="wm-button"
+            >
+              Send answer
+            </button>
+          </div>
+        </section>
+
         {/* Visual Panel Column (code editor / whiteboard / code review) */}
         {hasVisualPanel && sessionId && (
-          <div className="flex-1 min-h-0 pl-4 overflow-hidden">
+          <div className="min-h-0 w-full overflow-hidden">
             {visualPanel === "code" && (
               <CodeEditor
                 key={sessionId}
@@ -827,77 +878,54 @@ function InterviewRoomContent() {
 
       {/* Bottom Control Bar */}
       <div className="h-20 shrink-0 glass border-t border-[var(--border)] flex items-center justify-center gap-4 px-4 z-50">
-        {isTextMode ? (
-          <form
-            onSubmit={handleSendChat}
-            className="flex-1 max-w-2xl flex gap-2"
-          >
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Type your response..."
-              className="flex-1 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-            />
-            <button
-              type="submit"
-              disabled={!chatInput.trim()}
-              className="px-6 py-2 rounded-xl gradient-primary text-white font-medium shadow-lg disabled:opacity-50 transition-all"
+        <button
+          onClick={toggleMic}
+          className={`flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 border ${micClass}`}
+          title={isMicMuted ? "Unmute" : "Mute"}
+        >
+          {isMicMuted ? (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              Send
-            </button>
-          </form>
-        ) : (
-          /* Toggle Mic */
-          <button
-            onClick={toggleMic}
-            className={`flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 border ${micClass}`}
-            title={isMicMuted ? "Unmute" : "Mute"}
-          >
-            {isMicMuted ? (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
-                  clipRule="evenodd"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 11a7.5 7.5 0 01-14.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 11V7a4 4 0 118 0v4M8 11h8"
-                />
-              </svg>
-            )}
-          </button>
-        )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
+                clipRule="evenodd"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11a7.5 7.5 0 01-14.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 11V7a4 4 0 118 0v4M8 11h8"
+              />
+            </svg>
+          )}
+        </button>
 
         {/* End Call */}
         <button

@@ -20,6 +20,7 @@ export class WebRTCAudioManager {
   private closed = false;
   private completedTranscripts = new Set<string>();
   private partialTranscripts = new Map<string, string>();
+  private pendingUserAudioItemIds = new Set<string>();
 
   constructor(private config: WebRTCManagerConfig) {}
 
@@ -53,6 +54,8 @@ export class WebRTCAudioManager {
         if (!this.audioEl) {
           this.audioEl = document.createElement("audio");
           this.audioEl.autoplay = true;
+          this.audioEl.volume = 0.82;
+          this.audioEl.setAttribute("aria-label", "AI interviewer audio");
           document.body.appendChild(this.audioEl);
         }
         this.audioEl.srcObject = e.streams[0];
@@ -105,6 +108,7 @@ export class WebRTCAudioManager {
             if (parsed.item_id) {
               this.completedTranscripts.add(parsed.item_id);
               this.partialTranscripts.delete(parsed.item_id);
+              this.pendingUserAudioItemIds.add(parsed.item_id);
             }
             this.config.onMessage(
               "user_transcript_partial",
@@ -218,6 +222,9 @@ export class WebRTCAudioManager {
    * and immediately mandate a text response.
    */
   public sendTextMessage(text: string, instructions?: string): void {
+    for (const item_id of this.pendingUserAudioItemIds)
+      this.sendEvent({ type: "conversation.item.delete", item_id });
+    this.pendingUserAudioItemIds.clear();
     this.sendEvent({
       type: "conversation.item.create",
       item: {
@@ -242,6 +249,7 @@ export class WebRTCAudioManager {
     this.closed = true;
     this.partialTranscripts.clear();
     this.completedTranscripts.clear();
+    this.pendingUserAudioItemIds.clear();
     this.config.onClose?.();
     if (this.pc) {
       this.pc.close();

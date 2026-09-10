@@ -62,11 +62,13 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
   jest.useFakeTimers();
   let events: WebRTCManagerConfig["onMessage"];
   const sendEvent = jest.fn();
+  const sendTextMessage = jest.fn();
   jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
     events = config.onMessage;
     return {
       connect: async () => {},
       sendEvent,
+      sendTextMessage,
       disconnect: jest.fn(),
     } as unknown as WebRTCAudioManager;
   });
@@ -85,7 +87,7 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
       sessionId: "demo-voice-policy",
       sponsored: true,
       interviewMode: "voice",
-      allowedModes: "audio_only",
+      allowedModes: "audio_and_text",
       candidateName: "Synthetic",
       jobTitle: "Engineer",
       startedAt: Date.now(),
@@ -109,19 +111,20 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
     "user_transcript_done",
     "I selected a queue after measuring retries."
   );
-  jest.advanceTimersByTime(2499);
+  expect(useInterviewStore.getState().candidateDeltaMessage).toBe(
+    "I selected a queue after measuring retries."
+  );
   expect(
     sendEvent.mock.calls.filter(([e]) => e.type === "response.create")
   ).toHaveLength(0);
-  jest.advanceTimersByTime(1);
-  expect(sendEvent).toHaveBeenCalledWith(
-    expect.objectContaining({
-      type: "response.create",
-      response: expect.objectContaining({
-        instructions: expect.stringContaining("turn budget is exhausted"),
-      }),
-    })
+  useInterviewStore
+    .getState()
+    .sendTextMessage("I selected a queue after measuring retries.");
+  expect(sendTextMessage).toHaveBeenCalledWith(
+    "I selected a queue after measuring retries.",
+    expect.any(String)
   );
+  expect(useInterviewStore.getState().candidateDeltaMessage).toBe("");
   useInterviewStore.getState().reset();
   jest.useRealTimers();
 });

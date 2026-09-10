@@ -12,17 +12,17 @@ export async function POST(req: NextRequest) {
   if (unavailable) return reply(req, { error: unavailable }, 503);
   startDemoReaper();
   try {
-    const submitted = req.body
-      ? (await limitedJson(req, 30000)).configuration || {}
-      : {};
+    const payload = req.body ? await limitedJson(req, 50000) : {};
+    const submitted = payload.configuration || {};
     const config = configurationSchema.parse(
       grant
-        ? submitted
+        ? { ...submitted, allowedModes: "audio_and_text" }
         : {
             language: submitted.language,
             voiceProvider: submitted.voiceProvider,
             transcriptionModel: submitted.transcriptionModel,
             reasoningEffort: submitted.reasoningEffort,
+            allowedModes: "audio_and_text",
             maxTurns: 8,
             durationMinutes: 10,
           }
@@ -55,6 +55,18 @@ export async function POST(req: NextRequest) {
             expiresAt: grant.expiresAt,
             durationMs: duration * 60000,
             configuration: config,
+            candidateName:
+              typeof payload.candidateName === "string"
+                ? payload.candidateName.slice(0, 100)
+                : undefined,
+            jobTitle:
+              typeof payload.jobTitle === "string"
+                ? payload.jobTitle.slice(0, 200)
+                : undefined,
+            jobDescription:
+              typeof payload.jobDescription === "string"
+                ? payload.jobDescription.slice(0, 6000)
+                : undefined,
           }
         : undefined,
       grant ? undefined : config

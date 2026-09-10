@@ -2,8 +2,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import InterviewSetupForm from "@/components/interview/InterviewSetupForm";
-import ProviderDiagnostics from "@/components/providers/ProviderDiagnostics";
-import ReviewerSessions from "@/components/interview/ReviewerSessions";
 type Access = {
   mode: string;
   reviewer?: {
@@ -49,13 +47,13 @@ export default function ReviewerPage() {
   return (
     <div className="wm-page max-w-5xl">
       <p className="wm-eyebrow">Private reviewer access</p>
-      <h1 className="wm-heading">Explore the complete workflow</h1>
+      <h1 className="wm-heading">Complete your invited interview</h1>
       {access?.mode !== "reviewer" ? (
         <form onSubmit={redeem} className="wm-panel max-w-xl mt-6">
           <p className="wm-subtitle mb-5">
-            Your invitation unlocks extended voice interviews, Evaluation
-            Sandbox, Human Review and diagnostics. The server checks expiration,
-            revocation and usage budgets.
+            Your administrator created this private invitation. Enter the code
+            to set up one interview journey; the host provides the AI service so
+            you do not need to configure an API key.
           </p>
           <label className="wm-field">
             Invitation code
@@ -84,36 +82,31 @@ export default function ReviewerPage() {
             unit/minute; assessments reserve up to three). Unlimited interview
             timers have a 30-minute hosted funding window.
           </div>
-          <div className="flex gap-3 flex-wrap">
-            <Link href="/review-brief/evaluation" className="wm-button">
-              Evaluation Sandbox
-            </Link>
-            <Link href="/review-brief" className="wm-button secondary">
-              Human Review · Synthetic Evaluation
-            </Link>
-            <Link href="/dashboard" className="wm-button secondary">
-              Recruiter workspace
-            </Link>
-            <button
-              className="wm-button secondary"
-              onClick={async () => {
-                await fetch("/api/access/reviewer", { method: "DELETE" });
-                await refresh();
-              }}
-            >
-              Leave Reviewer Mode
-            </button>
-          </div>
-          <ProviderDiagnostics />
-          <ReviewerSessions />
           <section className="wm-panel">
-            <h2 className="text-2xl mb-5">Start a reviewer interview</h2>
+            <p className="wm-eyebrow">Invitation interview</p>
+            <h2 className="text-2xl mb-5">Set up your interview</h2>
             <p className="wm-subtitle mb-5">
-              Use fictional candidate details. This uses the host’s credentials;
-              you do not need an API key.
+              This invitation starts at interview setup. Add your role details,
+              language, voice, transcription, rubric and optional CV, then use
+              the voice-and-text answer composer during the interview. The
+              host’s server credentials power the interview and evaluation.
             </p>
             <InterviewSetupForm mode="reviewer" />
           </section>
+          <p className="text-sm text-[var(--muted)] mt-5">
+            After the interview, your evidence-based evaluation is shown once
+            and the result is sent to the administrator’s dashboard. This path
+            has no recruiter dashboard, sandbox or human-review controls.
+          </p>
+          <button
+            className="wm-button secondary mt-4"
+            onClick={async () => {
+              await fetch("/api/access/reviewer", { method: "DELETE" });
+              await refresh();
+            }}
+          >
+            Leave invitation
+          </button>
         </>
       )}
       {error && (

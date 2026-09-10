@@ -86,3 +86,21 @@ test("repeat and recovery response instructions preserve the configured spoken l
   );
   manager.disconnect();
 });
+test("explicit send replaces the pending audio item with the edited answer", async () => {
+  const { manager } = await setup();
+  emit({
+    type: "conversation.item.input_audio_transcription.completed",
+    item_id: "pending-audio",
+    transcript: "I built a que.",
+  });
+  channel.send.mockClear();
+  manager.sendTextMessage("I built a queue.");
+  const sent = channel.send.mock.calls.map(([value]) => JSON.parse(value));
+  expect(sent[0]).toEqual({
+    type: "conversation.item.delete",
+    item_id: "pending-audio",
+  });
+  expect(sent[1].type).toBe("conversation.item.create");
+  expect(sent[1].item.content[0].text).toBe("I built a queue.");
+  manager.disconnect();
+});

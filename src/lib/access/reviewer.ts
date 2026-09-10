@@ -1,4 +1,10 @@
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  randomUUID,
+  timingSafeEqual,
+} from "node:crypto";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { readFileSync } from "node:fs";
@@ -114,6 +120,59 @@ export async function redeemReviewer(code: string, visitorId: string) {
   );
   if (!grant) throw Error("Invitation invalid, expired or revoked.");
   return { grant, cookie: grant.id + "." + sign(grant.id) };
+}
+
+export async function createReviewerInvitation(input: {
+  label: string;
+  expiresInDays: number;
+}) {
+  if (process.env.REVIEWER_INVITES_JSON)
+    throw Error(
+      "Invitation creation is managed by the configured invite store."
+    );
+  const dir = accessDirectory();
+  await mkdir(dir, { recursive: true });
+  if (secret().length < 32) {
+    await writeFile(
+      path.join(dir, "reviewer-cookie-secret"),
+      randomBytes(32).toString("hex"),
+      { flag: "wx", mode: 0o600 }
+    ).catch((e) => {
+      if (e.code !== "EEXIST") throw e;
+    });
+  }
+  const file = path.join(dir, "reviewer-invites.json");
+  let current: ReviewerGrant[] = [];
+  try {
+    current = z
+      .array(invitation)
+      .max(100)
+      .parse(JSON.parse(await readFile(file, "utf8")));
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+  }
+  const code = randomBytes(24).toString("base64url");
+  const grant: ReviewerGrant = {
+    id: randomUUID(),
+    label: input.label,
+    codeHash: createHash("sha256").update(code).digest("hex"),
+    expiresAt: Date.now() + input.expiresInDays * 86400000,
+    revoked: false,
+    dailyStarts: 30,
+    budgetUnits: 500,
+  };
+  current.push(grant);
+  await writeFile(file, JSON.stringify(current, null, 2), {
+    mode: 0o600,
+  });
+  return {
+    id: grant.id,
+    label: grant.label,
+    code,
+    expiresAt: grant.expiresAt,
+    dailyStarts: grant.dailyStarts,
+    budgetUnits: grant.budgetUnits,
+  };
 }
 export async function saveHumanRecord(grant: ReviewerGrant, record: unknown) {
   await consumeReviewer(grant, 0);

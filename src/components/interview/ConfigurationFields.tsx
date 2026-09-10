@@ -142,21 +142,16 @@ export default function ConfigurationFields({
           <option value="medium">Medium · More reasoning</option>
         </select>
       </label>
-      <label className="wm-field">
-        Interaction modes
-        <select
-          value={value.allowedModes}
-          onChange={(e) =>
-            change(
-              "allowedModes",
-              e.target.value as InterviewConfiguration["allowedModes"]
-            )
-          }
-        >
-          <option value="audio_and_text">Voice and text</option>
-          <option value="audio_only">Voice only</option>
-        </select>
-      </label>
+      <div className="wm-field" role="status" aria-label="Interaction mode">
+        Interaction mode
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm">
+          Voice + text · Required
+        </div>
+        <small>
+          Speak first, review the transcript, edit it when needed, then send
+          your answer. This keeps voice and typing together in every interview.
+        </small>
+      </div>
       <label className="wm-field">
         Technical panel
         <select

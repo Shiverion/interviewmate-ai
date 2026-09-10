@@ -20,16 +20,32 @@ type Session = {
   status?: string;
   created_at?: { toMillis?: () => number };
 };
+type ReviewerResult = {
+  id: string;
+  candidateName?: string;
+  jobTitle?: string;
+  provider?: string;
+  model?: string;
+  evaluation?: { overallScore?: number | null; status?: string };
+};
 export default function DashboardPage() {
   const { user } = useAuthContext();
   const { keys } = useKeys();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [reviewerResults, setReviewerResults] = useState<ReviewerResult[]>([]);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [schedule, setSchedule] = useState(false);
   const [demo, setDemo] = useState(false);
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [inviteLabel, setInviteLabel] = useState("Sprint reviewer");
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [invitation, setInvitation] = useState<{
+    code: string;
+    expiresAt: number;
+  } | null>(null);
   useEffect(() => {
     let active = true;
     async function load() {
@@ -63,6 +79,24 @@ export default function DashboardPage() {
         .finally(() => {
           if (active) setBusy(false);
         });
+      if (isWorkspaceAdmin(user)) {
+        user
+          .getIdToken()
+          .then((token) =>
+            fetch("/api/reviewer/sessions?admin=1", {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+          )
+          .then((response) => (response.ok ? response.json() : { results: [] }))
+          .then((data) => {
+            if (active) setReviewerResults(data.results || []);
+          })
+          .catch(() => {
+            if (active) setReviewerResults([]);
+          });
+      } else {
+        setReviewerResults([]);
+      }
     }
     void load();
     return () => {
@@ -71,6 +105,33 @@ export default function DashboardPage() {
   }, [user, link]);
   const count = (states: string[]) =>
     sessions.filter((s) => states.includes(s.status || "")).length;
+  async function createInvitation() {
+    if (!user) return;
+    setInviteBusy(true);
+    setInviteError("");
+    setInvitation(null);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/reviewer/invitations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ label: inviteLabel, expiresInDays: 7 }),
+      });
+      const data = await response.json();
+      if (!response.ok)
+        throw Error(data.error || "Could not create invitation.");
+      setInvitation(data.invitation);
+    } catch (e) {
+      setInviteError(
+        e instanceof Error ? e.message : "Could not create invitation."
+      );
+    } finally {
+      setInviteBusy(false);
+    }
+  }
   return (
     <div>
       <div className="wm-section-heading pt-0">
@@ -226,8 +287,117 @@ export default function DashboardPage() {
         </div>
       )}
       <p className="mt-8 text-sm">
-        <Link href="/reviewer">Reviewer access and Evaluation Sandbox →</Link>
+        <Link href="/reviewer">Open an invitation link →</Link>
       </p>
+      {isWorkspaceAdmin(user) && (
+        <section className="wm-panel mt-8" aria-labelledby="invite-heading">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="wm-eyebrow">Admin action</p>
+              <h2 id="invite-heading" className="text-xl">
+                Create an interview invitation
+              </h2>
+            </div>
+            <span className="wm-tag">Invitation code</span>
+          </div>
+          <p className="wm-subtitle mb-4">
+            Generate a private invitation to share. The recipient can set up,
+            complete and review one hosted interview; their result is returned
+            to this admin dashboard.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <label className="wm-field flex-1">
+              Invitation label
+              <input
+                value={inviteLabel}
+                maxLength={100}
+                onChange={(e) => setInviteLabel(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="wm-button self-end"
+              disabled={inviteBusy || !inviteLabel.trim()}
+              onClick={() => void createInvitation()}
+            >
+              {inviteBusy ? "Generating…" : "Generate invitation"}
+            </button>
+          </div>
+          {invitation && (
+            <div className="mt-5 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+              <p className="text-sm font-medium">Share this code privately</p>
+              <code className="block mt-2 break-all text-lg tracking-[0.12em]">
+                {invitation.code}
+              </code>
+              <div className="flex flex-wrap gap-3 mt-3 items-center">
+                <button
+                  type="button"
+                  className="wm-button secondary"
+                  onClick={() => {
+                    void navigator.clipboard
+                      .writeText(invitation.code)
+                      .catch(() => undefined);
+                  }}
+                >
+                  Copy code
+                </button>
+                <span className="text-xs text-[var(--muted)]">
+                  Redeem at{" "}
+                  {typeof window === "undefined"
+                    ? "/reviewer"
+                    : `${window.location.origin}/reviewer`}{" "}
+                  · Expires{" "}
+                  {new Date(invitation.expiresAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          )}
+          {inviteError && (
+            <p role="alert" className="wm-note mt-4">
+              {inviteError}
+            </p>
+          )}
+        </section>
+      )}
+      {isWorkspaceAdmin(user) && reviewerResults.length > 0 && (
+        <section
+          className="wm-panel mt-8"
+          aria-labelledby="reviewer-results-heading"
+        >
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="wm-eyebrow">Invitation results</p>
+              <h2 id="reviewer-results-heading" className="text-xl">
+                Admin-only reviewer scores
+              </h2>
+            </div>
+            <span className="wm-tag">Server-hosted</span>
+          </div>
+          <div className="divide-y divide-[var(--border)]">
+            {reviewerResults.map((result) => (
+              <div
+                className="flex items-center justify-between gap-4 py-3"
+                key={result.id}
+              >
+                <div>
+                  <p className="font-medium">
+                    {result.candidateName || "Invitation interview"}
+                  </p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {result.jobTitle || "Invited candidate"} ·{" "}
+                    {result.provider || "provider"} · {result.model || "model"}
+                  </p>
+                </div>
+                <strong className="font-mono text-lg">
+                  {typeof result.evaluation?.overallScore === "number"
+                    ? `${Math.round(result.evaluation.overallScore)}%`
+                    : result.evaluation?.status || "Evaluation complete"}
+                </strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       <CreateInterviewModal
         isOpen={schedule}
         onClose={() => setSchedule(false)}

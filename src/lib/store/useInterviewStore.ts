@@ -13,11 +13,7 @@ import {
   configurationFromContext,
   type InterviewConfiguration,
 } from "@/lib/interview/config";
-import {
-  speechKind,
-  silenceAction,
-  TURN_POLICY,
-} from "@/lib/interview/turn-policy";
+import { speechKind, silenceAction } from "@/lib/interview/turn-policy";
 import type { ParsingResult } from "@/lib/pdf/result";
 import type { ProviderDiagnostic } from "@/lib/ai/health";
 import { spokenLanguagePolicy } from "@/lib/interview/language";
@@ -97,6 +93,7 @@ interface InterviewState {
   addTranscriptLine: (role: "user" | "assistant", text: string) => void;
   toggleMic: () => void;
   sendTextMessage: (text: string) => void;
+  editCandidateDraft: (text: string) => void;
   connect: () => Promise<void>;
   disconnect: () => void;
   interrupt: () => void;
@@ -156,6 +153,7 @@ export const useInterviewStore = create<InterviewState>()(
           return;
         clearTimeout(turnTimer);
         get().addTranscriptLine("user", text);
+        set({ candidateDeltaMessage: "", turnNotice: "" });
         get().manager?.sendTextMessage(
           text,
           get().turnsAsked >=
@@ -164,6 +162,7 @@ export const useInterviewStore = create<InterviewState>()(
             : undefined
         );
       },
+      editCandidateDraft: (text) => set({ candidateDeltaMessage: text }),
       repeatQuestion: () => {
         if (get().status !== "active") return;
         set({ turnNotice: "" });
@@ -244,6 +243,7 @@ export const useInterviewStore = create<InterviewState>()(
               echoCancellation: true,
               noiseSuppression: true,
               autoGainControl: true,
+              channelCount: 1,
             },
           });
           if (epoch !== connectionEpoch) {
@@ -267,31 +267,10 @@ export const useInterviewStore = create<InterviewState>()(
           let candidateSpeaking = false,
             waitingSince = 0,
             repeatPending = false,
-            playbackActive = false,
-            speechStoppedAt = 0;
+            playbackActive = false;
           const waitForCandidate = () => {
             waitingSince = Date.now();
             set({ avatarState: "listening", turnNotice: "" });
-          };
-          const requestAnswer = () => {
-            if (
-              epoch !== connectionEpoch ||
-              get().status !== "active" ||
-              candidateSpeaking
-            )
-              return;
-            const closing = get().turnsAsked >= configuration.maxTurns;
-            get().manager?.sendEvent({
-              type: "response.create",
-              ...(closing
-                ? {
-                    response: {
-                      instructions:
-                        "The configured turn budget is exhausted. Do not ask another question. Thank the candidate, explain that a human will review available evidence, and call end_interview.",
-                    },
-                  }
-                : {}),
-            });
           };
           const managerConfig: WebRTCManagerConfig = {
             languagePolicy: spokenLanguagePolicy(configuration.language),
@@ -358,27 +337,25 @@ export const useInterviewStore = create<InterviewState>()(
                 set({ turnNotice: "", avatarState: "listening" });
               } else if (type === "user_stopped_speaking") {
                 candidateSpeaking = false;
-                speechStoppedAt = Date.now();
               } else if (type === "user_transcript_partial") {
                 set({ candidateDeltaMessage: text });
               } else if (type === "user_transcript_done") {
                 if (speechKind(text) !== "meaningful") {
-                  if (!candidateSpeaking) waitForCandidate();
+                  if (!candidateSpeaking)
+                    set({
+                      turnNotice:
+                        "That sounded like a filler. Add more detail, or type an answer before sending.",
+                    });
                   return;
                 }
-                get().addTranscriptLine("user", text);
                 waitingSince = 0;
-                manager.sendEvent({ type: "response.cancel" });
-                manager.sendEvent({ type: "output_audio_buffer.clear" });
                 clearTimeout(turnTimer);
-                turnTimer = setTimeout(
-                  requestAnswer,
-                  Math.max(
-                    0,
-                    TURN_POLICY.endBufferMs -
-                      (speechStoppedAt ? Date.now() - speechStoppedAt : 0)
-                  )
-                );
+                set({
+                  candidateDeltaMessage: text,
+                  turnNotice:
+                    "Review your transcript. Edit it if needed, then choose Send answer.",
+                  avatarState: "listening",
+                });
               } else if (type === "ai_thinking") {
                 waitingSince = 0;
                 set({

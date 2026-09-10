@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { requestReviewer, consumeReviewer } from "@/lib/access/reviewer";
+import { isVerifiedAdminRequest } from "@/lib/firebase/server-auth";
 import { withLedger } from "@/lib/demo/ledger";
 import { limitedJson, sameOrigin } from "@/lib/demo/http";
 import { configurationSchema } from "@/lib/interview/config";
@@ -19,6 +20,45 @@ const createInput = z
   })
   .refine((s) => s.endsAt > s.startsAt, "End date must follow start date");
 export async function GET(req: NextRequest) {
+  if (req.nextUrl.searchParams.get("admin") === "1") {
+    if (!(await isVerifiedAdminRequest(req)))
+      return Response.json(
+        { error: "Administrator access required." },
+        { status: 403 }
+      );
+    const results = await withLedger((d) => [
+      ...Object.entries(d.leases)
+        .filter(([, lease]) => lease.reviewerId && lease.evaluationResult)
+        .map(([leaseId, lease]) => ({
+          id: leaseId,
+          invitationId: lease.reviewerId,
+          candidateName: lease.candidateName,
+          jobTitle: lease.jobTitle,
+          evaluation: lease.evaluationResult,
+          transcript: lease.transcript,
+          model: lease.evaluationModel,
+          provider: lease.evaluationProvider,
+          completed: true,
+        })),
+      ...Object.values(d.reviewerSessions || {})
+        .filter((session) => session.evaluation)
+        .map((session) => ({
+          id: session.id,
+          invitationId: session.owner,
+          candidateName: session.candidateName,
+          jobTitle: session.jobTitle,
+          evaluation: session.evaluation,
+          transcript: session.transcript,
+          model: session.model,
+          provider: session.provider,
+          completed: true,
+        })),
+    ]);
+    return Response.json(
+      { results },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  }
   const grant = await requestReviewer(req);
   if (!grant)
     return Response.json(
@@ -45,7 +85,14 @@ export async function POST(req: NextRequest) {
     );
   try {
     await consumeReviewer(grant, 0);
-    const body = createInput.parse(await limitedJson(req, 50000));
+    const submitted = await limitedJson(req, 50000);
+    const body = createInput.parse({
+      ...submitted,
+      configuration: {
+        ...(submitted.configuration || {}),
+        allowedModes: "audio_and_text",
+      },
+    });
     const id = "reviewer-" + randomUUID();
     await withLedger((d) => {
       const sessions = (d.reviewerSessions ??= {});

@@ -2,7 +2,12 @@
 import { mkdtemp, writeFile, mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
-import { redeemReviewer, reviewerGrant, consumeReviewer } from "./reviewer";
+import {
+  createReviewerInvitation,
+  redeemReviewer,
+  reviewerGrant,
+  consumeReviewer,
+} from "./reviewer";
 const env = { ...process.env };
 let dir: string;
 let invitation: Record<string, unknown>;
@@ -61,4 +66,14 @@ test("invitation guessing is limited for a persistent visitor", async () => {
   await expect(redeemReviewer("test-code", "visitor")).rejects.toThrow(
     "Too many"
   );
+});
+test("administrator invitation creation returns a redeemable private code", async () => {
+  const created = await createReviewerInvitation({
+    label: "Created from dashboard",
+    expiresInDays: 2,
+  });
+  expect(created.code).toHaveLength(32);
+  const { grant } = await redeemReviewer(created.code, "new-visitor");
+  expect(grant.id).toBe(created.id);
+  expect(grant.label).toBe("Created from dashboard");
 });

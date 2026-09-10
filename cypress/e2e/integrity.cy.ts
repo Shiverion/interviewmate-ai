@@ -174,6 +174,6 @@ describe("session pauses and technical recovery", () => {
     cy.contains("button", "Start Interview").should("be.disabled");
     cy.contains("label", "I have read the session rules").find("input").check();
     cy.contains("button", "Start Interview").should("be.disabled");
-    cy.contains("Live voice needs an OpenAI key").should("be.visible");
+    cy.contains("Voice transcription needs an OpenAI key").should("be.visible");
   });
 });

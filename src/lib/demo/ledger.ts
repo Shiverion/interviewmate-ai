@@ -18,6 +18,9 @@ export const DEMO_LIMITS = {
 } as const;
 export type DemoLease = {
   reviewerId?: string;
+  candidateName?: string;
+  jobTitle?: string;
+  jobDescription?: string;
   configuration?: import("@/lib/interview/config").InterviewConfiguration;
   owner: string;
   expiresAt: number;
@@ -25,6 +28,10 @@ export type DemoLease = {
   callIds: string[];
   pendingUntil: number;
   evaluations: string[];
+  transcript?: unknown;
+  evaluationResult?: unknown;
+  evaluationModel?: string;
+  evaluationProvider?: string;
 };
 type Ledger = {
   reviewerSessions?: Record<
@@ -139,6 +146,9 @@ export async function reserve(
     expiresAt: number;
     durationMs: number;
     configuration?: import("@/lib/interview/config").InterviewConfiguration;
+    candidateName?: string;
+    jobTitle?: string;
+    jobDescription?: string;
   },
   publicConfiguration?: import("@/lib/interview/config").InterviewConfiguration
 ) {
@@ -173,6 +183,9 @@ export async function reserve(
         ...(options
           ? {
               reviewerId: options.reviewerId,
+              candidateName: options.candidateName,
+              jobTitle: options.jobTitle,
+              jobDescription: options.jobDescription,
               configuration: options.configuration,
             }
           : {}),
@@ -253,6 +266,26 @@ export async function claimEvaluation(
         "This model's evaluation allowance for the demo has been used."
       );
     lease.evaluations.push(provider);
+  });
+}
+
+export async function saveEvaluation(
+  owner: string,
+  id: string,
+  value: {
+    transcript: unknown;
+    evaluation: unknown;
+    model?: string;
+    provider?: string;
+  }
+) {
+  return withLedger((data) => {
+    const lease = data.leases[id];
+    if (!lease || lease.owner !== owner) throw Error("Demo unavailable.");
+    lease.transcript = value.transcript;
+    lease.evaluationResult = value.evaluation;
+    lease.evaluationModel = value.model;
+    lease.evaluationProvider = value.provider;
   });
 }
 export async function hangupCalls(id?: string) {

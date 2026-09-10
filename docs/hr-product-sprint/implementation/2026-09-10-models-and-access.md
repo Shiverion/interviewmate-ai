@@ -10,7 +10,9 @@ The verified email `miqbal.izzulhaq@gmail.com` is the administrator. This accoun
 
 A scheduled candidate must sign in using the verified email on the invitation. Candidates can get their own session during its access window and submit answers, integrity records and technical workspace content. They cannot list recruiting records, change invitation settings, extend expiry, assign ownership or save an assessment score. Final assessment persistence belongs to the recruiter/admin; candidate-side assessment output remains local. Recruiters can run **Evaluate** from Pipeline after submission. Existing invitations without a candidate email should be recreated with the correct email.
 
-The free fictional demo remains available without Google sign-in. Invitation-based reviewer records remain in separate private host storage; admin access described here covers the Firebase recruiter workspace.
+Reviewer invitations follow a separate sponsored path. The administrator creates a signed invitation from Dashboard (or the local invite script), shares the code privately, and the recipient redeems it at `/reviewer`. The recipient can provide role details, choose the shared interview settings, upload an optional CV, complete the live voice interview, edit each transcript in the voice + text composer before sending, and view the completed evidence evaluation once. The recipient is not shown recruiter navigation, Evaluation Sandbox or Human Review controls. The result is written to the private host ledger and returned to the verified administrator's Dashboard; it is never mixed into another user's Firestore candidate list.
+
+The free fictional demo remains available without Google sign-in. Invitation-based reviewer records remain in separate private host storage; the verified administrator can see completed reviewer evaluations in the Dashboard. The invitation recipient follows a candidate-only flow: setup, live interview, one evaluation view, done.
 
 Account changes clear previous interview context, transcripts, recovery, local review drafts and personal API keys, and remount private pages. A reload or token refresh for the same account preserves recovery. Browser storage is still a prototype convenience, not encrypted storage or a replacement for secure device access.
 
@@ -18,17 +20,19 @@ CV uploads now use owner/session paths without publishing download URLs. CV retr
 
 ## Current model choices
 
-| Purpose | Model | Reasoning / language |
-|---|---|---|
-| Default live voice | `gpt-realtime-2.1-mini` | Low default; Medium selectable |
-| Alternative live voice | `gemini-3.1-flash-live-preview` | Low default; Medium selectable |
-| Default transcription | `gpt-transcribe` | Explicit selected-language hint |
-| Streaming transcription option | `gpt-live-transcribe` | Explicit language hint; draft text kept separate from committed answers |
-| OpenAI evaluation / review brief | `gpt-5.6-luna` | Low default |
-| Gemini evaluation | `gemini-3.5-flash-lite` | Low default |
-| DeepSeek evaluation | `deepseek-flash` | Thinking enabled, Low |
+| Purpose                          | Model                           | Reasoning / language                                                    |
+| -------------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| Default live voice               | `gpt-realtime-2.1-mini`         | Low default; Medium selectable                                          |
+| Alternative live voice           | `gemini-3.1-flash-live-preview` | Low default; Medium selectable                                          |
+| Default transcription            | `gpt-transcribe`                | Explicit selected-language hint                                         |
+| Streaming transcription option   | `gpt-live-transcribe`           | Explicit language hint; draft text kept separate from committed answers |
+| OpenAI evaluation / review brief | `gpt-5.6-luna`                  | Low default                                                             |
+| Gemini evaluation                | `gemini-3.5-flash-lite`         | Low default                                                             |
+| DeepSeek evaluation              | `deepseek-flash`                | Thinking enabled, Low                                                   |
 
 For OpenAI/Gemini evaluation, the host may set `EVALUATION_REASONING_EFFORT=medium`; other values fall back to Low. Benchmark model overrides retain distinct configuration hashes. Old benchmark records are not rewritten or counted as results for these new models.
+
+Reviewer evaluation is selected from the host's configured providers. A browser's personal provider preference cannot make a reviewer request use an unavailable host key; the route chooses the requested host provider when configured and otherwise falls back to the first configured host provider.
 
 **Gemini voice architecture:** microphone audio goes to OpenAI transcription through WebRTC. Only completed candidate text is sent to Gemini Live when the shared interview controller accepts a turn. Gemini streams its spoken reply through a server-held connection. This option requires both keys and has combined transcription/voice cost. The host closes connections on cancellation, funding expiry and revocation; a stalled response has a deadline. It requires a persistent Node host, not an arbitrary serverless deployment.
 
@@ -39,7 +43,7 @@ English remains the baseline. A fixed language applies to transcription hints an
 - Firestore and Storage rules published to `interviewmate-9bdd4` on 2026-09-10.
 - 44 emulator checks passed: owner/admin/candidate/anonymous boundaries, queries and direct IDs, unverified admin denial, immutable ownership, expiry/revocation, protected scores and private CVs.
 - 168 application tests passed across 24 suites, including account switching, preserved same-account recovery, streaming transcript deduplication, language-preserving response instructions, Gemini ownership/expiry/cancellation and queued interruption handling.
-- TypeScript, changed-source lint and production build passed. Six targeted browser checks passed, covering candidate login, dashboard redirect, model/language selection, hosted demo limits and synthetic reviewer assessment/human-review persistence.
+- TypeScript, changed-source lint and production build passed after the reviewer-flow revision. 169 application tests pass across 24 suites; 12 targeted browser checks pass across revision, reviewer-demo and integrity flows. The reviewer acceptance path covers candidate-only navigation and explicit transcript sending; admin invitation creation is covered by the helper test and the live dashboard action still needs a signed-in manual check.
 - OpenAI model-list request returned HTTP 200 and listed all four requested OpenAI models.
 - One live synthetic evaluation through `/api/evaluate` returned HTTP 200 using `gpt-5.6-luna`, approximately **7,706 ms** end-to-end including local route processing. It returned four rubric entries, status **Evidence available for human review**, and no overall score because evidence coverage was insufficient. This is an integration smoke test, not an accuracy, cost or latency benchmark.
 - Gemini and DeepSeek host credentials are absent. No successful live Gemini voice/assessment or DeepSeek run is claimed. No human microphone test was performed in this revision.

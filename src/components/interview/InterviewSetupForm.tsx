@@ -112,6 +112,7 @@ export default function InterviewSetupForm({
     try {
       const config = configurationSchema.parse({
         ...configuration,
+        allowedModes: "audio_and_text",
         customQuestions: configuration.customQuestions
           .map((q) => q.trim())
           .filter(Boolean),
@@ -159,7 +160,7 @@ export default function InterviewSetupForm({
           file,
           new Date(starts),
           new Date(ends),
-          config.allowedModes,
+          "audio_and_text",
           config.githubUsername,
           config.visualPanel,
           config.codeDiff,
@@ -188,7 +189,12 @@ export default function InterviewSetupForm({
         const r = await fetch("/api/demo/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ configuration: config }),
+          body: JSON.stringify({
+            configuration: config,
+            candidateName: name || "Reviewer",
+            jobTitle,
+            jobDescription,
+          }),
         });
         const data = await r.json();
         if (!r.ok) throw Error(data.error);

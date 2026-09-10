@@ -2,7 +2,7 @@
 
 # Phase 3: prototype build
 
-September 10 implementation: shared GA realtime service, three access modes with private reviewer invitations, one interview configuration, evidence-v2 reports and contextual persistent human review. CV parsing and GitHub context have bounded validation/retrieval. See the [current runbook](../implementation/current-runbook.md) and [requirement matrix](../implementation/revision-tracker.md) for implemented scope and live acceptance gaps. Historical build details below describe the original review-brief baseline.
+September 10 implementation: shared GA realtime service, three access modes with private reviewer invitations, one interview configuration, evidence-v2 reports and contextual persistent human review. Reviewer links now expose a constrained candidate journey (setup → live interview → one evaluation view → done); evaluation tools remain internal. Voice + text is mandatory and the candidate explicitly sends edited transcript drafts. CV parsing and GitHub context have bounded validation/retrieval. See the [current runbook](../implementation/current-runbook.md) and [requirement matrix](../implementation/revision-tracker.md) for implemented scope and live acceptance gaps. Historical build details below describe the original review-brief baseline.
 
 2026-09-09 update: keyless dashboard access, three-provider evaluation settings, redesigned workspace and limited reviewer voice are implemented. See the [access runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). Real voice acceptance is blocked by the OpenAI server credential returning HTTP 401; Gemini/DeepSeek host credentials are absent.
 
@@ -22,16 +22,16 @@ An actual synthetic request reached the provider and returned **HTTP 503 / AI_UN
 
 ## Implemented behavior
 
-| Area | Result | Main source |
-|---|---|---|
-| Input and role | Three practice transcripts, JSON import, fixed role confirmation, strict synthetic format and limits | [Workspace](../../../src/components/review-brief/ReviewBrief.tsx), [contract](../../../src/lib/review-brief/contract.ts) |
-| AI boundary | Server-only key, pinned model, structured output, exact citation validation, one call per explicit attempt and 30-second deadline | [Server adapter](../../../src/lib/review-brief/server.ts), [handler](../../../src/lib/review-brief/handler.ts) |
-| Evidence review | Full transcript context; both turns highlighted for conflicts; unknowns and follow-ups remain visible | Workspace above, [styles](../../../src/components/review-brief/review-brief.module.css) |
-| Corrections | Text/status/gap edits, claim removal/restore with stable IDs, preserved original, no editable source references | [Review state](../../../src/lib/review-brief/review-state.ts) |
-| Attestation and handoff | Four checks plus reviewer ID; edits invalidate review; export only the current reviewed revision | Review state above |
-| Failures | Sanitized errors and attempt IDs; invalid drafts rejected in full; explicit retry/cancel; stale responses ignored | Handler and workspace above |
-| Provenance | Canonical input/role/prompt/contract hashes, source type, actual model metadata when available, original and reviewed export | [Types](../../../src/lib/review-brief/types.ts), server adapter |
-| Local boundary | No Firebase dependency for this flow; production page/API return 404 | [Page](../../../src/app/review-brief/page.tsx), [API](../../../src/app/api/review-brief/route.ts) |
+| Area                    | Result                                                                                                                            | Main source                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Input and role          | Three practice transcripts, JSON import, fixed role confirmation, strict synthetic format and limits                              | [Workspace](../../../src/components/review-brief/ReviewBrief.tsx), [contract](../../../src/lib/review-brief/contract.ts) |
+| AI boundary             | Server-only key, pinned model, structured output, exact citation validation, one call per explicit attempt and 30-second deadline | [Server adapter](../../../src/lib/review-brief/server.ts), [handler](../../../src/lib/review-brief/handler.ts)           |
+| Evidence review         | Full transcript context; both turns highlighted for conflicts; unknowns and follow-ups remain visible                             | Workspace above, [styles](../../../src/components/review-brief/review-brief.module.css)                                  |
+| Corrections             | Text/status/gap edits, claim removal/restore with stable IDs, preserved original, no editable source references                   | [Review state](../../../src/lib/review-brief/review-state.ts)                                                            |
+| Attestation and handoff | Four checks plus reviewer ID; edits invalidate review; export only the current reviewed revision                                  | Review state above                                                                                                       |
+| Failures                | Sanitized errors and attempt IDs; invalid drafts rejected in full; explicit retry/cancel; stale responses ignored                 | Handler and workspace above                                                                                              |
+| Provenance              | Canonical input/role/prompt/contract hashes, source type, actual model metadata when available, original and reviewed export      | [Types](../../../src/lib/review-brief/types.ts), server adapter                                                          |
+| Local boundary          | No Firebase dependency for this flow; production page/API return 404                                                              | [Page](../../../src/app/review-brief/page.tsx), [API](../../../src/app/api/review-brief/route.ts)                        |
 
 Attempt records are local ignored synthetic generation records. Reviewer edits live in browser memory until explicit export; no Firestore writes or changes to the inherited scoring evaluator were introduced. The runbook explains exact records, hashes, input limits, filenames and how to keep runtime/design copies aligned.
 
@@ -39,17 +39,17 @@ Attempt records are local ignored synthetic generation records. Reviewer edits l
 
 Executed on Windows with Node 24.11.1 and the repository's installed dependencies. Software checks use authored fixtures and injected/mocked provider behavior unless explicitly identified as the real attempt.
 
-| Check | Actual result | Practical limit |
-|---|---|---|
-| Default Jest discovery | **36 tests passed across 3 suites**: 32 new behavior tests and 4 inherited scoring tests | No model-quality claim |
-| TypeScript | Application and separate Cypress projects passed | Separate Jest/Cypress matcher environments |
-| Scoped ESLint | New feature, routes and browser spec passed | Full inherited application lint not claimed clean |
-| Production build | Passed | Existing optional canvas/PDF rendering warnings remain |
-| Development startup | Turbopack started; review page returned HTTP 200 with Firebase API key blank | Existing installed dependencies; no fresh install or full interview/Firebase flow |
-| Production boundary | Actual GET page and POST API both returned HTTP 404 on the built server | Local production-mode check, not deployment verification |
-| Browser workflow | **7 browser tests passed** in Electron: import, mock success/hash mismatch, source/edit/export, restore/invalidation, conflict/mobile, failure retention and cancel | Authored fixtures and mocked transport; not practitioner usability or model evidence |
-| Real provider request | One attempt returned 503 / AI_UNAVAILABLE; no draft opened | Provider access must be repaired before a genuine live demo |
-| Phase 2 preservation / documentation | **30 offline contract and 18 wireframe checks passed**; all documentation links/anchors resolve | Historical baseline and practice source text remain separate |
+| Check                                | Actual result                                                                                                                                                       | Practical limit                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Default Jest discovery               | **36 tests passed across 3 suites**: 32 new behavior tests and 4 inherited scoring tests                                                                            | No model-quality claim                                                               |
+| TypeScript                           | Application and separate Cypress projects passed                                                                                                                    | Separate Jest/Cypress matcher environments                                           |
+| Scoped ESLint                        | New feature, routes and browser spec passed                                                                                                                         | Full inherited application lint not claimed clean                                    |
+| Production build                     | Passed                                                                                                                                                              | Existing optional canvas/PDF rendering warnings remain                               |
+| Development startup                  | Turbopack started; review page returned HTTP 200 with Firebase API key blank                                                                                        | Existing installed dependencies; no fresh install or full interview/Firebase flow    |
+| Production boundary                  | Actual GET page and POST API both returned HTTP 404 on the built server                                                                                             | Local production-mode check, not deployment verification                             |
+| Browser workflow                     | **7 browser tests passed** in Electron: import, mock success/hash mismatch, source/edit/export, restore/invalidation, conflict/mobile, failure retention and cancel | Authored fixtures and mocked transport; not practitioner usability or model evidence |
+| Real provider request                | One attempt returned 503 / AI_UNAVAILABLE; no draft opened                                                                                                          | Provider access must be repaired before a genuine live demo                          |
+| Phase 2 preservation / documentation | **30 offline contract and 18 wireframe checks passed**; all documentation links/anchors resolve                                                                     | Historical baseline and practice source text remain separate                         |
 
 Meaningful checks cover byte limits, malformed/duplicate/no-candidate requests, invalid quotes/speakers, timeout/cancellation, explicit errors, provenance matching, source focus, edits, removals/restores, review invalidation and export fidelity. Unknown-speaker context is warned about and cannot support a candidate claim. A valid quote still does not prove semantic support; that remains a human review task. Source focus and return, narrow layout and export interactions were checked; a full keyboard/screen-reader audit, 200% browser zoom and other browsers were not tested.
 
@@ -98,11 +98,11 @@ Human timing and recruiter validation remain pending. A five-minute recorded dem
 
 ## Progress log
 
-| Date | Work completed | Evidence / consequence |
-|---|---|---|
-| 2026-09-07 | Created build tracker and carried forward inherited risks | No new prototype behavior or repaired checks claimed |
-| 2026-09-08 | Received completed Phase 2 design package and six-task backlog | Ready to build; authored wireframe and offline checks do not complete product implementation |
-| 2026-09-08 | Implemented the separate local review workspace, API, validators, review state and exports | Runnable synthetic workflow; provider calls remain server-side |
-| 2026-09-08 | Executed first real provider attempt | AI_UNAVAILABLE; retained original failure and did not substitute authored output |
-| 2026-09-08 | Stabilized startup/discovery/typing and checked production boundary | Jest, TypeScript and build passed; production page/API returned 404 |
-| 2026-09-08 | Finished seven browser checks and inspected desktop/mobile screenshots | Fixed theme-triggered early selection reset and versioned export names; authored/mocked evidence only |
+| Date       | Work completed                                                                             | Evidence / consequence                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 2026-09-07 | Created build tracker and carried forward inherited risks                                  | No new prototype behavior or repaired checks claimed                                                  |
+| 2026-09-08 | Received completed Phase 2 design package and six-task backlog                             | Ready to build; authored wireframe and offline checks do not complete product implementation          |
+| 2026-09-08 | Implemented the separate local review workspace, API, validators, review state and exports | Runnable synthetic workflow; provider calls remain server-side                                        |
+| 2026-09-08 | Executed first real provider attempt                                                       | AI_UNAVAILABLE; retained original failure and did not substitute authored output                      |
+| 2026-09-08 | Stabilized startup/discovery/typing and checked production boundary                        | Jest, TypeScript and build passed; production page/API returned 404                                   |
+| 2026-09-08 | Finished seven browser checks and inspected desktop/mobile screenshots                     | Fixed theme-triggered early selection reset and versioned export names; authored/mocked evidence only |

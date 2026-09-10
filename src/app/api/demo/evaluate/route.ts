@@ -4,6 +4,7 @@ import {
   claimEvaluation,
   demoAvailability,
   ownedLease,
+  saveEvaluation,
 } from "@/lib/demo/ledger";
 import { limitedJson, reply, sameOrigin, visitor } from "@/lib/demo/http";
 import { PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
@@ -33,27 +34,40 @@ export async function POST(req: NextRequest) {
       grant = await requestReviewer(req),
       owner = grant ? `reviewer:${grant.id}` : visitor(req).id,
       lease = await ownedLease(owner, body.sessionId);
-    await claimEvaluation(owner, body.sessionId, body.provider);
+    const configuredProviders = PROVIDERS.filter((p) =>
+      process.env[p.env]?.trim()
+    );
+    const selectedProvider = grant
+      ? (configuredProviders.find((p) => p.id === body.provider) ||
+          configuredProviders[0])?.id || "openai"
+      : body.provider;
+    await claimEvaluation(owner, body.sessionId, selectedProvider);
     if (grant) await consumeReviewer(grant, 3);
-    const provider = PROVIDERS.find((p) => p.id === body.provider)!;
+    const provider = PROVIDERS.find((p) => p.id === selectedProvider)!;
     const fallbackKeys: Partial<Record<AIProvider, string>> = {};
-    if (body.allowFallback)
+    if (body.allowFallback || grant)
       for (const p of PROVIDERS) {
         if (process.env[p.env]) fallbackKeys[p.id] = process.env[p.env];
       }
     const result = await assessEvidence(
-      body.provider,
+      selectedProvider,
       process.env[provider.env],
       body.transcript,
       lease.configuration || configurationSchema.parse({}),
       { host: true, fallbackKeys }
     );
+    await saveEvaluation(owner, body.sessionId, {
+      transcript: body.transcript,
+      evaluation: result.object,
+      model: result.model,
+      provider: result.provider,
+    });
     return reply(req, {
       evaluation: result.object,
       provider: result.provider,
       model: result.model,
       diagnostic: grant ? result.diagnostic : undefined,
-      persisted: false,
+      persisted: true,
     });
   } catch (e) {
     return reply(
