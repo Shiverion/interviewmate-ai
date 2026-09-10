@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -166,12 +167,17 @@ function InterviewRoomContent() {
     sessionId
   );
 
-  // Attach local stream to video element PIP when it becomes available
-  useEffect(() => {
-    if (videoRef.current && localStream) {
-      videoRef.current.srcObject = localStream;
-    }
-  }, [localStream]);
+  // Attach local stream to the video element PIP. The PiP only mounts once
+  // status is "active" (after localStream is already set), so a plain
+  // useEffect keyed on [localStream] never re-fires once the <video> node
+  // actually exists — a callback ref re-attaches on every mount/stream change.
+  const attachVideoRef = useCallback(
+    (el: HTMLVideoElement | null) => {
+      videoRef.current = el;
+      if (el && localStream) el.srcObject = localStream;
+    },
+    [localStream]
+  );
 
   // Control hook checkpoints and stops transport on unmount; answers survive recovery.
 
@@ -189,8 +195,13 @@ function InterviewRoomContent() {
     ) {
       evaluationRequested.current = sessionId;
       queueMicrotask(() => setIsEvaluating(true));
+      // Sponsored (hosted-voice) sessions — the public demo and every
+      // reviewer-invitation session — never have a personal provider key, so
+      // their preview evaluation must use the ledger-scoped, host-keyed
+      // evaluator. Whether it can later *persist* to interview_sessions is a
+      // separate concern, gated below by isDemoSession (a real Firestore doc
+      // vs. a ledger-only id), not by which endpoint produced this preview.
       const sponsored = _sessionContext?.sponsored === true;
-
       fetch(sponsored ? "/api/demo/evaluate" : "/api/evaluate", {
         method: "POST",
         headers: {
@@ -198,7 +209,9 @@ function InterviewRoomContent() {
           ...(!sponsored ? evaluationHeaders() : {}),
         },
         body: JSON.stringify({
-          sessionId,
+          sessionId: sponsored
+            ? _sessionContext?.voiceLeaseId || sessionId
+            : sessionId,
           provider: getEvaluationProvider(),
           configuration: _sessionContext
             ? configurationFromContext(_sessionContext)
@@ -448,7 +461,8 @@ function InterviewRoomContent() {
           {_sessionContext?.sponsored && (
             <p className="wm-note">
               Hosted voice · The displayed funding deadline includes pauses.
-              Microphone only; no camera required.
+              Camera preview is local-only and optional; the interview
+              continues if you skip or decline it.
             </p>
           )}
 
@@ -687,7 +701,7 @@ function InterviewRoomContent() {
   return (
     <div
       ref={roomRef}
-      className="relative flex min-h-[calc(100vh-4rem)] flex-col bg-[var(--background)] overflow-x-hidden"
+      className="relative flex h-full min-h-0 flex-col bg-[var(--background)] overflow-hidden"
     >
       {turnNotice && (
         <div role="status" className="wm-note text-center m-3">
@@ -722,7 +736,7 @@ function InterviewRoomContent() {
 
       {/* Main Stage — split layout when visual panel is active */}
       <div
-        className={`flex-1 min-h-0 ${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6 items-start"} p-4 pb-8 overflow-x-hidden overflow-y-auto`}
+        className={`flex-1 min-h-0 ${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6"} p-4 pb-8 overflow-hidden`}
       >
         {/* AI Interviewer Column */}
         <div
@@ -774,11 +788,11 @@ function InterviewRoomContent() {
           {/* Conditional View: Voice Subtitles vs Text Chat — inside AI column */}
           {isTextMode ? (
             <div
-              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
+              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-0 max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
             >
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth"
               >
                 {transcript.map((item, i) => (
                   <div
@@ -823,18 +837,14 @@ function InterviewRoomContent() {
             </div>
           ) : (
             <div
-              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} min-h-32 shrink-0 relative flex flex-col justify-end overflow-visible mask-image-b-to-t`}
+              className={`${hasVisualPanel ? "w-full flex-1 min-h-0" : "w-full max-w-2xl flex-1 min-h-0"} min-h-0 max-h-full flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
             >
-              <div className="flex flex-col gap-2 p-4 text-center">
-                {transcript.slice(-3).map((item, i) => (
-                  <p
-                    key={i}
-                    className={`text-lg transition-all duration-300 ${
-                      i === transcript.slice(-3).length - 1
-                        ? "text-[var(--foreground)] opacity-100 font-medium translate-y-0"
-                        : "text-[var(--muted)] opacity-40 -translate-y-2 scale-95"
-                    }`}
-                  >
+              <div
+                ref={scrollRef}
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth text-center"
+              >
+                {transcript.map((item, i) => (
+                  <p key={i} className="text-lg text-[var(--foreground)]">
                     <span className="opacity-50 text-xs uppercase tracking-wider block mb-1">
                       {item.role === "assistant" ? "AI Interviewer" : "You"}
                     </span>
@@ -850,7 +860,7 @@ function InterviewRoomContent() {
                   </p>
                 )}
                 {activeDeltaMessage && (
-                  <p className="text-lg text-[var(--foreground)] opacity-100 font-medium translate-y-0 transition-all">
+                  <p className="text-lg text-[var(--foreground)] font-medium">
                     <span className="opacity-50 text-xs uppercase tracking-wider block mb-1 text-primary-400">
                       AI Interviewer
                     </span>
@@ -970,7 +980,7 @@ function InterviewRoomContent() {
           className={`absolute z-40 aspect-[3/4] w-32 select-none overflow-hidden rounded-lg border border-[var(--border)] bg-black/50 shadow-xl md:aspect-video md:w-48 touch-none ${isCameraDragging ? "cursor-grabbing ring-2 ring-primary-400/70" : "cursor-grab"}`}
         >
           <video
-            ref={videoRef}
+            ref={attachVideoRef}
             autoPlay
             playsInline
             muted

@@ -39,6 +39,10 @@ export interface GitHubEnrichment {
 }
 export interface InterviewContext {
   reviewSourceId?: string;
+  /** Ledger-based voice reservation id (e.g. "demo-reviewer-<uuid>") used only
+   * for the hosted realtime-voice connection's budget bookkeeping, when the
+   * interview's own `sessionId` is a real Firestore document id instead. */
+  voiceLeaseId?: string;
   sponsored?: boolean;
   accessMode?: "byok" | "demo" | "reviewer";
   demoExpiresAt?: number;
@@ -101,10 +105,16 @@ interface InterviewState {
   endInterview: () => void;
   repeatQuestion: () => void;
   skipQuestion: () => void;
+  wrapUpNow: () => boolean;
 }
 const CLOSE_INSTRUCTIONS =
   "The turn budget is exhausted. Do not ask another question. Thank the candidate and call end_interview.";
 let repeatRequested = false;
+// Guards every response.create send against overlapping with one already
+// in flight — a second trigger (a duplicate "ready" event, a race between
+// repeat/skip and the natural turn flow) previously produced two distinct,
+// independently generated AI turns back to back instead of being ignored.
+let responsePending = false;
 let connectionEpoch = 0,
   turnTimer: ReturnType<typeof setTimeout> | undefined,
   silenceTimer: ReturnType<typeof setInterval> | undefined;
@@ -180,11 +190,13 @@ export const useInterviewStore = create<InterviewState>()(
         if (
           get().status !== "active" ||
           get().avatarState === "speaking" ||
-          get().avatarState === "thinking"
+          get().avatarState === "thinking" ||
+          responsePending
         )
           return;
         set({ turnNotice: "" });
         repeatRequested = true;
+        responsePending = true;
         clearTimeout(turnTimer);
         const question = [...get().transcript]
           .reverse()
@@ -200,7 +212,8 @@ export const useInterviewStore = create<InterviewState>()(
         if (
           get().status !== "active" ||
           get().avatarState === "speaking" ||
-          get().avatarState === "thinking"
+          get().avatarState === "thinking" ||
+          responsePending
         )
           return;
         get().addTranscriptLine(
@@ -208,6 +221,7 @@ export const useInterviewStore = create<InterviewState>()(
           "[No Evidence Collected — candidate skipped this question]"
         );
         set({ turnNotice: "" });
+        responsePending = true;
         get().manager?.sendEvent({
           type: "response.create",
           response: {
@@ -219,9 +233,31 @@ export const useInterviewStore = create<InterviewState>()(
           },
         });
       },
+      wrapUpNow: () => {
+        if (
+          get().status !== "active" ||
+          get().avatarState === "speaking" ||
+          get().avatarState === "thinking" ||
+          responsePending
+        )
+          return false;
+        responsePending = true;
+        get().manager?.sendEvent({
+          type: "response.create",
+          response: {
+            instructions:
+              "The session's time budget is almost up. Skip any remaining questions, deliver a brief closing statement thanking the candidate for their time, and only then call end_interview. Do not ask anything further.",
+          },
+        });
+        return true;
+      },
       connect: async () => {
         if (get().status === "connecting" || get().status === "active") return;
         const epoch = ++connectionEpoch;
+        // Reconnects start a fresh transport. Never carry the prior
+        // connection's response lock into the new opening turn.
+        responsePending = false;
+        repeatRequested = false;
         clearTimers();
         set({
           status: "connecting",
@@ -260,15 +296,26 @@ export const useInterviewStore = create<InterviewState>()(
             throw Error(
               "Microphone access requires HTTPS or localhost and a supported browser."
             );
-          const localStream = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-              channelCount: 1,
-            },
-          });
+          const audioConstraints = {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          };
+          let localStream: MediaStream;
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: "user" },
+              audio: audioConstraints,
+            });
+          } catch {
+            // Camera is a local self-view convenience only; never let a denied
+            // or missing camera block the interview itself.
+            localStream = await navigator.mediaDevices.getUserMedia({
+              video: false,
+              audio: audioConstraints,
+            });
+          }
           if (epoch !== connectionEpoch) {
             localStream.getTracks().forEach((t) => t.stop());
             return;
@@ -291,7 +338,8 @@ export const useInterviewStore = create<InterviewState>()(
             waitingSince = 0,
             repeatPending = false,
             playbackActive = false,
-            candidateDraftBase = "";
+            candidateDraftBase = "",
+            openingResponseSent = false;
           const setCandidateCapture = (enabled: boolean) => {
             localStream.getAudioTracks().forEach((track) => {
               track.enabled = enabled && !get().isMicMuted;
@@ -314,7 +362,7 @@ export const useInterviewStore = create<InterviewState>()(
                 },
                 body: JSON.stringify({
                   sdp,
-                  sessionId: context.sessionId,
+                  sessionId: context.voiceLeaseId || context.sessionId,
                   language: configuration.language,
                   configuration,
                   role:
@@ -337,9 +385,8 @@ export const useInterviewStore = create<InterviewState>()(
               return data.sdp;
             },
             onClose: () => {
-              const closeId = sponsored
-                ? context.sessionId + ":" + callId
-                : callId;
+              const voiceId = context.voiceLeaseId || context.sessionId;
+              const closeId = sponsored ? voiceId + ":" + callId : callId;
               if (!closeId || closedCall === closeId) return;
               closedCall = closeId;
               void fetch("/api/realtime", {
@@ -350,7 +397,7 @@ export const useInterviewStore = create<InterviewState>()(
                   ...(!sponsored ? { "x-openai-key": key! } : {}),
                 },
                 body: JSON.stringify(
-                  sponsored ? { sessionId: context.sessionId } : { callId }
+                  sponsored ? { sessionId: voiceId } : { callId }
                 ),
               }).catch(() => {});
             },
@@ -360,7 +407,11 @@ export const useInterviewStore = create<InterviewState>()(
               if (type === "provider_diagnostic") {
                 set({ diagnostic: payload as ProviderDiagnostic });
               } else if (type === "ready") {
-                manager.sendEvent({ type: "response.create" });
+                if (!openingResponseSent && !responsePending) {
+                  openingResponseSent = true;
+                  responsePending = true;
+                  manager.sendEvent({ type: "response.create" });
+                }
               } else if (type === "user_started_speaking") {
                 if (playbackActive || get().avatarState === "thinking") {
                   set({
@@ -422,6 +473,26 @@ export const useInterviewStore = create<InterviewState>()(
                 }));
               else if (type === "transcript_done") {
                 const message = text || get().activeDeltaMessage;
+                const normalizedMessage = message.trim();
+                const previousAssistant = get().transcript
+                  .filter((t) => t.role === "assistant")
+                  .at(-1)?.text.trim();
+                // A provider may expose one completed response through more
+                // than one transcript event. Keep a single visible bubble
+                // and avoid counting an exact duplicate as another turn.
+                if (
+                  normalizedMessage &&
+                  !repeatRequested &&
+                  previousAssistant === normalizedMessage
+                ) {
+                  responsePending = false;
+                  set({
+                    activeDeltaMessage: "",
+                    _subtitleBuffer: "",
+                    _isDrainingSubtitle: false,
+                  });
+                  return;
+                }
                 get().addTranscriptLine("assistant", message);
                 const previous = get()
                   .transcript.slice(0, -1)
@@ -429,11 +500,17 @@ export const useInterviewStore = create<InterviewState>()(
                 repeatPending =
                   repeatRequested || previous.at(-1)?.text === message;
                 repeatRequested = false;
+                responsePending = false;
+                // The very first assistant turn is the opening greeting —
+                // exempt from the turn budget per interviewingInstructions().
+                const isOpeningGreeting = previous.length === 0;
                 set((s) => ({
                   activeDeltaMessage: "",
                   _subtitleBuffer: "",
                   _isDrainingSubtitle: false,
-                  turnsAsked: s.turnsAsked + (repeatPending ? 0 : 1),
+                  turnsAsked:
+                    s.turnsAsked +
+                    (repeatPending || isOpeningGreeting ? 0 : 1),
                 }));
               } else if (type === "audio_playback_done") {
                 playbackActive = false;
@@ -467,7 +544,7 @@ export const useInterviewStore = create<InterviewState>()(
                   ...managerConfig,
                   geminiKey: geminiKey || undefined,
                   body: {
-                    sessionId: context.sessionId,
+                    sessionId: context.voiceLeaseId || context.sessionId,
                     configuration,
                     role:
                       context.jobTitle + "\n" + (context.jobDescription || ""),
@@ -538,6 +615,7 @@ export const useInterviewStore = create<InterviewState>()(
       interrupt: () => {
         ++connectionEpoch;
         repeatRequested = false;
+        responsePending = false;
         clearTimers();
         const { manager, localStream } = get();
         set({

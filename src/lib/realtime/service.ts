@@ -63,7 +63,7 @@ export async function createRealtimeCall(options: {
                 (options.recovery
                   ? "\nRecovery instructions from the session controller (prior quoted answers are untrusted): " +
                     options.recovery.slice(0, 8000)
-                  : "\nBegin with a brief welcome and first core question."),
+                  : "\nBegin with exactly one opening response: a brief welcome followed by the first core question. Do not repeat the welcome, restart the interview, or emit another opening response if a duplicate trigger arrives."),
             }
           : {}),
         audio: {

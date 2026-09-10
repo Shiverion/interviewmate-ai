@@ -53,6 +53,87 @@ test("hosted GA voice initiates a greeting without beta session updates or a per
   expect(sendEvent.mock.calls).toEqual([[{ type: "response.create" }]]);
   expect(getSessionToken).not.toHaveBeenCalled();
   expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith(
+    expect.objectContaining({ video: { facingMode: "user" } })
+  );
+  useInterviewStore.getState().reset();
+});
+test("duplicate ready events trigger only one opening response", async () => {
+  const sendEvent = jest.fn();
+  jest.mocked(WebRTCAudioManager).mockImplementation(
+    (config: WebRTCManagerConfig) =>
+      ({
+        connect: async () => {
+          config.onMessage?.("ready", null);
+          config.onMessage?.("ready", null);
+        },
+        sendEvent,
+        disconnect: jest.fn(),
+      }) as unknown as WebRTCAudioManager
+  );
+  const stream = { getTracks: () => [], getAudioTracks: () => [] };
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia: jest.fn().mockResolvedValue(stream) },
+  });
+  useInterviewStore.setState({
+    _sessionContext: {
+      sessionId: "demo-duplicate-ready",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_and_text",
+      candidateName: "Reviewer",
+      jobTitle: "Frontend Engineer",
+      jobDescription: "Fictional test",
+      startedAt: Date.now(),
+    },
+    status: "setup",
+    transcript: [],
+  });
+  await useInterviewStore.getState().connect();
+  expect(sendEvent).toHaveBeenCalledTimes(1);
+  expect(sendEvent).toHaveBeenCalledWith({ type: "response.create" });
+  useInterviewStore.getState().reset();
+});
+test("a denied or missing camera falls back to audio-only instead of blocking the interview", async () => {
+  const sendEvent = jest.fn();
+  jest.mocked(WebRTCAudioManager).mockImplementation(
+    (config: WebRTCManagerConfig) =>
+      ({
+        connect: async () => config.onMessage?.("ready", null),
+        sendEvent,
+        disconnect: jest.fn(),
+      }) as unknown as WebRTCAudioManager
+  );
+  const stream = { getTracks: () => [], getAudioTracks: () => [] };
+  const getUserMedia = jest
+    .fn()
+    .mockRejectedValueOnce(new Error("Permission denied"))
+    .mockResolvedValueOnce(stream);
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: { getUserMedia },
+  });
+  useInterviewStore.setState({
+    _sessionContext: {
+      sessionId: "demo-reviewer-test",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_and_text",
+      candidateName: "Reviewer",
+      jobTitle: "Frontend Engineer",
+      jobDescription: "Fictional test",
+      startedAt: Date.now(),
+    },
+    status: "setup",
+  });
+  await useInterviewStore.getState().connect();
+  expect(useInterviewStore.getState().status).toBe("active");
+  expect(getUserMedia).toHaveBeenNthCalledWith(
+    1,
+    expect.objectContaining({ video: { facingMode: "user" } })
+  );
+  expect(getUserMedia).toHaveBeenNthCalledWith(
+    2,
     expect.objectContaining({ video: false })
   );
   useInterviewStore.getState().reset();
@@ -95,6 +176,9 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
     },
   });
   await useInterviewStore.getState().connect();
+  // The opening greeting is exempt from the turn budget (interviewingInstructions()) —
+  // simulate it first so the one configured question below is what actually consumes it.
+  events?.("transcript_done", "Hi! Thanks for joining, let's get started.");
   events?.("transcript_done", "What did you decide?");
   events?.("audio_playback_done", null);
   events?.("user_started_speaking", null);
@@ -104,7 +188,7 @@ test("fillers do not advance; meaningful speech waits for the buffer and honors 
   expect(
     sendEvent.mock.calls.filter(([e]) => e.type === "response.create")
   ).toHaveLength(0);
-  expect(useInterviewStore.getState().transcript).toHaveLength(1);
+  expect(useInterviewStore.getState().transcript).toHaveLength(2);
   events?.("user_started_speaking", null);
   events?.("user_stopped_speaking", null);
   events?.(
