@@ -1,6 +1,6 @@
 # Current setup and validation
 
-Updated: 2026-09-10. [Specification](../../../Product_Sprint.md) · [Progress](../../README.md). This runbook supersedes the archived setup instructions.
+Updated: 2026-09-11. [Specification](../../../Product_Sprint.md) · [Progress](../../README.md). This runbook supersedes the archived setup instructions. See the [bulk candidate pipeline implementation note](2026-09-11-bulk-pipeline.md) for the CV-to-invitation flow.
 
 See [model refresh, private access, validation and remaining setup](2026-09-10-models-and-access.md) for the latest implementation. Firebase ownership rules are already deployed; English/Indonesian live voice validation remains open.
 
@@ -25,6 +25,8 @@ Voice reserves one usage unit per funded minute; an evaluation reserves three. U
 ## Configuration and flow
 
 Personal setup, scheduling and Reviewer Mode use `InterviewSetupForm` and `interview-config-v2`. Voice + text is mandatory: the candidate speaks, reviews the transcript in the answer composer, edits it if needed, and explicitly sends it. The Additional competency rubric is empty by default; the evaluator derives job-related competencies from the job description and validated CV context. Recruiters can add an optional competency from the dropdown when they need an extra explicit lens. Duration is 5, 10, 15 minutes or Unlimited. Every new question/follow-up consumes a turn; evidence coverage is calculated independently. Structured mode follows core questions; Adaptive mode requests relevant follow-ups. Adaptive topicality is prompt-directed and still needs human testing.
+
+The recruiter bulk pipeline at `/pipeline` reuses the ATS checker for multiple PDF resumes. It ranks candidates against one role brief, supports optional Top 5/10/20 preselection and manual checkboxes, then creates the same scheduled interview links as the existing flow. Candidate email is required for each link so Firestore can enforce candidate-level admission. The old `/interviews` route remains a compatibility view for existing records.
 
 The reviewer journey is intentionally narrow: the administrator creates an invitation, the recipient redeems it at `/reviewer`, completes setup (including an optional CV), completes the live interview, sees the evidence-based evaluation once, and finishes. The recipient has no recruiter dashboard, Evaluation Sandbox, Human Review controls or access to other candidates. The completed evaluation is saved in private server-side reviewer storage and loaded into the verified administrator's Dashboard. No raw CV PDF is stored in that ledger; only bounded parsed context is used for the interview.
 
