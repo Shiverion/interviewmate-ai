@@ -54,6 +54,9 @@ test("Gemini connects with low thinking, fixed spoken language and no automatic 
   const { id } = await start();
   expect(connectArgs.model).toBe("gemini-3.1-flash-live-preview");
   expect(connectArgs.config?.thinkingConfig).toEqual({ thinkingLevel: "LOW" });
+  expect(connectArgs.config?.speechConfig).toEqual({
+    voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
+  });
   expect(connectArgs.config?.systemInstruction).toContain(
     "Speak only in English"
   );

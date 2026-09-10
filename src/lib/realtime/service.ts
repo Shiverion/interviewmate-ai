@@ -3,7 +3,10 @@ import {
   type InterviewConfiguration,
 } from "@/lib/interview/config";
 import { providerDiagnostic, recordProvider } from "@/lib/ai/health";
-import { VOICE_MODELS } from "@/lib/ai/model-policy";
+import {
+  VOICE_MODELS,
+  VOICE_NAMES,
+} from "@/lib/ai/model-policy";
 import { transcriptionSettings } from "@/lib/interview/language";
 export class RealtimeFailure extends Error {
   constructor(
@@ -80,7 +83,9 @@ export async function createRealtimeCall(options: {
                 : {}),
             },
           },
-          ...(!transcriptionOnly ? { output: { voice: "sage" } } : {}),
+          ...(!transcriptionOnly
+            ? { output: { voice: VOICE_NAMES.openai } }
+            : {}),
         },
         ...(!transcriptionOnly
           ? {

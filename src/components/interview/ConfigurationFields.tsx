@@ -133,12 +133,13 @@ export default function ConfigurationFields({
             )
           }
         >
-          <option value="openai">GPT-Realtime 2.1 Mini</option>
-          <option value="gemini">Gemini 3.1 Flash Live (Preview)</option>
+          <option value="openai">GPT-Realtime 2.1 Mini · Marin</option>
+          <option value="gemini">Gemini 3.1 Flash Live (Preview) · Kore</option>
         </select>
         <small>
-          Gemini uses the selected OpenAI transcriber, then speaks from that
-          transcript. Personal sessions need both keys.
+          Marin is the fixed OpenAI interviewer voice across languages and
+          reconnects. Gemini uses its separate fixed Kore voice and the
+          selected OpenAI transcriber. Personal sessions need both keys.
         </small>
       </label>
       <label className="wm-field">

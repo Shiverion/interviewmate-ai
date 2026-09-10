@@ -10,7 +10,7 @@ import {
   type InterviewConfiguration,
 } from "@/lib/interview/config";
 import { providerDiagnostic, recordProvider } from "@/lib/ai/health";
-import { VOICE_MODELS } from "@/lib/ai/model-policy";
+import { VOICE_MODELS, VOICE_NAMES } from "@/lib/ai/model-policy";
 
 type LiveRecord = {
   owner: string;
@@ -163,7 +163,9 @@ export async function openGeminiSession(options: {
           "\nThe candidate's speech arrives as an external transcript. Never invent a candidate answer. Respond only when the interview controller requests a response." +
           (options.recovery ? `\nRecovery context: ${options.recovery}` : ""),
         speechConfig: {
-          voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } },
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: VOICE_NAMES.gemini },
+          },
         },
         outputAudioTranscription: {},
         tools: [

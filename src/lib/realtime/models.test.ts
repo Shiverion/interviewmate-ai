@@ -6,7 +6,11 @@ import {
 } from "@/lib/interview/config";
 import { transcriptionSettings } from "@/lib/interview/language";
 import { createRealtimeCall } from "./service";
-import { evaluationEffort, evaluationOptions } from "@/lib/ai/model-policy";
+import {
+  evaluationEffort,
+  evaluationOptions,
+  VOICE_NAMES,
+} from "@/lib/ai/model-policy";
 import { PROVIDERS } from "@/lib/ai/catalog";
 
 const originalEnv = { ...process.env };
@@ -79,6 +83,9 @@ test("evaluation models are current and effort is clamped to low or medium", () 
     google: { thinkingConfig: { thinkingLevel: "medium" } },
   });
 });
+test("voice identity is fixed per provider", () => {
+  expect(VOICE_NAMES).toEqual({ openai: "marin", gemini: "Kore" });
+});
 test.each(["openai", "gemini"] as const)(
   "%s voice uses the selected transcription settings in the actual SDP request",
   async (voiceProvider) => {
@@ -116,6 +123,7 @@ test.each(["openai", "gemini"] as const)(
         type: "realtime",
         model: "gpt-realtime-2.1-mini",
         reasoning: { effort: "medium" },
+        audio: { output: { voice: "marin" } },
       });
       expect(session.instructions).toContain("Speak only in English");
       expect(session.audio.input.turn_detection.create_response).toBe(false);

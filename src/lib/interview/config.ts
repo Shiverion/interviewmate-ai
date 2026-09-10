@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { languageSchema, spokenLanguagePolicy } from "./language";
+import { VOICE_DELIVERY_INSTRUCTIONS } from "@/lib/ai/model-policy";
 
 export const RUBRIC_VERSION = "competency-evidence-v2";
 export const DEFAULT_COMPETENCIES = [
@@ -182,7 +183,7 @@ export function interviewingInstructions(
   const competencyPlan = config.competencies.length
     ? `Use only these additional competencies: ${JSON.stringify(config.competencies)}.`
     : "No additional competency rubric was supplied. Derive job-related competencies only from the job description and any validated CV context; do not invent requirements or infer ability from a title, employer, school or identity attribute.";
-  return `You are conducting an evidence-based interview for ${role.slice(0, 6500)}. ${spokenLanguagePolicy(config.language)} Use one question per response. Maximum ${config.maxTurns} interview turns; EVERY follow-up counts. Track competency coverage separately from turns. ${competencyPlan}
+  return `You are conducting an evidence-based interview for ${role.slice(0, 6500)}. ${spokenLanguagePolicy(config.language)} ${VOICE_DELIVERY_INSTRUCTIONS} Use one question per response. Maximum ${config.maxTurns} interview turns; EVERY follow-up counts. Track competency coverage separately from turns. ${competencyPlan}
 Opening and closing are separate from the ${config.maxTurns}-turn budget and are not interview turns themselves. Emit exactly one opening response per connection: introduce yourself as the AI interviewer, welcome the candidate, briefly mention what to expect, and include the first core question. Do not repeat the welcome, restart the interview, or emit a second opening response when a duplicate trigger arrives. Once ${config.maxTurns} interview turns are complete, deliver a distinct closing statement thanking the candidate and letting them know the interview is finished — do not ask anything further in it. Call end_interview only after that closing statement has been fully spoken; never call it silently, mid-sentence, or before the candidate has heard your goodbye.
 ${config.strategy === "adaptive" ? "Adaptive mode: after an answer, ask at most one directly relevant follow-up about a missing ownership, decision, tradeoff, validation or outcome detail. Never repeat evidence already provided. Rotate to uncovered competencies before exhausting the turn budget." : "Structured mode: follow the core question plan, do not add follow-ups."}
 Core questions: ${JSON.stringify(config.customQuestions)}. If no questions are provided, form relevant questions from the job description, validated CV context and derived competencies. Do not ask about employer or school prestige, age, gender, location or other irrelevant identity attributes. Seniority must come from demonstrated scope and evidence.
