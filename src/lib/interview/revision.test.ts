@@ -24,6 +24,8 @@ const draft: EvidenceDraft = {
   competencies: [
     {
       id: "ownership",
+      label: null,
+      description: null,
       level: 4,
       relevance: "direct",
       consistency: "consistent",
@@ -105,22 +107,22 @@ test("strong partial coverage retains assessed quality without scoring missing a
   expect(result.competencies[1].status).toBe("Not Assessed");
   expect(result.overallScore).toBeNull();
 });
-test("invalid citations and duplicate competencies are held", () => {
-  expect(() =>
-    finalizeEvidence(
-      {
-        ...draft,
-        competencies: [
-          {
-            ...draft.competencies[0],
-            quotes: [{ turn: 1, quote: "fabricated" }],
-          },
-        ],
-      },
-      lines,
-      config
-    )
-  ).toThrow("unsupported");
+test("invalid citations are dropped while duplicate competencies are held", () => {
+  const invalidCitation = finalizeEvidence(
+    {
+      ...draft,
+      competencies: [
+        {
+          ...draft.competencies[0],
+          quotes: [{ turn: 1, quote: "fabricated" }],
+        },
+      ],
+    },
+    lines,
+    config
+  );
+  expect(invalidCitation.competencies[0].quotes).toEqual([]);
+  expect(invalidCitation.competencies[0].level).toBe(0);
   expect(() =>
     finalizeEvidence(
       { competencies: [...draft.competencies, ...draft.competencies] },
@@ -128,13 +130,12 @@ test("invalid citations and duplicate competencies are held", () => {
       config
     )
   ).toThrow("duplicate");
-  expect(() =>
-    finalizeEvidence(
-      draft,
-      [{ role: "assistant", text: lines[0].text }],
-      config
-    )
-  ).toThrow("unsupported");
+  const interviewerCitation = finalizeEvidence(
+    draft,
+    [{ role: "assistant", text: lines[0].text }],
+    config
+  );
+  expect(interviewerCitation.competencies[0].quotes).toEqual([]);
 });
 test("deterministic aggregation is invariant to employer, university and title metadata (model fairness remains a separate live test)", () => {
   const profiles = [

@@ -108,7 +108,7 @@ interface InterviewState {
   wrapUpNow: () => boolean;
 }
 const CLOSE_INSTRUCTIONS =
-  "The turn budget is exhausted. Do not ask another question. Thank the candidate and call end_interview.";
+  "The turn budget is exhausted. Return only a brief closing statement thanking the candidate and saying the interview is finished. Do not ask another question, request more information, say 'next', or invite a response. Call end_interview only after the complete closing statement has been spoken.";
 let repeatRequested = false;
 // Guards every response.create send against overlapping with one already
 // in flight — a second trigger (a duplicate "ready" event, a race between
@@ -180,7 +180,7 @@ export const useInterviewStore = create<InterviewState>()(
         get().manager?.sendTextMessage(
           text,
           get().turnsAsked >=
-            configurationFromContext(get()._sessionContext!).maxTurns
+            configurationFromContext(get()._sessionContext!).maxTurns - 1
             ? CLOSE_INSTRUCTIONS
             : undefined
         );
@@ -227,7 +227,7 @@ export const useInterviewStore = create<InterviewState>()(
           response: {
             instructions:
               get().turnsAsked >=
-              configurationFromContext(get()._sessionContext!).maxTurns
+              configurationFromContext(get()._sessionContext!).maxTurns - 1
                 ? CLOSE_INSTRUCTIONS
                 : "The candidate skipped. Record No Evidence Collected without penalty. Ask the next planned competency question.",
           },
@@ -338,6 +338,7 @@ export const useInterviewStore = create<InterviewState>()(
             waitingSince = 0,
             repeatPending = false,
             playbackActive = false,
+            endAfterPlayback = false,
             candidateDraftBase = "",
             openingResponseSent = false;
           const setCandidateCapture = (enabled: boolean) => {
@@ -514,11 +515,27 @@ export const useInterviewStore = create<InterviewState>()(
                 }));
               } else if (type === "audio_playback_done") {
                 playbackActive = false;
+                if (endAfterPlayback) {
+                  endAfterPlayback = false;
+                  get().endInterview();
+                  return;
+                }
                 setCandidateCapture(true);
                 waitForCandidate();
               } else if (type === "ai_done" && !playbackActive)
                 waitForCandidate();
-              else if (type === "end_interview") get().endInterview();
+              else if (type === "end_interview") {
+                // Providers can emit the function call while the closing audio
+                // is still buffered. Keep the transport alive until playback
+                // reports completion so the goodbye is not cut off.
+                if (
+                  playbackActive ||
+                  get().avatarState === "speaking" ||
+                  get().avatarState === "thinking"
+                ) {
+                  endAfterPlayback = true;
+                } else get().endInterview();
+              }
               else if (type === "transcription_failed") {
                 get().interrupt();
                 set({
@@ -558,10 +575,16 @@ export const useInterviewStore = create<InterviewState>()(
                   },
                 })
               : new WebRTCAudioManager(managerConfig);
+          const assistantMessageCount = get().transcript.filter(
+            (t) => t.role === "assistant"
+          ).length;
           set({
             manager,
-            turnsAsked: get().transcript.filter((t) => t.role === "assistant")
-              .length,
+            // The first assistant message is the opening greeting and is
+            // explicitly outside the interview-turn budget. Recompute this
+            // the same way after recovery so reconnects do not create an
+            // off-by-one early closing.
+            turnsAsked: Math.max(0, assistantMessageCount - 1),
           });
           await manager.connect(localStream);
           if (epoch !== connectionEpoch) {

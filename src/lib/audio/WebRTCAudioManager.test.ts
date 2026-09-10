@@ -76,6 +76,59 @@ test("streaming drafts are separate from committed text and duplicate completion
   ]);
   manager.disconnect();
 });
+test("the API's legacy and current event names for the same assistant turn do not duplicate the transcript", async () => {
+  const { manager, onMessage } = await setup();
+  emit({
+    type: "response.audio_transcript.done",
+    item_id: "resp-1",
+    transcript: "Tell me about a time you led a project.",
+  });
+  emit({
+    type: "response.output_audio_transcript.done",
+    item_id: "resp-1",
+    transcript: "Tell me about a time you led a project.",
+  });
+  expect(
+    onMessage.mock.calls.filter(([type]) => type === "transcript_done")
+  ).toEqual([
+    ["transcript_done", "Tell me about a time you led a project."],
+  ]);
+  emit({
+    type: "response.output_audio_transcript.done",
+    item_id: "resp-2",
+    transcript: "What tradeoffs did you consider?",
+  });
+  expect(
+    onMessage.mock.calls.filter(([type]) => type === "transcript_done")
+  ).toEqual([
+    ["transcript_done", "Tell me about a time you led a project."],
+    ["transcript_done", "What tradeoffs did you consider?"],
+  ]);
+  manager.disconnect();
+});
+test("closing tool calls wait for output audio playback to stop", async () => {
+  const { manager, onMessage } = await setup();
+  emit({ type: "response.created" });
+  emit({
+    type: "response.function_call_arguments.done",
+    name: "end_interview",
+  });
+  expect(onMessage.mock.calls).not.toContainEqual(["end_interview", null]);
+  emit({ type: "response.output_audio.delta", delta: "audio" });
+  emit({ type: "output_audio_buffer.stopped" });
+  expect(onMessage.mock.calls).toContainEqual(["audio_playback_done", null]);
+  expect(onMessage.mock.calls).toContainEqual(["end_interview", null]);
+  expect(
+    onMessage.mock.invocationCallOrder[
+      onMessage.mock.calls.findIndex(([type]) => type === "audio_playback_done")
+    ]
+  ).toBeLessThan(
+    onMessage.mock.invocationCallOrder[
+      onMessage.mock.calls.findIndex(([type]) => type === "end_interview")
+    ]
+  );
+  manager.disconnect();
+});
 test("repeat and recovery response instructions preserve the configured spoken language", async () => {
   const { manager } = await setup();
   manager.sendEvent({

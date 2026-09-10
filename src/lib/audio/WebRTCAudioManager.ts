@@ -21,6 +21,17 @@ export class WebRTCAudioManager {
   private completedTranscripts = new Set<string>();
   private partialTranscripts = new Map<string, string>();
   private pendingUserAudioItemIds = new Set<string>();
+  // The Realtime API's current event names (response.output_audio_transcript.*,
+  // response.output_text.*) and their earlier aliases (response.audio_transcript.*,
+  // response.text.*) are not mutually exclusive: a single turn can surface both,
+  // carrying the identical transcript text. Treating every one of the four as an
+  // independent trigger produced an exact-duplicate transcript bubble (and double-
+  // counted the turn budget) each time both fired for one item. Keyed by item_id,
+  // like the existing user-transcript dedup above.
+  private completedAssistantTranscripts = new Set<string>();
+  private assistantPlaybackStarted = false;
+  private assistantPlaybackFinished = false;
+  private pendingEndInterview = false;
 
   constructor(private config: WebRTCManagerConfig) {}
 
@@ -95,6 +106,11 @@ export class WebRTCAudioManager {
             eventType === "response.output_audio_transcript.done" ||
             eventType === "response.output_text.done"
           ) {
+            if (parsed.item_id) {
+              if (this.completedAssistantTranscripts.has(parsed.item_id))
+                return;
+              this.completedAssistantTranscripts.add(parsed.item_id);
+            }
             this.config.onMessage(
               "transcript_done",
               parsed.transcript || parsed.text
@@ -143,20 +159,43 @@ export class WebRTCAudioManager {
           ) {
             this.config.onMessage("transcription_failed", null);
           } else if (eventType === "output_audio_buffer.stopped") {
+            this.assistantPlaybackFinished = true;
             this.config.onMessage("audio_playback_done", null);
+            if (this.pendingEndInterview) {
+              this.pendingEndInterview = false;
+              this.config.onMessage("end_interview", null);
+            }
           } else if (eventType === "response.created") {
+            this.assistantPlaybackStarted = false;
+            this.assistantPlaybackFinished = false;
+            this.pendingEndInterview = false;
             this.config.onMessage("ai_thinking", null);
           } else if (
             eventType === "output_audio_buffer.started" ||
             eventType === "response.audio.delta" ||
             eventType === "response.output_audio.delta"
           ) {
+            this.assistantPlaybackStarted = true;
+            this.assistantPlaybackFinished = false;
             this.config.onMessage("ai_speaking", null);
           } else if (eventType === "response.done") {
+            // Text-only responses have no output audio buffer stop event. They
+            // can still close safely once the response itself is complete.
+            if (this.pendingEndInterview && !this.assistantPlaybackStarted) {
+              this.pendingEndInterview = false;
+              this.config.onMessage("end_interview", null);
+            }
             this.config.onMessage("ai_done", null);
           } else if (eventType === "response.function_call_arguments.done") {
             if (parsed.name === "end_interview") {
-              this.config.onMessage("end_interview", null);
+              // Tool calls can arrive before the closing audio has finished.
+              // Defer the store event until output_audio_buffer.stopped so the
+              // browser never disconnects while the goodbye is still playing.
+              if (this.assistantPlaybackFinished) {
+                this.config.onMessage("end_interview", null);
+              } else {
+                this.pendingEndInterview = true;
+              }
             }
           } else {
             // Catch-all for other debugging
@@ -251,6 +290,10 @@ export class WebRTCAudioManager {
     this.partialTranscripts.clear();
     this.completedTranscripts.clear();
     this.pendingUserAudioItemIds.clear();
+    this.completedAssistantTranscripts.clear();
+    this.pendingEndInterview = false;
+    this.assistantPlaybackStarted = false;
+    this.assistantPlaybackFinished = false;
     this.config.onClose?.();
     if (this.pc) {
       this.pc.close();
