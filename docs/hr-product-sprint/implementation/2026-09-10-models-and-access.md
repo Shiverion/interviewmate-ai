@@ -1,10 +1,10 @@
 # Model refresh and private recruiting workspace
 
-Updated: 2026-09-10. [Current runbook](current-runbook.md) · [Sprint tracker](../../README.md) · [Product specification](../../../Product_Sprint.md)
+Updated: 2026-09-11. [Current runbook](current-runbook.md) · [Sprint tracker](../../README.md) · [Product specification](../../../Product_Sprint.md) · [Bulk pipeline note](2026-09-11-bulk-pipeline.md)
 
 ## Implemented behavior
 
-Recruiting records belong to the Firebase UID that creates the interview. Sending or knowing a link does not transfer ownership. Dashboard and Pipeline queries select that UID; opening a report directly is checked by both the UI and Firestore rules. Templates, legacy candidate reports and stored CVs are also restricted. Ownership cannot be changed through an update.
+Recruiting records belong to the Firebase UID that creates the interview. Sending or knowing a link does not transfer ownership. Dashboard, Pipeline and Candidates queries select that UID; opening a report directly is checked by both the UI and Firestore rules. Templates, legacy candidate reports, pipeline candidate rows and stored CVs are also restricted. Ownership cannot be changed through an update.
 
 The verified email `miqbal.izzulhaq@gmail.com` is the administrator. This account sees all recruiter interviews, including legacy ownerless records. An unverified account with that email has no admin privilege. Rules use the Firebase authentication token, never a role supplied by the page or an editable user profile.
 
@@ -19,6 +19,8 @@ The free fictional demo remains available without Google sign-in. Invitation-bas
 Account changes clear previous interview context, transcripts, recovery, local review drafts and personal API keys, and remount private pages. A reload or token refresh for the same account preserves recovery. Browser storage is still a prototype convenience, not encrypted storage or a replacement for secure device access.
 
 CV uploads now use owner/session paths without publishing download URLs. CV retrieval uses authenticated Storage access. Two legacy public CV download tokens were revoked on the configured project and both old links rejected anonymous retrieval. Files were preserved. A candidate can retrieve only their invited session's CV during the access window.
+
+The bulk pipeline stores bounded parsed/ATS metadata for screened rows in `pipeline_candidates`, including rows that are not invited. Creating an invitation links the selected row to a scheduled session and snapshots the role/settings/ATS result. The candidate email is used for admission; it does not grant recruiter-list access. See the [pipeline validation checklist](../evaluation/cv-pipeline-validation.md) for the required cross-account and expiry checks.
 
 ## Current model choices
 
@@ -55,7 +57,7 @@ English remains the baseline. A fixed language applies to transcription hints an
 1. Open `http://localhost:3000` consistently. Your existing OpenAI server key now passes the access check. Set `GOOGLE_GENERATIVE_AI_API_KEY` in private `.env.local` for hosted Gemini voice/evaluation; optionally add `DEEPSEEK_API_KEY` for the third evaluator. Restart the server after changes. Personal sessions use keys entered in Settings; Gemini voice needs both OpenAI and Gemini keys.
 2. Sign out and back in with your Google admin account. Confirm **Admin workspace · All recruiters** appears and existing interviews are visible. Changing accounts intentionally removes locally saved personal keys; enter them again if needed.
 3. In a separate browser profile, sign in with another Google account. Its Dashboard/Pipeline should be empty until that account creates interviews. Opening an admin-owned report URL must not reveal the report. Create one synthetic interview there; confirm it appears for that creator and your admin account.
-4. Schedule a synthetic interview using the candidate's actual Google sign-in email. Open the link in the candidate profile. Verify the correct email can join and a different account cannot. Submit answers, then open Pipeline as the recruiter and run Evaluate. Verify only the recruiter/admin can persist the assessment.
+4. Run the [bulk CV pipeline checklist](../evaluation/cv-pipeline-validation.md) with the fictional batch. Then schedule a synthetic interview using the candidate's actual Google sign-in email. Open the link in the candidate profile. Verify the correct email can join and a different account cannot. Submit answers, then open Pipeline/Candidates as the recruiter and run Evaluate. Verify only the recruiter/admin can persist the assessment.
 5. Try two short voice sessions with the same scripted answers: English first, then Bahasa Indonesia. Record wrong-language words, omitted words, language of the spoken questions, interruptions and reconnect behavior. Repeat with GPT-Live-Transcribe. Test Auto-detect separately; do not merge its results into the English baseline.
 6. After adding Gemini, repeat the same script with Gemini voice. Review the transcript against your recording before scoring evaluation quality. Keep the models unranked until there are comparable human-reviewed results. Finish the small pilot, update the PDF and record the five-minute demo.
 

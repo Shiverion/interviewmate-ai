@@ -44,3 +44,7 @@ Do not edit v1 in place after seeing outputs. Record label disagreements and rea
 Canonical JSON hashes ignore whitespace but preserve content and key order. Runtime contract/prompt hashes reflect exact bytes used by the server; line-ending or configuration changes can intentionally fail the runtime check. Keep the original checkout/configuration available when reproducing this frozen batch rather than editing its freeze record.
 
 Run `node docs/hr-product-sprint/scripts/evaluate-phase-4.cjs --check` from the repository root to verify the package without making a model call.
+
+## Bulk CV pipeline fixture
+
+The separate [cv-pipeline-v1 fixture](cv-pipeline-v1/README.md) contains ten fictional PDF resumes for the recruiter automation at `/pipeline`. It is intentionally outside the frozen transcript benchmark because it evaluates a different flow: bounded PDF extraction, name/email parsing, deterministic ATS ranking, optional Top-N preselection, manual invitation choice and scheduled-link creation. Its expected score bands are useful for a smoke test, not a hiring-accuracy claim. Use the [pipeline validation checklist](../cv-pipeline-validation.md) to record the actual run and keep the English role brief as the baseline when adding the Bahasa Indonesia extension.

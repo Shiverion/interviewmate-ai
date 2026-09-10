@@ -1,4 +1,4 @@
-# September 10 requirement matrix
+# September 10–11 requirement matrix
 
 [Accepted specification](../../../Product_Sprint.md) · [Authoritative progress](../../README.md) · [Runbook](current-runbook.md). “Implemented” describes code, not successful live-model acceptance.
 
@@ -20,5 +20,6 @@
 | 14 | Persistent judgments | ID/notes retain selections; reload restores v2 draft/completed records; browser test exercises private server storage and read-only completion. | Independent ground-truth collection. |
 | 15 | Submission | Runnable app, seven-page PDF, editable content and five-minute video script. | Successful live footage and accessible deployed URL. |
 | 16 | Documentation | Root overview, full sprint spec, living progress; earlier conflicting design archived; obsolete root PRD/report notices removed. | Keep final results and PDF synchronized. |
+| 17 | Automated CV pipeline and scheduling | `/pipeline` parses and scores a multi-CV batch, supports Top 5/10/20 preselection and recruiter checkboxes, creates scheduled links with ATS/config snapshots, and `/candidates` shows persisted screened/invited rows with expandable details. | Deploy/check `pipeline_candidates` rules, run the 10-CV fixture, verify email extraction, selected-link creation, candidate-only admission, schedule expiry and recruiter dashboard isolation. |
 
 Do not mark the overall sprint complete while the live test, model study and video rows remain open. Source hashes establish provenance, not truth; client records are not a tamper-proof hiring audit.

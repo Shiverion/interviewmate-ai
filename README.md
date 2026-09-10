@@ -1,6 +1,6 @@
 # InterviewMate
 
-An English-first recruiting prototype that conducts structured or adaptive voice interviews and helps a human reviewer inspect competency evidence. Bahasa Indonesia is a separate multilingual test.
+An English-first recruiting prototype that conducts structured or adaptive voice interviews, helps a human reviewer inspect competency evidence, and gives recruiters a bulk CV-to-interview pipeline. Bahasa Indonesia is a separate multilingual test.
 
 The inherited Next.js application is the baseline. This revision replaces unexplained interview percentages with a cited 0–4 evidence rubric, explicit missing-evidence states and contextual human review.
 
@@ -8,6 +8,8 @@ The inherited Next.js application is the baseline. This revision replaces unexpl
 - [Five-phase progress](docs/README.md): current work, measured checks and release blockers.
 - [Case study and engineering handoff](deliverables/InterviewMate-Case-Study-and-Handoff.pdf): reviewer-facing PDF.
 - [Setup and validation](docs/hr-product-sprint/implementation/current-runbook.md).
+- [Bulk CV pipeline and candidate dashboard](docs/hr-product-sprint/implementation/2026-09-11-bulk-pipeline.md).
+- [CV pipeline validation checklist](docs/hr-product-sprint/evaluation/cv-pipeline-validation.md).
 - [Five-minute demo script](deliverables/demo-script.md).
 
 ## Run locally

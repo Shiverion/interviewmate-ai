@@ -1,6 +1,6 @@
 # Bulk pipeline CV fixtures v1
 
-These ten PDFs are fictional test data for `/pipeline`. All names and emails use `example.com`; they are not real candidates.
+These ten PDFs are fictional test data for `/pipeline`. All names and emails use `example.com`; they are not real candidates. The end-to-end procedure, including scheduled-link and access checks, is in the [CV pipeline validation checklist](../../cv-pipeline-validation.md).
 
 ## Suggested role brief
 
@@ -40,4 +40,4 @@ Each PDF includes a first-page name, an email address, a target title, experienc
 4. Click **Analyze and rank resumes** and wait for every row to finish.
 5. Compare the order with the expected bands and inspect the extracted names/emails.
 6. Apply **Top 5** or **Top 10**, uncheck one candidate, and create invitations for the remaining selected rows.
-7. Copy one generated link and verify that the matching example.com email is required to open it.
+7. Copy one generated link and verify that the matching example.com email is required to open it. Record the result in the [validation checklist](../../cv-pipeline-validation.md); link creation is not email delivery.

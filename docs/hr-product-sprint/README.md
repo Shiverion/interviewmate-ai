@@ -10,4 +10,4 @@
 - [Phase 4: evaluation](phases/04-evaluation-and-iteration.md)
 - [Phase 5: case study and handoff](phases/05-case-study-and-handoff.md)
 
-The September 10 requirements extend the initial review-brief scope. Current behavior is defined by Product_Sprint.md and the current runbook. Earlier scope decisions are archived; frozen evaluation inputs remain available for controlled comparisons.
+The September 10–11 requirements extend the initial review-brief scope. Current behavior is defined by Product_Sprint.md and the current runbook. The recruiter automation is documented in the [bulk CV pipeline note](implementation/2026-09-11-bulk-pipeline.md) and validated with the [CV pipeline checklist](evaluation/cv-pipeline-validation.md). Earlier scope decisions are archived; frozen evaluation inputs remain available for controlled comparisons.

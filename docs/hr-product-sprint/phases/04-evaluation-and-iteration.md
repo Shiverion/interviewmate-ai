@@ -2,11 +2,11 @@
 
 # Phase 4: evaluation and iteration
 
-2026-09-09 update: added automated access/quota/provider-routing checks for the [reviewer voice demo](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). English remains the baseline and Indonesian the multilingual pilot. Real voice/model quality remains unverified: the current OpenAI server key returns HTTP 401, and Gemini/DeepSeek host keys are absent. Software test success is not model-quality evidence.
+2026-09-09–11 update: added automated access/quota/provider-routing checks for the [reviewer voice demo](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md) and the ten-CV pipeline fixture/checklist. English remains the baseline and Indonesian the multilingual pilot. Real voice/model quality remains unverified: the current OpenAI server key returns HTTP 401, and Gemini/DeepSeek host keys are absent. Software test success is not model-quality evidence.
 
 Status: **In progress — English-first comparison implemented; live provider access and human review pending.**
 
-Updated: 2026-09-09 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](03-prototype-build.md) · [Sprint index](../README.md) · [Next phase](05-case-study-and-handoff.md)
 

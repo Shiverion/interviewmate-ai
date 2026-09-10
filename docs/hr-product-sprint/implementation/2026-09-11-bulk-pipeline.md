@@ -21,6 +21,18 @@ The **Candidates** navigation item opens `/candidates`, a compact dashboard of p
 
 PDFs are sent to the existing parser for text extraction. The original PDF is uploaded to Firebase Storage only when a recruiter creates a session for that candidate. The session stores the validated CV parsing result and an ATS score snapshot so the recruiter can inspect the source score later. Existing Firestore ownership rules still scope records to the recruiter; invited candidates can only open their own active session.
 
+## Automation boundary and state
+
+The pipeline is a short, inspectable workflow rather than an autonomous hiring agent:
+
+`uploaded → parsed → screened → not_invited | invited → in_progress → completed → evaluated`
+
+Parsing, name/email extraction, ATS scoring, descending sort, status updates and scheduled-link creation for checked rows are automatic. Correcting extracted fields, choosing the final candidates, confirming the interview window and sharing links remain recruiter actions. The system does not reject candidates, send email, make a hiring recommendation or learn from candidate data.
+
+When a recruiter creates a link, the role brief, interview settings, preferred language, questions/rubric and ATS snapshot are copied into the scheduled session. Later changes to recruiter defaults do not change that invitation. The candidate's invited email is the admission key; the candidate can complete setup, the live voice + text interview and the permitted evaluation view, while the recruiter/admin owns the pipeline and final assessment record. An expired session cannot be reopened by the candidate.
+
+The `/candidates` view is the read surface for this state machine. It keeps every screened row, including `not_invited` candidates, and expands a row to show identity, ATS evidence, role/session snapshot, invitation status, evaluation status and parsed-CV details. It is a focused pipeline dashboard, not a validated hiring-ranking report.
+
 ## Implementation map
 
 | Area | File | Responsibility |
@@ -41,6 +53,8 @@ PDFs are sent to the existing parser for text extraction. The original PDF is up
 - `npm test -- --runInBand` passed: 24 suites, 180 tests.
 - `npm run build` passed and emitted `/pipeline` and `/pipeline/[sessionId]` routes.
 
+The exact live workflow to record is in the [CV pipeline validation checklist](../evaluation/cv-pipeline-validation.md). It covers the 10-CV fixture, expected score ordering, name/email parsing, Top-N preselection, manual unchecking, scheduled-link creation, configuration snapshot/expiry, candidate-only access and recruiter dashboard isolation.
+
 The Firebase rules deployment must include the `pipeline_candidates` match before relying on persistence. Until then, `/pipeline` still ranks resumes locally and `/candidates` shows any existing interview sessions with a visible availability notice.
 
 ## Known limits
@@ -49,6 +63,7 @@ The Firebase rules deployment must include the `pipeline_candidates` match befor
 - The Top-N control is a preselection aid; recruiters can change the checkboxes before creating links.
 - Batch state currently lives in the page until links are created. Persisted sessions retain the ATS snapshot, but a later version can add a dedicated requisition-level pipeline record for re-opening an unfinished batch.
 - ATS output is a screening signal and does not make a hiring decision. Human review remains required.
+- The deterministic score has not been calibrated against recruiter labels; expected fixture ordering is a smoke-test oracle only. Do not report it as ATS accuracy or time saved.
 
 ## Next practical validation
 

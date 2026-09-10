@@ -1,6 +1,6 @@
 # Five-day sprint progress
 
-Updated: 2026-09-10. This is the authoritative progress tracker. [Product specification](../Product_Sprint.md) · [Product overview](../README.md) · [Current runbook](hr-product-sprint/implementation/current-runbook.md)
+Updated: 2026-09-11. This is the authoritative progress tracker. [Product specification](../Product_Sprint.md) · [Product overview](../README.md) · [Current runbook](hr-product-sprint/implementation/current-runbook.md)
 
 **Current priority: freeze features and finish a small live pilot plus submission artifacts.** The [full readiness audit and lean finish plan](../Product_Sprint.md#current-readiness-audit-and-lean-finish-plan--2026-09-10) distinguishes the original company challenge from our 16 added improvements. We have not passed everything: live voice/evaluation, a measured pilot baseline and the final video are still open. Independent recruiter calibration and enterprise infrastructure are future work, not mandatory quest deliverables. A sole-reviewer pilot is acceptable when its limits are explicit.
 
@@ -8,9 +8,9 @@ Updated: 2026-09-10. This is the authoritative progress tracker. [Product specif
 |---|---|---|
 | [1 · Discovery](hr-product-sprint/phases/01-discovery-and-ux.md) | Desk research and inherited-product inspection complete; target user and workflow hypothesis defined. | No recruiter interview or measured manual-review baseline. |
 | [2 · Design](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) | Shared configuration, evidence rubric, access boundaries and recovery behavior specified and implemented. | Validate adaptive relevance and usability with a human. |
-| [3 · Prototype](hr-product-sprint/phases/03-prototype-build.md) | Shared realtime service; three evaluation providers; invitations; configuration snapshots; CV validation; relevant GitHub context; human records. | Live provider and authenticated Firebase acceptance. |
-| [4 · Evaluation](hr-product-sprint/phases/04-evaluation-and-iteration.md) | Frozen baseline dataset, English-first protocol and Indonesian extension; deterministic regression tests. | Successful model batches, transcription recordings, repeatability, latency/cost and human judgments. |
-| [5 · Handoff](hr-product-sprint/phases/05-case-study-and-handoff.md) | PDF case study and demo script prepared; documentation reorganized. | Capture a successful live five-minute demo and publish an HTTPS reviewer environment. |
+| [3 · Prototype](hr-product-sprint/phases/03-prototype-build.md) | Shared realtime service; bulk CV pipeline; ATS ranking; candidate dashboard; three evaluation providers; invitations; configuration snapshots; CV validation; relevant GitHub context; human records. | Live provider, bulk scheduling and authenticated Firebase acceptance. |
+| [4 · Evaluation](hr-product-sprint/phases/04-evaluation-and-iteration.md) | Frozen baseline dataset, English-first protocol, Indonesian extension, 10-CV pipeline fixture and deterministic regression tests. | Successful model batches, transcription recordings, pipeline schedule checks, repeatability, latency/cost and human judgments. |
+| [5 · Handoff](hr-product-sprint/phases/05-case-study-and-handoff.md) | PDF case study, pipeline handoff note and demo script prepared; documentation reorganized. | Capture a successful live five-minute demo and publish an HTTPS reviewer environment. |
 
 ## Current validation
 
@@ -28,4 +28,4 @@ The [model and access revision](hr-product-sprint/implementation/2026-09-10-mode
 
 ## Open limitations
 
-Adaptive relevance is prompt-directed, not a validated autonomous planner. Browser visibility/focus signals cannot prove cheating or see other devices. Hosted Unlimited pauses the interview clock but has a separate funding deadline. Budget units are bounded usage reservations, not an exact currency spending cap. Human records and recovery data remain in private local storage until exported or deleted by the host. No candidate-data training pipeline is enabled.
+Adaptive relevance is prompt-directed, not a validated autonomous planner. Browser visibility/focus signals cannot prove cheating or see other devices. Hosted Unlimited pauses the interview clock but has a separate funding deadline. Budget units are bounded usage reservations, not an exact currency spending cap. Human records and recovery data remain in private local storage until exported or deleted by the host. The CV pipeline automates screening and link preparation, but recruiter selection remains required; no candidate-data training pipeline is enabled.

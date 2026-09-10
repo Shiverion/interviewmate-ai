@@ -8,7 +8,7 @@ September 10 implementation: shared GA realtime service, three access modes with
 
 Status: **In progress — runnable prototype implemented; successful live generation verification pending provider access.**
 
-Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](02-solution-design-and-ai-logic.md) · [Sprint index](../README.md) · [Next phase](04-evaluation-and-iteration.md)
 
@@ -17,6 +17,8 @@ Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 The local [review workspace](http://127.0.0.1:3000/review-brief) implements synthetic transcript input, four evidence criteria, exact candidate quotations, source inspection, corrections, review confirmation and JSON/text exports. It reuses the existing Next.js/React application, theme tokens and installed AI SDK. It has its own development-only page and API, outside the recruiter login/key gates.
 
 The [runbook and source map](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md) is the canonical setup and maintenance guide. The [Phase 2 package](../../archive/pre-evidence-v2/hr-product-sprint/design/README.md) remains the design reference; the [backlog](../../archive/pre-evidence-v2/hr-product-sprint/implementation/phase-3-backlog.md) maps delivered behavior to B01–B06.
+
+The current recruiter application also includes the [bulk CV pipeline](../implementation/2026-09-11-bulk-pipeline.md): `/pipeline` parses and ranks multiple resumes, the recruiter confirms invitation checkboxes, and `/candidates` keeps screened and invited records visible with expandable details. That path uses the existing scheduled-session persistence and is evaluated separately from this local Review Brief workspace.
 
 An actual synthetic request reached the provider and returned **HTTP 503 / AI_UNAVAILABLE**. The configured server key or requested model was rejected; the adapter intentionally does not expose provider error text. The [original failed attempt](../implementation/verification/2026-09-08-provider-attempt.json) is preserved. No live model draft, quality measurement or time-saving result is claimed. Authored examples are fully interactive and permanently labelled.
 
@@ -60,7 +62,7 @@ Meaningful checks cover byte limits, malformed/duplicate/no-candidate requests, 
 - Made the [Firebase proxy](../../../src/lib/firebase/config.ts) tolerate React's `$typeof` inspection and changed the [auth provider](../../../src/components/providers/AuthProvider.tsx) no-configuration message to a warning. Optional Firebase now produces explanatory warnings instead of false runtime errors.
 - Kept the shared [theme provider](../../../src/components/providers/ThemeProvider.tsx) child tree stable while applying the saved theme; replacing its wrapper remounted the workspace and lost an early selection in the mobile browser check. The regression now passes.
 - The new export names include transcript ID and revision. Content edits clear the relevant criterion check; reviewer identity and note changes clear all checks because the attestation has changed.
-- Kept voice, resume ranking, database persistence and the existing seven-score reports outside this prototype path.
+- The original local review-brief prototype kept voice, resume ranking, database persistence and the inherited seven-score reports outside that isolated path. The current recruiter application now has a separate bulk pipeline and candidate dashboard documented above.
 - Retained the original failed provider record. Authored examples are an explicit separate action, never a fallback presented as AI success.
 
 The repository's pre-existing Firebase configuration/rule edits and local agent work were left untouched. Inherited permission, candidate-entry and voice observations remain documented in the [source baseline](../evaluation/current-product-baseline.md) and [local development guide](../../archive/pre-evidence-v2/product/local-development.md).

@@ -6,9 +6,9 @@
 
 Status: **In progress — PDF and recording script produced; live footage and deployed reviewer acceptance pending.**
 
-September 10 deliverables: [seven-page case study PDF](../../../deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](../../../deliverables/case-study-content.json), [five-minute demo script](../../../deliverables/demo-script.md), [current setup/handoff](../implementation/current-runbook.md), and [validation record](../evaluation/results/2026-09-10-evidence-revision.md). The PDF separates software results from unmeasured model quality and records release limitations. Later historical planning below remains for traceability.
+September 10–11 deliverables: [seven-page case study PDF](../../../deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](../../../deliverables/case-study-content.json), [five-minute demo script](../../../deliverables/demo-script.md), [current setup/handoff](../implementation/current-runbook.md), [bulk pipeline handoff](../implementation/2026-09-11-bulk-pipeline.md), [CV pipeline validation](../evaluation/cv-pipeline-validation.md), and [validation record](../evaluation/results/2026-09-10-evidence-revision.md). The PDF separates software results from unmeasured model quality and records release limitations. The pipeline note and checklist now document the CV-to-scheduled-invite extension; the PDF and video still need their measured live results. Later historical planning below remains for traceability.
 
-Updated: 2026-09-07 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](04-evaluation-and-iteration.md) · [Sprint index](../README.md)
 
@@ -19,7 +19,7 @@ Package a runnable demonstration, a case study with honest evidence, and enginee
 ## Case study outline
 
 1. **Problem and user:** the selected recruiting task, target segment, desk-research evidence, assumptions, and how the scope was selected.
-2. **Prior product and sprint contribution:** exact inherited functionality and what changed during these five phases.
+2. **Prior product and sprint contribution:** exact inherited functionality and what changed during these five phases, including the recruiter bulk CV-to-interview pipeline.
 3. **Workflow and UX:** current task, proposed task, key screens, source inspection, correction, unknowns, and error states.
 4. **AI behavior:** model/prompt versions, data flow, evidence extraction, validation and reviewer responsibility.
 5. **Evaluation:** synthetic dataset, reference-label method, raw results, repeated runs, failure examples and fixes. Include human baseline results only if measured.
@@ -37,6 +37,7 @@ Use [Phase 1](01-discovery-and-ux.md) through [Phase 4](04-evaluation-and-iterat
 - [ ] UX states, navigation, empty/loading/error paths and source-review interactions.
 - [ ] Acceptance criteria tied to tests and evidence artifacts.
 - [ ] Known defects and demo limitations, prioritized by their effect on the core workflow.
+- [ ] Bulk pipeline handoff: parse contract, ATS-screening boundary, recruiter checkbox decision, scheduled-session snapshot, candidate email admission and `/candidates` state.
 - [ ] Access control, data retention/deletion, candidate consent and secret handling requirements for any later real-data use; no unsupported compliance claim.
 - [ ] Timeouts/retries, request limits, observability, measured latency and available cost data.
 - [ ] Deferred scope, practitioner calibration, user research and future integration decisions.
@@ -45,8 +46,8 @@ Use [Phase 1](01-discovery-and-ux.md) through [Phase 4](04-evaluation-and-iterat
 
 | Time | Segment | Evidence to show |
 |---|---|---|
-| 0:00-0:40 | Recruiting problem and target user | Workflow and research limitation |
-| 0:40-1:15 | Role and synthetic input | Criteria, transcript and synthetic label |
+| 0:00-0:40 | Recruiting problem and target user | Workflow and research limitation; show the role brief and bulk CV intake |
+| 0:40-1:15 | Ranked candidates and synthetic input | ATS screening signal, manual checkbox decision, scheduled snapshot, criteria and transcript |
 | 1:15-2:40 | Core product flow | Generate draft, inspect a source, correct an interpretation, mark reviewed |
 | 2:40-3:25 | AI behavior | Actual input/output, citation checking and unknown handling |
 | 3:25-4:20 | Evaluation | Recorded case results, failure and improvement, timing only if measured |

@@ -23,9 +23,9 @@ This section is the current priority order. The original challenge and all accep
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | 1 — Discovery and workflow | Target recruiter, first-screen handoff problem, desk research, workflow, reuse decision and concept.                     | A measured baseline metric is missing. A small builder pilot can supply a clearly labelled baseline; access to a recruiter is helpful, not required to submit. | Mostly ready                         |
 | 2 — UX and AI design       | Workflow/design artifacts, shared configuration, provider selection, prompts, evidence rubric, recovery and review flow. | Update the case study with any adjustments found during the live pilot.                                                                                        | Ready for prototype scope            |
-| 3 — Working prototype      | Next.js app, voice orchestration, scheduling, evidence reports, reviewer access and tested UI/logic.                     | Demonstrate a successful real voice → transcript → assessment → saved human review flow. Check the scheduled path if included in the demo.                     | Implemented; live acceptance pending |
-| 4 — Evaluate and iterate   | Synthetic cases, frozen historical data, regression tests, evaluation workspace and result logging.                      | Actual model outputs, human judgments, observed failures and a manual-versus-assisted baseline comparison.                                                     | Incomplete                           |
-| 5 — Handoff and submission | PDF draft, editable sources, organized documentation and five-minute script.                                             | Insert measured pilot results, record the video and verify the reviewer can access the submitted prototype.                                                    | Incomplete                           |
+| 3 — Working prototype      | Next.js app, voice orchestration, bulk CV pipeline, ATS ranking, scheduling, evidence reports, reviewer access and tested UI/logic. | Demonstrate a successful real voice → transcript → assessment → saved human review flow. Check the bulk scheduled path if included in the demo. | Implemented; live acceptance pending |
+| 4 — Evaluate and iterate   | Synthetic cases, frozen historical data, regression tests, evaluation workspace, 10-CV pipeline fixture and result logging. | Actual model outputs, human judgments, observed failures and a manual-versus-assisted baseline comparison; bulk-pipeline live checks remain open. | Incomplete |
+| 5 — Handoff and submission | PDF draft, editable sources, organized documentation, pipeline handoff and five-minute script. | Insert measured pilot results, record the video and verify the reviewer can access the submitted prototype. | Incomplete |
 
 ### All 16 accepted improvements: current status
 
@@ -61,12 +61,28 @@ This section is the current priority order. The original challenge and all accep
 
 The next action is **provider setup followed by the English live acceptance check**, not Phase 6 or another feature build. The [runbook](docs/hr-product-sprint/implementation/current-runbook.md) contains the detailed steps; use the smaller sequence above to prioritize them.
 
+### Current implementation extension — automated CV pipeline, 2026-09-11
+
+The recruiter workflow now includes a focused automation from a role brief to scheduled interview invitations. This is an additive sprint extension built on the existing recruiter and ATS flows; it does not replace the evidence-based interview evaluation.
+
+`/pipeline` accepts one role brief and a batch of up to 50 PDF CVs. For each file it parses bounded text, extracts an editable name and email, applies the existing deterministic ATS scorer, and sorts candidates by score. The recruiter may use Top 5/10/20 as a preselection shortcut, then must confirm the final checkbox selection before links are created. The score is a screening signal, not an automated rejection or hiring decision.
+
+Creating a selected row's link snapshots the role/interview configuration and ATS result into the existing scheduled-session flow. The candidate signs in with the invited email, completes the same setup and live voice + text interview, and receives the allowed evaluation view. `/candidates` is the compact recruiter dashboard for all screened rows, including `not_invited` candidates, invited sessions and expandable parsed-CV/ATS/evaluation details. `/interviews` remains a compatibility route for older records.
+
+The automation boundary is intentional:
+
+- **Automatic:** PDF parsing, name/email extraction, deterministic ATS scoring, descending sort, status updates, invitation creation for checked rows, and configuration snapshots.
+- **Recruiter-controlled:** correcting extracted identity fields, choosing or unchecking candidates, confirming the role and schedule, and sharing the generated links.
+- **Not automated:** final hiring decisions, candidate rejection, sending email, model training, or continuous learning from candidate data.
+
+Pipeline records are creator-owned. The `pipeline_candidates` Firestore rule must be deployed before relying on persisted pre-invitation rows; a missing rule should surface as an availability warning rather than broadening access. Original PDFs are stored only for an invited scheduled session; uninvited rows retain bounded parsed/ATS metadata. See the [implementation note](docs/hr-product-sprint/implementation/2026-09-11-bulk-pipeline.md) and the [validation checklist](docs/hr-product-sprint/evaluation/cv-pipeline-validation.md).
+
 ### Defer until after submission
 
 - Additional LLM/transcription integrations or an exhaustive multi-provider, multi-language test matrix. The current three evaluation adapters can stay; the live voice path currently uses one transcription default, Whisper. Three validated transcription alternatives are not established.
 - Local model hosting, custom model training, automatic candidate-data collection and continuous learning.
 - Eye tracking, extra proctoring signals, OCR and more advanced GitHub retrieval.
-- A separate adaptive-planning agent, new analytics dashboards, another frontend redesign and new report formats.
+- A separate adaptive-planning agent, broad analytics dashboards beyond the focused Candidates view, another frontend redesign and new report formats.
 - Enterprise databases, distributed queues, extensive production compliance work and statistically powered fairness studies.
 
 **Keep the existing essentials:** server-only host keys, reviewer admission, basic rate/usage caps, honest synthetic labels, safe recovery, human review and evidence-based abstention. If reviewers are given a publicly hosted voice demo, the current hosting/cleanup requirements still apply; “prototype” does not make exposed keys or unbounded spending acceptable.
@@ -356,6 +372,7 @@ The accepted 16 requirements above supersede the original narrow review-brief sc
 - English is the baseline; Bahasa Indonesia is a separately reported multilingual extension. A single builder reviewer is a pilot, not independent validation.
 - Current defaults: GPT-Realtime 2.1 Mini voice, GPT-Transcribe (GPT-Live-Transcribe optional), GPT-5.6 Luna / Gemini 3.5 Flash-Lite / DeepSeek Flash evaluation. Optional Gemini 3.1 Flash Live uses OpenAI transcription and a server-held voice connection. Low reasoning is the default; Medium is available as documented. New choices are not an accuracy ranking.
 - Recruiting data is creator-owned, with verified administrator access for miqbal.izzulhaq@gmail.com. Scheduled candidates sign in with the invited email and cannot write assessment scores. Firestore/Storage rules are deployed; old public CV tokens were revoked.
+- Recruiter CV intake is available at `/pipeline`: upload a batch, parse names/emails, rank with the deterministic ATS signal, manually select candidates and create scheduled links. `/candidates` is the compact owner-scoped dashboard for screened, invited and not-invited rows; the latest `pipeline_candidates` rule must be included when rules are redeployed.
 - Configuration v2 snapshots duration, turn budget, strategy, language, rubric, interaction modes, custom questions and optional technical/GitHub context. Hosted funding expiry remains separate from paused active time.
 - Evidence rubric v2 exposes assessed quality, coverage, relevance, consistency and provisional confidence. No generated percentage or automated hiring recommendation. Exact candidate quotations are validated; relevance and semantic correctness still require human review.
 - BYOK uses temporary request credentials; platform keys stay server-side. Reviewer invitations are signed, expiring and revocable, with rate/usage limits. Synthetic reviewer sessions use separate private storage.

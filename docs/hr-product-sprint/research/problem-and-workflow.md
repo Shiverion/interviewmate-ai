@@ -2,7 +2,7 @@
 
 # Problem, users and current workflow
 
-Updated: 2026-09-07. Status: desk research and explicit hypotheses.
+Updated: 2026-09-11. Discovery observations remain dated 2026-09-07; current implementation additions are called out explicitly below. Status: desk research and explicit hypotheses.
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Phase 1](../phases/01-discovery-and-ux.md)
 
@@ -54,7 +54,7 @@ The existing app's source implements this path:
 | Creation collects role/JD, questions, candidate details, PDF and dates; a new template is written for each session | Repeated candidate setup can repeat role preparation. A reusable role configuration is worth exploring. | [CreateInterviewModal](../../../src/components/dashboard/CreateInterviewModal.tsx), [interview persistence](../../../src/lib/firebase/interviews.ts) |
 | Reports show scores, pass/fail, free-text evidence and transcript separately; inspected page has no correction/review controls | Recruiter must manually reconcile claims and source text. This is the selected product gap. | [Report page](<../../../src/app/(recruiter)/interviews/[sessionId]/page.tsx>) |
 | Evaluator requires numeric scores and at least one strength and weakness; has no transcript citation IDs or insufficient-evidence state | Sparse answers can be pushed into overly definite reports. The schema needs an explicit way to report unknowns. | [Evaluation endpoint](../../../src/app/api/evaluate/route.ts) |
-| Interview list can sort by score; dashboard shows recent sessions | Basic pipeline UI is reusable. Do not claim a validated job-level shortlist or ranking algorithm. | [Interview list](<../../../src/app/(recruiter)/interviews/page.tsx>), [dashboard](<../../../src/app/(recruiter)/dashboard/page.tsx>) |
+| Interview list can sort by score; dashboard shows recent sessions; `/pipeline` now ranks a CV batch and `/candidates` exposes expandable candidate records | The deterministic ATS ranking and invitation workflow are implemented as a recruiter aid. Do not claim a validated job-level shortlist, hiring recommendation or ranking-quality result until the CV fixture and live checks are reviewed. | [Pipeline](<../../../src/app/(recruiter)/pipeline/page.tsx>), [candidates](<../../../src/app/(recruiter)/candidates/page.tsx>), [interview list](<../../../src/app/(recruiter)/interviews/page.tsx>) |
 | Interview connection expects a key in the browser; candidate entry and session timing have separate steps | Fresh-browser candidate onboarding needs a live check before depending on voice in the demo. | [Interview store](../../../src/lib/store/useInterviewStore.ts), [candidate entry](<../../../src/app/(public)/apply/[sessionId]/page.tsx>) |
 
 These are source observations. The prior review did not complete a live interview/Firebase round trip. Four arithmetic tests passed, TypeScript/lint failed, and default local development encountered Tailwind resolution errors. Track repair and verification in Phase 3, not as demonstrated product readiness.

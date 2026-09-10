@@ -2,7 +2,7 @@
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Phase 4 plan](../phases/04-evaluation-and-iteration.md)
 
-Updated: 2026-09-08. **The human practice packet and Phase 4 dataset/runner are ready. One real Phase 4 API attempt failed with AI_UNAVAILABLE; no model draft or human session is available for quality/timing evaluation.** The completed source inventory is a separate engineering baseline. The [Phase 3 implementation record](../phases/03-prototype-build.md#verification-record) includes software checks and one failed real provider attempt; it is not an AI-quality evaluation.
+Updated: 2026-09-11. **The human practice packet, Phase 4 dataset/runner and bulk CV pipeline fixture are ready. One real Phase 4 API attempt failed with AI_UNAVAILABLE; no model draft or human session is available for quality/timing evaluation.** The completed source inventory is a separate engineering baseline. The [Phase 3 implementation record](../phases/03-prototype-build.md#verification-record) includes software checks and one failed real provider attempt; it is not an AI-quality evaluation.
 
 ## Choose the right path
 
@@ -17,6 +17,7 @@ Updated: 2026-09-08. **The human practice packet and Phase 4 dataset/runner are 
 | Review a completed practice brief | [Facilitator reference notes](practice/reference-notes.md) | Assistant-authored expectations; keep separate from participant materials |
 | Record actual human measurements | [Human review log](baselines/human-review-log.csv) | Header only; no rows or measurements |
 | Run and inspect model evaluation | [Phase 4 guide](phase-4-guide.md), [frozen dataset](dataset/README.md), [Phase 4 results](../phases/04-evaluation-and-iteration.md) | Eight base cases and two variants frozen; first batch stopped after one failed attempt with 29 unattempted slots |
+| Validate automated CV pipeline | [CV pipeline checklist](cv-pipeline-validation.md), [10-CV fixture](dataset/cv-pipeline-v1/README.md), [implementation note](../implementation/2026-09-11-bulk-pipeline.md) | Software path is implemented; live Firebase rule, batch ranking, scheduling and candidate-admission checks are pending |
 
 ## Reading and participation order
 
