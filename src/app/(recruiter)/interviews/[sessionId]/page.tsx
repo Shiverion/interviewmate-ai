@@ -129,7 +129,7 @@ export default function CandidateReportPage() {
   if (evaluation?.schemaVersion === "competency-evidence-v2")
     return (
       <div className="max-w-5xl mx-auto space-y-6 pb-12">
-        <Link href="/interviews">← Pipeline</Link>
+        <Link href="/pipeline">← Pipeline</Link>
         <h1 className="text-3xl">{candidate_name} · Interview evidence</h1>
         <EvidenceAssessment assessment={evaluation} />
         <HumanReviewPanel

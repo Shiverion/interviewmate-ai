@@ -9,25 +9,37 @@ import {
 } from "@radix-ui/react-icons";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { useAuthContext } from "@/components/providers/AuthProvider";
+import { isWorkspaceAdmin } from "@/lib/firebase/access";
 export default function Header() {
   const path = usePathname();
   const { user } = useAuthContext();
   const { theme, toggleTheme } = useTheme();
-  const links = user
+  const admin = isWorkspaceAdmin(user);
+  const links = !user
     ? [
-        ["Workspace", "/dashboard"],
-        ["Pipeline", "/interviews"],
-        ["Models & access", "/settings"],
-      ]
-    : [
         ["Overview", "/"],
         ["Reviewer demo", "/demo"],
         ["Resume check", "/ats-check"],
-      ];
+      ]
+    : admin
+      ? [
+          ["Workspace", "/dashboard"],
+          ["Pipeline", "/pipeline"],
+          ["Invitations", "/invitations"],
+          ["Resume check", "/ats-check"],
+          ["Models & access", "/settings"],
+        ]
+      : [
+          ["My results", "/my-results"],
+          ["Resume check", "/ats-check"],
+        ];
   return (
     <header className="wm-header">
       <div className="wm-header-inner">
-        <Link href={user ? "/dashboard" : "/"} className="wm-brand">
+        <Link
+          href={!user ? "/" : admin ? "/dashboard" : "/my-results"}
+          className="wm-brand"
+        >
           <span className="wm-mark">
             <MixerHorizontalIcon />
           </span>

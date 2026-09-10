@@ -11,9 +11,11 @@ import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useKeys } from "@/components/providers/KeyProvider";
 import { interviewScope, isWorkspaceAdmin } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
 import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
 import DemoRoomModal from "@/components/dashboard/DemoRoomModal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/providers/ToastProvider";
 type Session = {
   id: string;
   candidate_name?: string;
@@ -31,8 +33,14 @@ type ReviewerResult = {
 export default function DashboardPage() {
   const { user } = useAuthContext();
   const { keys } = useKeys();
+  const { showToast } = useToast();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [reviewerResults, setReviewerResults] = useState<ReviewerResult[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    id: string;
+    label: string;
+  }>({ isOpen: false, id: "", label: "" });
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const [schedule, setSchedule] = useState(false);
@@ -80,6 +88,11 @@ export default function DashboardPage() {
           if (active) setBusy(false);
         });
       if (isWorkspaceAdmin(user)) {
+        void setDoc(
+          doc(db, "app_config", "admin"),
+          { uid: user.uid },
+          { merge: true }
+        ).catch(() => undefined);
         user
           .getIdToken()
           .then((token) =>
@@ -105,6 +118,26 @@ export default function DashboardPage() {
   }, [user, link]);
   const count = (states: string[]) =>
     sessions.filter((s) => states.includes(s.status || "")).length;
+  async function deleteReviewerResult(id: string) {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/reviewer/sessions", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+      if (!response.ok) throw Error((await response.json()).error);
+      setReviewerResults((prev) => prev.filter((r) => r.id !== id));
+      showToast("Deleted", "Legacy reviewer record removed.", "info");
+    } catch {
+      showToast("Error", "Could not delete this record.", "error");
+    }
+    setDeleteConfirm({ isOpen: false, id: "", label: "" });
+  }
   async function createInvitation() {
     if (!user) return;
     setInviteBusy(true);
@@ -223,7 +256,7 @@ export default function DashboardPage() {
       )}
       <div className="wm-section-heading">
         <h2>Recent conversations</h2>
-        <Link className="text-sm flex items-center gap-2" href="/interviews">
+          <Link className="text-sm flex items-center gap-2" href="/pipeline">
           View all interviews <ArrowRightIcon />
         </Link>
       </div>
@@ -274,7 +307,7 @@ export default function DashboardPage() {
                     <td>
                       <Link
                         className="inline-flex items-center gap-2"
-                        href={`/interviews/${s.id}`}
+                        href={`/pipeline/${s.id}`}
                       >
                         Open record <ArrowRightIcon />
                       </Link>
@@ -298,12 +331,17 @@ export default function DashboardPage() {
                 Create an interview invitation
               </h2>
             </div>
-            <span className="wm-tag">Invitation code</span>
+            <Link href="/invitations" className="wm-tag">
+              Manage all invitations <ArrowRightIcon />
+            </Link>
           </div>
           <p className="wm-subtitle mb-4">
-            Generate a private invitation to share. The recipient can set up,
-            complete and review one hosted interview; their result is returned
-            to this admin dashboard.
+            Generate a private, shareable link. The recipient signs in with
+            Google, then can set up, complete and review one hosted
+            interview; their result appears in Pipeline like any other
+            candidate. Use{" "}
+            <Link href="/invitations">Manage all invitations</Link> to set an
+            expiration, a participant cap, or to revoke or delete a link.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <label className="wm-field flex-1">
@@ -325,29 +363,31 @@ export default function DashboardPage() {
           </div>
           {invitation && (
             <div className="mt-5 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
-              <p className="text-sm font-medium">Share this code privately</p>
-              <code className="block mt-2 break-all text-lg tracking-[0.12em]">
-                {invitation.code}
-              </code>
+              <p className="text-sm font-medium">
+                Share this link — it is shown only once
+              </p>
+              <a
+                className="block mt-2 break-all text-sm"
+                href={`${window.location.origin}/reviewer?code=${encodeURIComponent(invitation.code)}`}
+              >
+                {`${window.location.origin}/reviewer?code=${invitation.code}`}
+              </a>
               <div className="flex flex-wrap gap-3 mt-3 items-center">
                 <button
                   type="button"
                   className="wm-button secondary"
                   onClick={() => {
                     void navigator.clipboard
-                      .writeText(invitation.code)
+                      .writeText(
+                        `${window.location.origin}/reviewer?code=${invitation.code}`
+                      )
                       .catch(() => undefined);
                   }}
                 >
-                  Copy code
+                  Copy link
                 </button>
                 <span className="text-xs text-[var(--muted)]">
-                  Redeem at{" "}
-                  {typeof window === "undefined"
-                    ? "/reviewer"
-                    : `${window.location.origin}/reviewer`}{" "}
-                  · Expires{" "}
-                  {new Date(invitation.expiresAt).toLocaleDateString()}
+                  Expires {new Date(invitation.expiresAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -366,13 +406,18 @@ export default function DashboardPage() {
         >
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <p className="wm-eyebrow">Invitation results</p>
+              <p className="wm-eyebrow">Invitation results · Legacy</p>
               <h2 id="reviewer-results-heading" className="text-xl">
                 Admin-only reviewer scores
               </h2>
             </div>
             <span className="wm-tag">Server-hosted</span>
           </div>
+          <p className="text-xs text-[var(--muted)] mb-3">
+            From the earlier ledger-based reviewer flow. New invitation
+            interviews now appear in Pipeline instead — delete these once
+            you&apos;ve reviewed them.
+          </p>
           <div className="divide-y divide-[var(--border)]">
             {reviewerResults.map((result) => (
               <div
@@ -388,11 +433,25 @@ export default function DashboardPage() {
                     {result.provider || "provider"} · {result.model || "model"}
                   </p>
                 </div>
-                <strong className="font-mono text-lg">
-                  {typeof result.evaluation?.overallScore === "number"
-                    ? `${Math.round(result.evaluation.overallScore)}%`
-                    : result.evaluation?.status || "Evaluation complete"}
-                </strong>
+                <div className="flex items-center gap-3">
+                  <strong className="font-mono text-lg">
+                    {typeof result.evaluation?.overallScore === "number"
+                      ? `${Math.round(result.evaluation.overallScore)}%`
+                      : result.evaluation?.status || "Evaluation complete"}
+                  </strong>
+                  <button
+                    className="wm-button quiet text-xs"
+                    onClick={() =>
+                      setDeleteConfirm({
+                        isOpen: true,
+                        id: result.id,
+                        label: result.candidateName || "this record",
+                      })
+                    }
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -408,6 +467,15 @@ export default function DashboardPage() {
         }}
       />
       <DemoRoomModal isOpen={demo} onClose={() => setDemo(false)} />
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Delete this record?"
+        message={`Permanently delete "${deleteConfirm.label}"'s legacy reviewer result? This cannot be undone.`}
+        isDestructive
+        confirmLabel="Delete"
+        onConfirm={() => void deleteReviewerResult(deleteConfirm.id)}
+        onCancel={() => setDeleteConfirm({ isOpen: false, id: "", label: "" })}
+      />
     </div>
   );
 }

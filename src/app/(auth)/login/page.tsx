@@ -26,7 +26,9 @@ export default function LoginPage() {
       "returnUrl"
     );
     return requested &&
-      /^\/(apply\/|dashboard$|interviews(?:\/|$)|settings$)/.test(requested) &&
+      /^\/(apply\/|dashboard$|pipeline(?:\/|$)|interviews(?:\/|$)|settings$|invitations(?:\/|$)?$|reviewer(?:\?|$)|my-results(?:\?|$)?$)/.test(
+        requested
+      ) &&
       !requested.includes("\\")
       ? requested
       : "/dashboard";

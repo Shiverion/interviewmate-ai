@@ -5,10 +5,12 @@ import {
   addDoc,
   serverTimestamp,
   doc,
+  getDoc,
   updateDoc,
   setDoc,
+  deleteDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
+import { ref, uploadBytes, deleteObject } from "firebase/storage";
 import {
   configurationSchema,
   type InterviewConfiguration,
@@ -51,6 +53,20 @@ export interface InterviewSession {
   valid_from?: Timestamp | FieldValue | Date;
   expires_at: Timestamp | Date;
   created_at?: Timestamp | FieldValue | Date;
+  source?: "reviewer_invitation";
+  invitation_id?: string;
+  /** ATS pre-screen snapshot captured when the recruiter creates the link. */
+  ats_score?: {
+    overall_match: number;
+    keyword_match?: number;
+    experience_alignment?: number;
+    skills_coverage?: number;
+    matched_keywords?: string[];
+    missing_keywords?: string[];
+    red_flags?: string[];
+    strengths?: string[];
+    summary?: string;
+  };
 }
 
 export async function createScheduledInterview(
@@ -73,7 +89,8 @@ export async function createScheduledInterview(
   visualPanel: VisualPanel = "none",
   codeDiff: string = "",
   configuration?: InterviewConfiguration,
-  cvParsing?: ParsingResult
+  cvParsing?: ParsingResult,
+  atsScore?: InterviewSession["ats_score"]
 ): Promise<string> {
   if (!candidateEmail.trim())
     throw Error(
@@ -123,6 +140,7 @@ export async function createScheduledInterview(
       }
     ),
     ...(cvParsing ? { cv_parsing: cvParsing } : {}),
+    ...(atsScore ? { ats_score: atsScore } : {}),
     template_id: templateRef.id,
     recruiter_id: recruiterId,
     candidate_name: candidateName,
@@ -148,4 +166,82 @@ export async function revokeInterviewSession(sessionId: string): Promise<void> {
     status: "revoked",
     expires_at: new Date(),
   });
+}
+
+export async function deleteInterviewSession(
+  sessionId: string,
+  resumeStoragePath?: string
+): Promise<void> {
+  if (resumeStoragePath) {
+    await deleteObject(ref(storage, resumeStoragePath)).catch((e) => {
+      if ((e as { code?: string })?.code !== "storage/object-not-found")
+        throw e;
+    });
+  }
+  await deleteDoc(doc(db, "interview_sessions", sessionId));
+}
+
+/** Admin's Firebase uid, published once by the admin's own session so
+ * reviewer-sourced writes can attribute themselves without hardcoding a uid. */
+export async function adminUid(): Promise<string> {
+  const snapshot = await getDoc(doc(db, "app_config", "admin"));
+  const uid = snapshot.data()?.uid;
+  if (typeof uid !== "string" || !uid)
+    throw Error(
+      "Reviewer access isn't ready yet — ask the administrator to open their Dashboard once first."
+    );
+  return uid;
+}
+
+export async function createReviewerSourcedInterview(
+  candidate: { uid: string; email: string },
+  jobTitle: string,
+  jobDescription: string,
+  candidateName: string,
+  resumeFile: File | null,
+  configuration: InterviewConfiguration,
+  cvParsing: ParsingResult | undefined,
+  invitationId: string | undefined
+): Promise<string> {
+  const recruiterId = await adminUid();
+  const sessionsCol = collection(db, "interview_sessions");
+  const sessionRef = doc(sessionsCol);
+  const fileExtension = resumeFile?.name.split(".").pop() || "pdf";
+  const storagePath = `resumes/${recruiterId}/${sessionRef.id}/${Date.now()}.${fileExtension}`;
+  if (resumeFile) {
+    try {
+      await uploadBytes(ref(storage, storagePath), resumeFile, {
+        contentType: "application/pdf",
+      });
+    } catch (e) {
+      throw Error(
+        "Could not upload your CV (" +
+          (e instanceof Error ? e.message : "storage error") +
+          "). If this persists, continue without CV grounding."
+      );
+    }
+  }
+  const now = new Date();
+  const sessionData: InterviewSession = {
+    role_snapshot: { job_title: jobTitle, job_description: jobDescription },
+    configuration: configurationSchema.parse(configuration),
+    ...(cvParsing ? { cv_parsing: cvParsing } : {}),
+    template_id: "",
+    recruiter_id: recruiterId,
+    candidate_name: candidateName,
+    candidate_id: candidate.uid,
+    candidate_email: candidate.email.trim().toLowerCase(),
+    resume_url: "",
+    ...(resumeFile ? { resume_storage_path: storagePath } : {}),
+    status: "active",
+    allowed_modes: configuration.allowedModes,
+    visual_panel: configuration.visualPanel,
+    valid_from: now,
+    expires_at: new Date(now.getTime() + 24 * 60 * 60 * 1000),
+    created_at: serverTimestamp(),
+    source: "reviewer_invitation",
+    ...(invitationId ? { invitation_id: invitationId } : {}),
+  };
+  await setDoc(sessionRef, sessionData);
+  return sessionRef.id;
 }

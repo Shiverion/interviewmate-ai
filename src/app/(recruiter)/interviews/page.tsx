@@ -12,7 +12,10 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { useAuthContext } from "@/components/providers/AuthProvider";
-import { revokeInterviewSession } from "@/lib/firebase/interviews";
+import {
+  revokeInterviewSession,
+  deleteInterviewSession,
+} from "@/lib/firebase/interviews";
 import Link from "next/link";
 import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -28,6 +31,8 @@ type Session = {
   created_at?: { toMillis: () => number };
   expires_at?: { toMillis: () => number };
   synthetic?: boolean;
+  resume_storage_path?: string;
+  source?: string;
   evaluation?: {
     schemaVersion?: string;
     status?: string;
@@ -187,6 +192,27 @@ export default function InterviewsPage() {
         "error"
       );
     }
+  };
+
+  const handleDelete = async (session: Session) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete this record?",
+      message:
+        "Permanently delete this candidate's interview — transcript, evaluation and uploaded CV. This cannot be undone.",
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          await deleteInterviewSession(session.id, session.resume_storage_path);
+          setSessions((prev) => prev.filter((s) => s.id !== session.id));
+          showToast("Deleted", "Interview record removed.", "info");
+        } catch (err) {
+          console.error("Failed to delete session", err);
+          showToast("Error", "Failed to delete record", "error");
+        }
+        setConfirmConfig((prev) => ({ ...prev, isOpen: false }));
+      },
+    });
   };
 
   const copyToClipboard = (link: string) => {
@@ -439,8 +465,13 @@ export default function InterviewsPage() {
                       className="hover:bg-[var(--surface-elevated)] transition-colors"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-[var(--foreground)]">
+                        <div className="font-medium text-[var(--foreground)] flex items-center gap-2">
                           {session.candidate_name}
+                          {session.source === "reviewer_invitation" && (
+                            <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-accent-500/10 text-accent-400">
+                              Invitation
+                            </span>
+                          )}
                         </div>
                         {session.candidate_email && (
                           <div className="text-xs text-[var(--muted)]">
@@ -574,12 +605,20 @@ export default function InterviewsPage() {
 
                         {displayStatus === "Evaluated" && (
                           <Link
-                            href={`/interviews/${session.id}`}
+                            href={`/pipeline/${session.id}`}
                             className="text-accent-400 hover:text-accent-300 transition-colors text-xs font-medium"
                           >
                             View Report &rarr;
                           </Link>
                         )}
+                        <span className="text-[var(--border)]">|</span>
+                        <button
+                          onClick={() => handleDelete(session)}
+                          className="text-error hover:text-red-400 transition-colors text-xs"
+                          title="Permanently delete this record"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   );
