@@ -12,15 +12,37 @@ export async function POST(req: NextRequest) {
   if (unavailable) return reply(req, { error: unavailable }, 503);
   startDemoReaper();
   try {
-    const config = grant
-      ? configurationSchema.parse(
-          req.body ? (await limitedJson(req, 30000)).configuration || {} : {}
-        )
-      : undefined;
+    const submitted = req.body
+      ? (await limitedJson(req, 30000)).configuration || {}
+      : {};
+    const config = configurationSchema.parse(
+      grant
+        ? submitted
+        : {
+            language: submitted.language,
+            voiceProvider: submitted.voiceProvider,
+            transcriptionModel: submitted.transcriptionModel,
+            reasoningEffort: submitted.reasoningEffort,
+            maxTurns: 8,
+            durationMinutes: 10,
+          }
+    );
     const duration =
       config?.durationMinutes === "unlimited"
         ? 30
         : config?.durationMinutes || 8;
+    if (
+      config?.voiceProvider === "gemini" &&
+      !process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()
+    )
+      return reply(
+        req,
+        {
+          error:
+            "The host has not configured Gemini voice. Choose OpenAI voice or ask the host to add a Gemini key.",
+        },
+        422
+      );
     if (grant) await consumeReviewer(grant, duration);
     const lease = await reserve(
       grant ? `reviewer:${grant.id}` : visitor(req).id,
@@ -34,7 +56,8 @@ export async function POST(req: NextRequest) {
             durationMs: duration * 60000,
             configuration: config,
           }
-        : undefined
+        : undefined,
+      grant ? undefined : config
     );
     return reply(req, {
       sessionId: lease.id,

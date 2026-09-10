@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { draftSchema, ROLE_VERSION, VERSION } from "./contract";
 
-export const MODEL = "gpt-4o-2024-08-06";
+export const MODEL = "gpt-5.6-luna";
 export const MAX_BODY_BYTES = 65_536;
 export const GENERATION_TIMEOUT_MS = 30_000;
 export type Provenance = {
@@ -43,7 +43,7 @@ export const successSchema = z.strictObject({
       value.sourceType === "live_model" &&
       value.generatedAtUtc !== null &&
       value.latencyMs !== null &&
-      value.modelRequested === MODEL,
+      [MODEL, "gpt-4o-2024-08-06"].includes(value.modelRequested || ""),
     "Expected a live generation envelope"
   ),
   draft: draftSchema,

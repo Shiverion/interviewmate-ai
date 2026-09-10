@@ -1,8 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AvatarState } from "@/components/interview/LottieAvatar";
-import { WebRTCAudioManager } from "@/lib/audio/WebRTCAudioManager";
-import { getOpenAIKey } from "@/lib/keys/store";
+import {
+  WebRTCAudioManager,
+  type WebRTCManagerConfig,
+} from "@/lib/audio/WebRTCAudioManager";
+import { GeminiAudioManager } from "@/lib/audio/GeminiAudioManager";
+import { getOpenAIKey, getProviderKey } from "@/lib/keys/store";
 import { db } from "@/lib/firebase/config";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import {
@@ -16,6 +20,7 @@ import {
 } from "@/lib/interview/turn-policy";
 import type { ParsingResult } from "@/lib/pdf/result";
 import type { ProviderDiagnostic } from "@/lib/ai/health";
+import { spokenLanguagePolicy } from "@/lib/interview/language";
 export interface GitHubEnrichment {
   profile: {
     name: string | null;
@@ -74,10 +79,11 @@ interface InterviewState {
   avatarState: AvatarState;
   transcript: Array<{ role: "user" | "assistant"; text: string }>;
   activeDeltaMessage: string;
+  candidateDeltaMessage: string;
   isMicMuted: boolean;
   error: string | null;
   _sessionContext?: InterviewContext;
-  manager: WebRTCAudioManager | null;
+  manager: WebRTCAudioManager | GeminiAudioManager | null;
   localStream: MediaStream | null;
   _subtitleBuffer: string;
   _isDrainingSubtitle: boolean;
@@ -116,6 +122,7 @@ export const useInterviewStore = create<InterviewState>()(
       avatarState: "idle",
       transcript: [],
       activeDeltaMessage: "",
+      candidateDeltaMessage: "",
       isMicMuted: false,
       error: null,
       manager: null,
@@ -215,6 +222,18 @@ export const useInterviewStore = create<InterviewState>()(
               "Add your OpenAI key in Settings, then retry. Your interview configuration is preserved."
             );
           const configuration = configurationFromContext(context);
+          const geminiKey =
+            !sponsored && configuration.voiceProvider === "gemini"
+              ? getProviderKey("gemini")
+              : undefined;
+          if (
+            !sponsored &&
+            configuration.voiceProvider === "gemini" &&
+            !geminiKey
+          )
+            throw Error(
+              "Add a Gemini key in Settings for this voice option. OpenAI is also required for transcription."
+            );
           if (!navigator.mediaDevices?.getUserMedia)
             throw Error(
               "Microphone access requires HTTPS or localhost and a supported browser."
@@ -274,7 +293,8 @@ export const useInterviewStore = create<InterviewState>()(
                 : {}),
             });
           };
-          const manager = new WebRTCAudioManager({
+          const managerConfig: WebRTCManagerConfig = {
+            languagePolicy: spokenLanguagePolicy(configuration.language),
             ephemeralToken: "",
             exchangeSdp: async (sdp) => {
               const response = await fetch("/api/realtime", {
@@ -328,7 +348,9 @@ export const useInterviewStore = create<InterviewState>()(
             onMessage: (type, payload) => {
               if (epoch !== connectionEpoch) return;
               const text = typeof payload === "string" ? payload : "";
-              if (type === "ready") {
+              if (type === "provider_diagnostic") {
+                set({ diagnostic: payload as ProviderDiagnostic });
+              } else if (type === "ready") {
                 manager.sendEvent({ type: "response.create" });
               } else if (type === "user_started_speaking") {
                 candidateSpeaking = true;
@@ -337,6 +359,8 @@ export const useInterviewStore = create<InterviewState>()(
               } else if (type === "user_stopped_speaking") {
                 candidateSpeaking = false;
                 speechStoppedAt = Date.now();
+              } else if (type === "user_transcript_partial") {
+                set({ candidateDeltaMessage: text });
               } else if (type === "user_transcript_done") {
                 if (speechKind(text) !== "meaningful") {
                   if (!candidateSpeaking) waitForCandidate();
@@ -413,7 +437,27 @@ export const useInterviewStore = create<InterviewState>()(
                 });
               }
             },
-          });
+          };
+          const manager =
+            configuration.voiceProvider === "gemini"
+              ? new GeminiAudioManager({
+                  ...managerConfig,
+                  geminiKey: geminiKey || undefined,
+                  body: {
+                    sessionId: context.sessionId,
+                    configuration,
+                    role:
+                      context.jobTitle + "\n" + (context.jobDescription || ""),
+                    cv: context.resumeText?.slice(0, 24000),
+                    projects: context.githubEnrichment
+                      ? JSON.stringify(
+                          context.githubEnrichment.top_repos
+                        ).slice(0, 12000)
+                      : undefined,
+                    recovery: get()._resumeInstructions?.slice(0, 8000),
+                  },
+                })
+              : new WebRTCAudioManager(managerConfig);
           set({
             manager,
             turnsAsked: get().transcript.filter((t) => t.role === "assistant")
@@ -480,6 +524,7 @@ export const useInterviewStore = create<InterviewState>()(
           avatarState: "idle",
           _isDrainingSubtitle: false,
           turnNotice: "",
+          candidateDeltaMessage: "",
         });
         manager?.disconnect();
         localStream?.getTracks().forEach((t) => {
@@ -529,6 +574,7 @@ export const useInterviewStore = create<InterviewState>()(
           status: "setup",
           transcript: [],
           activeDeltaMessage: "",
+          candidateDeltaMessage: "",
           _subtitleBuffer: "",
           _isDrainingSubtitle: false,
           _resumeInstructions: undefined,

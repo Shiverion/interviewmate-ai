@@ -1,59 +1,95 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { User, onAuthStateChanged } from "firebase/auth";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { User, onIdTokenChanged } from "firebase/auth";
+import { useInterviewStore } from "@/lib/store/useInterviewStore";
+import { useControlStore } from "@/lib/integrity/control-store";
+import { useIntegrityStore } from "@/lib/integrity/store";
 import { auth, isFirebaseReady } from "@/lib/firebase/config";
 
 interface AuthContextType {
-    user: User | null;
-    loading: boolean;
+  user: User | null;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
-    user: null,
-    loading: true,
+  user: null,
+  loading: true,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+  const observedIdentity = useRef<string | null>(null);
+  const [identityKey, setIdentityKey] = useState("guest");
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(() => isFirebaseReady());
 
-    useEffect(() => {
-        if (!isFirebaseReady()) {
-            console.warn("[AuthProvider] Firebase initialization skipped. Authentication is unavailable until NEXT_PUBLIC_FIREBASE_API_KEY is configured.");
-            setLoading(false);
-            return;
-        }
-
-        // Subscribe to Firebase Auth state changes
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    // For testing/mocking during development, if no user is signed in but we are on dashboard,
-    // we could inject a mock user. But currently we will just return the real state.
-    // If you need to test the dashboard without login, you can uncomment this:
-    /*
-    if (!user && process.env.NODE_ENV === 'development') {
-        return (
-            <AuthContext.Provider value={{ user: { uid: 'dev-user-123', email: 'dev@example.com' } as any, loading: false }}>
-                {children}
-            </AuthContext.Provider>
-        );
+  useEffect(() => {
+    if (!isFirebaseReady()) {
+      console.warn(
+        "[AuthProvider] Firebase initialization skipped. Authentication is unavailable until NEXT_PUBLIC_FIREBASE_API_KEY is configured."
+      );
+      return;
     }
-    */
 
-    return (
-        <AuthContext.Provider value={{ user, loading }}>
-            {children}
-        </AuthContext.Provider>
-    );
+    // Subscribe to Firebase Auth state changes
+    const unsubscribe = onIdTokenChanged(auth, (currentUser) => {
+      const identity = currentUser?.uid || "guest";
+      let previous: string | null = null;
+      try {
+        previous =
+          observedIdentity.current ?? localStorage.getItem("interview-account");
+      } catch {
+        /* Private browsing may disable storage. */
+      }
+      if (previous !== identity && (previous || currentUser)) {
+        useInterviewStore.getState().reset();
+        useInterviewStore.setState({ _sessionContext: undefined });
+        useControlStore.setState({ record: null });
+        useIntegrityStore.setState({ record: null });
+        try {
+          for (const storage of [localStorage, sessionStorage]) {
+            for (const key of Object.keys(storage)) {
+              if (
+                /^(interview-store$|interview-recovery-v1:|interview-integrity:|interviewmate[-_]|human-review)/.test(
+                  key
+                )
+              )
+                storage.removeItem(key);
+            }
+          }
+        } catch {
+          /* Runtime state was cleared even when browser storage is unavailable. */
+        }
+      }
+      try {
+        localStorage.setItem("interview-account", identity);
+      } catch {
+        /* No persistent account data. */
+      }
+      observedIdentity.current = identity;
+      setIdentityKey(
+        `${identity}:${currentUser?.email}:${currentUser?.emailVerified}`
+      );
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return (
+    <AuthContext.Provider key={identityKey} value={{ user, loading }}>
+      {loading ? (
+        <div role="status" className="p-6">
+          Loading your workspace…
+        </div>
+      ) : (
+        children
+      )}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuthContext() {
-    return useContext(AuthContext);
+  return useContext(AuthContext);
 }

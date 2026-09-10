@@ -14,7 +14,7 @@ This section is the current priority order. The original challenge and all accep
 - Recorded validation: **138 automated tests / 18 suites; 24 selected browser checks; source lint; type checking; production build passed**. The [dated record](docs/hr-product-sprint/evaluation/results/2026-09-10-evidence-revision.md) records the runs and their limits. This audit read those results and relevant source; it did not rerun unchanged tests.
 - Model responses in automated tests were mocked. The no-answer assessment is deterministic and does not call a provider. These checks do not prove live speech quality, semantic grading accuracy or fairness.
 - The seven-page [PDF](deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](deliverables/case-study-content.json), [video script](deliverables/demo-script.md) and [setup guide](docs/hr-product-sprint/implementation/current-runbook.md) exist.
-- Last recorded provider check: OpenAI HTTP 401; other host evaluation keys were absent. Access must be rechecked after credentials are configured. That is a historical result, not a fresh claim about today's account state.
+- Updated provider check: OpenAI HTTP 200 and one successful synthetic GPT-5.6 Luna evaluation; Gemini/DeepSeek host keys remain absent. See the [model/access validation record](docs/hr-product-sprint/implementation/2026-09-10-models-and-access.md). Human voice and comparative accuracy are not yet validated.
 - No completed live model-comparison results, timed human baseline, final video or verified public reviewer deployment are recorded. The “0 of 3 attached” text later in this file was copied from the challenge page; it is not a live submission-portal status check.
 
 ### Original five-day challenge: did we meet it?
@@ -354,7 +354,8 @@ The accepted 16 requirements above supersede the original narrow review-brief sc
 
 - Primary user: recruiter preparing an evidence-backed first-screen handoff. Discovery is desk research; user pain and time savings remain hypotheses.
 - English is the baseline; Bahasa Indonesia is a separately reported multilingual extension. A single builder reviewer is a pilot, not independent validation.
-- All voice routes use `/api/realtime` and the GA call service. Product defaults remain gpt-realtime / whisper-1, with OpenAI gpt-4o, Gemini 2.5 Flash and DeepSeek v4 Flash evaluation. No model has been promoted on unmeasured results.
+- Current defaults: GPT-Realtime 2.1 Mini voice, GPT-Transcribe (GPT-Live-Transcribe optional), GPT-5.6 Luna / Gemini 3.5 Flash-Lite / DeepSeek Flash evaluation. Optional Gemini 3.1 Flash Live uses OpenAI transcription and a server-held voice connection. Low reasoning is the default; Medium is available as documented. New choices are not an accuracy ranking.
+- Recruiting data is creator-owned, with verified administrator access for miqbal.izzulhaq@gmail.com. Scheduled candidates sign in with the invited email and cannot write assessment scores. Firestore/Storage rules are deployed; old public CV tokens were revoked.
 - Configuration v2 snapshots duration, turn budget, strategy, language, rubric, interaction modes, custom questions and optional technical/GitHub context. Hosted funding expiry remains separate from paused active time.
 - Evidence rubric v2 exposes assessed quality, coverage, relevance, consistency and provisional confidence. No generated percentage or automated hiring recommendation. Exact candidate quotations are validated; relevance and semantic correctness still require human review.
 - BYOK uses temporary request credentials; platform keys stay server-side. Reviewer invitations are signed, expiring and revocable, with rate/usage limits. Synthetic reviewer sessions use separate private storage.

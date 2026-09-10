@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { interviewScope, canManageInterview } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
 import {
   collection,
   query,
-  where,
   getDocs,
-  orderBy,
   doc,
   getDoc,
   updateDoc,
@@ -75,8 +74,7 @@ export default function InterviewsPage() {
     try {
       const q = query(
         collection(db, "interview_sessions"),
-        where("recruiter_id", "==", user.uid),
-        orderBy("created_at", "desc")
+        ...interviewScope(user)
       );
       const snapshot = await getDocs(q);
 
@@ -97,12 +95,17 @@ export default function InterviewsPage() {
           (s) => !s.synthetic && !/^(demo|reviewer)-/.test(s.id)
         )
       );
-    } catch (err) {
-      console.error("Error fetching sessions:", err);
+    } catch {
+      setSessions([]);
+      showToast(
+        "Access unavailable",
+        "We couldn't load your interviews. Sign in again or retry.",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, showToast]);
 
   useEffect(() => {
     fetchSessions();
@@ -144,7 +147,7 @@ export default function InterviewsPage() {
     try {
       const ref = doc(db, "interview_sessions", sessionId);
       const snapshot = await getDoc(ref);
-      if (!snapshot.exists() || snapshot.data().recruiter_id !== user?.uid)
+      if (!snapshot.exists() || !canManageInterview(user, snapshot.data()))
         throw Error("Session unavailable.");
       const session = snapshot.data();
       const res = await fetch("/api/evaluate", {

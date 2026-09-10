@@ -3,10 +3,13 @@ import type { DocumentData } from "firebase/firestore";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuthContext } from "@/components/providers/AuthProvider";
+import { canManageInterview } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
-import { extractTextFromPdfUrl } from "@/lib/pdf/parse";
+import { readPrivateResume } from "@/lib/firebase/resumes";
 import { validatedCvText } from "@/lib/pdf/result";
 import { configurationSchema } from "@/lib/interview/config";
 import ReviewerCandidateEntry from "@/components/interview/ReviewerCandidateEntry";
@@ -14,6 +17,26 @@ import ReviewerCandidateEntry from "@/components/interview/ReviewerCandidateEntr
 export default function CandidateApplyPage() {
   const params = useParams();
   const id = params.sessionId as string;
+  const { user, loading } = useAuthContext();
+  if (!id.startsWith("reviewer-") && (loading || !user))
+    return (
+      <main className="max-w-lg mx-auto p-8 space-y-5">
+        <h1>Sign in to your interview</h1>
+        <p>
+          Use the Google account with the email your recruiter invited. Only
+          that account, the recruiter and the administrator can open this
+          session.
+        </p>
+        {!loading && (
+          <Link
+            className="wm-button"
+            href={`/login?returnUrl=${encodeURIComponent(`/apply/${id}`)}`}
+          >
+            Sign in to continue
+          </Link>
+        )}
+      </main>
+    );
   return id.startsWith("reviewer-") ? (
     <ReviewerCandidateEntry id={id} />
   ) : (
@@ -23,6 +46,7 @@ export default function CandidateApplyPage() {
 function ScheduledCandidateEntry() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuthContext();
   const sessionId = params.sessionId as string;
 
   const [loading, setLoading] = useState(true);
@@ -99,7 +123,11 @@ function ScheduledCandidateEntry() {
 
         // 3. Fetch Job associated with the Template
         let tData = null;
-        if (sData.template_id) {
+        if (
+          sData.template_id &&
+          (!sData.role_snapshot || !sData.configuration) &&
+          canManageInterview(user, sData)
+        ) {
           const templateSnap = await getDoc(
             doc(db, "interview_templates", sData.template_id)
           );
@@ -126,9 +154,12 @@ function ScheduledCandidateEntry() {
 
         // 4. Pre-fetch and parse the CV text so the AI has it immediately
         let extractedResumeText = "";
-        if (sData.resume_url) {
+        if (sData.cv_parsing || sData.resume_storage_path || sData.resume_url) {
           const parsed =
-            sData.cv_parsing || (await extractTextFromPdfUrl(sData.resume_url));
+            sData.cv_parsing ||
+            (await readPrivateResume(
+              sData.resume_storage_path || sData.resume_url
+            ));
           extractedResumeText = validatedCvText(parsed);
           setSessionData((prev: DocumentData | null) => ({
             ...prev,
@@ -188,7 +219,9 @@ function ScheduledCandidateEntry() {
             "Missing or insufficient permissions"
           )
         ) {
-          setError("This interview link has expired or is invalid.");
+          setError(
+            "This invitation is unavailable to this account. Sign in with the invited email, or ask your recruiter to check the address and interview window."
+          );
         } else {
           setError("An error occurred while loading your interview details.");
         }
@@ -198,7 +231,7 @@ function ScheduledCandidateEntry() {
     }
 
     verifySession();
-  }, [sessionId]);
+  }, [sessionId, user]);
 
   const handleStart = async () => {
     if (!sessionData || !templateData) return;
@@ -211,6 +244,10 @@ function ScheduledCandidateEntry() {
         });
       } catch (err) {
         console.error("Failed to start timer", err);
+        setError(
+          "This account cannot start the interview. Ask your recruiter to check the invitation."
+        );
+        return;
       }
     }
 

@@ -21,6 +21,17 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function destination() {
+    const requested = new URLSearchParams(window.location.search).get(
+      "returnUrl"
+    );
+    return requested &&
+      /^\/(apply\/|dashboard$|interviews(?:\/|$)|settings$)/.test(requested) &&
+      !requested.includes("\\")
+      ? requested
+      : "/dashboard";
+  }
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFirebaseReady()) {
@@ -38,7 +49,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      router.push("/dashboard");
+      router.push(destination());
     } catch (err: unknown) {
       console.error("Auth error:", err);
       setError(
@@ -66,7 +77,7 @@ export default function LoginPage() {
 
     try {
       await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      router.push(destination());
     } catch (err: unknown) {
       console.error("Google Auth error:", err);
       setError(

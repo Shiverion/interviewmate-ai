@@ -216,8 +216,10 @@ export default function SettingsPage() {
               <small>
                 This selection drives automatic and manual evaluation. The
                 benchmark lets you compare providers separately. Live speech
-                currently uses OpenAI Realtime and Whisper; Gemini and DeepSeek
-                are evaluation options.
+                uses GPT-Realtime 2.1 Mini or Gemini 3.1 Flash Live, with
+                GPT-Transcribe or GPT-Live-Transcribe. Choose voice, language
+                and Low/Medium reasoning in interview setup. Evaluations default
+                to Low reasoning.
               </small>
             </div>
           </section>

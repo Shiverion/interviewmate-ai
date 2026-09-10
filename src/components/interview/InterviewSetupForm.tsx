@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
-import { getOpenAIKey } from "@/lib/keys/store";
+import { getOpenAIKey, getProviderKey } from "@/lib/keys/store";
 import {
   configurationSchema,
   defaultConfiguration,
@@ -174,6 +174,14 @@ export default function InterviewSetupForm({
         throw Error(
           "Add an OpenAI key in Settings before starting a personal voice interview."
         );
+      if (
+        mode === "byok" &&
+        config.voiceProvider === "gemini" &&
+        !getProviderKey("gemini")
+      )
+        throw Error(
+          "Add a Gemini key in Settings for Gemini voice. Your OpenAI key handles transcription."
+        );
       let sessionId = "demo-" + crypto.randomUUID(),
         expiresAt: number | undefined;
       if (mode === "reviewer") {
@@ -333,9 +341,10 @@ export default function InterviewSetupForm({
       {scheduled && (
         <div className="grid sm:grid-cols-2 gap-4">
           <label className="wm-field">
-            Candidate email · Optional
+            Candidate sign-in email
             <input
               type="email"
+              required={scheduled && !!user && mode !== "reviewer-scheduled"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

@@ -139,7 +139,8 @@ export async function reserve(
     expiresAt: number;
     durationMs: number;
     configuration?: import("@/lib/interview/config").InterviewConfiguration;
-  }
+  },
+  publicConfiguration?: import("@/lib/interview/config").InterviewConfiguration
 ) {
   return withLedger((data) => {
     const now = Date.now();
@@ -168,6 +169,7 @@ export async function reserve(
       data.daily[dailyKey("global")] =
         (data.daily[dailyKey("global")] || 0) + 1;
       data.leases[id] = {
+        configuration: options?.configuration || publicConfiguration,
         ...(options
           ? {
               reviewerId: options.reviewerId,
@@ -273,6 +275,17 @@ export async function hangupCalls(id?: string) {
       )
   );
   for (const { key, callId } of pending) {
+    if (callId.startsWith("gemini-")) {
+      const { closeGeminiSession } =
+        await import("@/lib/realtime/gemini-sessions");
+      closeGeminiSession(callId);
+      await withLedger((data) => {
+        data.leases[key].callIds = data.leases[key].callIds.filter(
+          (c) => c !== callId
+        );
+      });
+      continue;
+    }
     const res = await fetch(
       `https://api.openai.com/v1/realtime/calls/${encodeURIComponent(callId)}/hangup`,
       {

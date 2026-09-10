@@ -15,6 +15,7 @@ import { limitedJson, reply, sameOrigin, visitor } from "@/lib/demo/http";
 import { requestReviewer } from "@/lib/access/reviewer";
 import { configurationSchema } from "@/lib/interview/config";
 import { createRealtimeCall, RealtimeFailure } from "@/lib/realtime/service";
+import { languageSchema } from "@/lib/interview/language";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
 const input = z.object({
   sdp: z.string().min(20).max(18000),
   sessionId: z.string().regex(/^demo-reviewer-[a-f0-9-]{36}$/),
-  language: z.enum(["English", "Bahasa Indonesia"]).optional(),
+  language: languageSchema.optional(),
   configuration: configurationSchema.optional(),
   role: z.string().max(6500).optional(),
   cv: z.string().max(24000).optional(),
@@ -74,12 +75,19 @@ export async function POST(req: NextRequest) {
     if ((await ownedLease(owner, reservation.id)).callIds.length)
       throw Error("Previous connection is still closing. Retry shortly.");
     startDemoReaper();
-    const configuration =
-      reservation.configuration ||
-      configurationSchema.parse({
+    const configuration = configurationSchema.parse(
+      reservation.configuration || {
         language: body.language || body.configuration?.language,
         maxTurns: 8,
-      });
+      }
+    );
+    if (
+      configuration.voiceProvider === "gemini" &&
+      !process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()
+    )
+      throw Error(
+        "The host has not configured Gemini voice. Choose OpenAI voice or add the host Gemini key."
+      );
     const result = await createRealtimeCall({
       key: process.env.OPENAI_API_KEY!,
       sdp: body.sdp,

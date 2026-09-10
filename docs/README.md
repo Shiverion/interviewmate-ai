@@ -16,7 +16,7 @@ Updated: 2026-09-10. This is the authoritative progress tracker. [Product specif
 
 See the [revision validation record](hr-product-sprint/evaluation/results/2026-09-10-evidence-revision.md) for final command outcomes. Previous baseline: commit `29e40ba`, 122 unit tests and 10 browser checks. New software checks do not measure AI accuracy, fairness or recruiting outcomes.
 
-The last recorded credential check returned OpenAI HTTP 401; Gemini and DeepSeek host keys were absent. Credentials are private and never included in tracked documentation.
+The [model and access revision](hr-product-sprint/implementation/2026-09-10-models-and-access.md) records the current defaults, deployed ownership rules, 44 access checks, 168 application tests and a successful live synthetic GPT-5.6 Luna evaluation. OpenAI access now returns HTTP 200; Gemini and DeepSeek host keys are absent. Human voice and comparative model-quality testing remain open. Credentials are never included in tracked documentation.
 
 ## Reading order and ownership
 

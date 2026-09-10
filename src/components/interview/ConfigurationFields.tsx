@@ -1,5 +1,6 @@
 "use client";
 import { type InterviewConfiguration } from "@/lib/interview/config";
+import { LANGUAGES } from "@/lib/interview/language";
 export default function ConfigurationFields({
   value,
   onChange,
@@ -78,8 +79,67 @@ export default function ConfigurationFields({
             )
           }
         >
-          <option>English</option>
-          <option>Bahasa Indonesia</option>
+          {Object.keys(LANGUAGES).map((language) => (
+            <option key={language}>{language}</option>
+          ))}
+        </select>
+        <small>
+          Controls interview speech and transcription hints. Auto-detect follows
+          the first meaningful answer.
+        </small>
+      </label>
+      <label className="wm-field">
+        Interview voice
+        <select
+          aria-label="Interview voice"
+          value={value.voiceProvider || "openai"}
+          onChange={(e) =>
+            change(
+              "voiceProvider",
+              e.target.value as InterviewConfiguration["voiceProvider"]
+            )
+          }
+        >
+          <option value="openai">GPT-Realtime 2.1 Mini</option>
+          <option value="gemini">Gemini 3.1 Flash Live (Preview)</option>
+        </select>
+        <small>
+          Gemini uses the selected OpenAI transcriber, then speaks from that
+          transcript. Personal sessions need both keys.
+        </small>
+      </label>
+      <label className="wm-field">
+        Transcription
+        <select
+          aria-label="Transcription"
+          value={value.transcriptionModel || "gpt-transcribe"}
+          onChange={(e) =>
+            change(
+              "transcriptionModel",
+              e.target.value as InterviewConfiguration["transcriptionModel"]
+            )
+          }
+        >
+          <option value="gpt-transcribe">GPT-Transcribe · Lower cost</option>
+          <option value="gpt-live-transcribe">
+            GPT-Live-Transcribe · Live captions
+          </option>
+        </select>
+      </label>
+      <label className="wm-field">
+        Voice reasoning
+        <select
+          aria-label="Voice reasoning"
+          value={value.reasoningEffort || "low"}
+          onChange={(e) =>
+            change(
+              "reasoningEffort",
+              e.target.value as InterviewConfiguration["reasoningEffort"]
+            )
+          }
+        >
+          <option value="low">Low · Faster, lower cost</option>
+          <option value="medium">Medium · More reasoning</option>
         </select>
       </label>
       <label className="wm-field">

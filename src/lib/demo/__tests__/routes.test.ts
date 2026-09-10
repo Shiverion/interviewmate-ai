@@ -37,10 +37,12 @@ afterEach(() => {
   process.env = { ...env };
   jest.restoreAllMocks();
 });
-async function room() {
+async function room(language = "English") {
   const landing = await GET(request("/api/demo/voice"));
   const cookie = landing.headers.get("set-cookie")!.split(";")[0];
-  const response = await start(request("/api/demo/start", "POST", cookie));
+  const response = await start(
+    request("/api/demo/start", "POST", cookie, { configuration: { language } })
+  );
   return { cookie, ...(await response.json()) };
 }
 test("same-origin and signed ownership gate funded calls", async () => {
@@ -75,15 +77,13 @@ test("same-origin and signed ownership gate funded calls", async () => {
   expect(fetcher).not.toHaveBeenCalled();
 });
 test("SDP exchange keeps host keys private and tracks provider hangup", async () => {
-  const r = await room();
-  const fetcher = jest
-    .spyOn(globalThis, "fetch")
-    .mockResolvedValueOnce(
-      new Response("answer-sdp", {
-        status: 201,
-        headers: { location: "/v1/realtime/calls/rtc_test" },
-      })
-    );
+  const r = await room("Bahasa Indonesia");
+  const fetcher = jest.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+    new Response("answer-sdp", {
+      status: 201,
+      headers: { location: "/v1/realtime/calls/rtc_test" },
+    })
+  );
   const response = await POST(
     request("/api/demo/voice", "POST", r.cookie, {
       sessionId: r.sessionId,
@@ -99,7 +99,10 @@ test("SDP exchange keeps host keys private and tracks provider hangup", async ()
   const session = JSON.parse(
     (options.body as FormData).get("session") as string
   );
-  expect(session.audio.input.transcription.model).toBe("whisper-1");
+  expect(session.audio.input.transcription.model).toBe("gpt-transcribe");
+  expect(session.model).toBe("gpt-realtime-2.1-mini");
+  expect(session.reasoning).toEqual({ effort: "low" });
+  expect(session.audio.input.transcription.languages).toEqual(["id"]);
   expect(session.instructions).toContain("Bahasa Indonesia");
   fetcher.mockResolvedValueOnce(new Response(null, { status: 500 }));
   expect(

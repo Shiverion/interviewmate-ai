@@ -8,6 +8,8 @@ import { draftSchema, ROLE_VERSION, VERSION } from "./contract";
 import { createHandler, GenerationFailure, type ModelResult } from "./handler";
 import { MODEL, type Provenance } from "./types";
 
+import { evaluationOptions } from "../ai/model-policy";
+
 const sha = (value: string) => createHash("sha256").update(value).digest("hex");
 export function getBootstrap() {
   const root = path.join(process.cwd(), "src/lib/review-brief");
@@ -46,8 +48,8 @@ export function localHandler(reviewerAuthorized = false) {
           system: bootstrap.system,
           prompt: JSON.stringify(input),
           output: Output.object({ schema: draftSchema }),
-          temperature: 0,
-          maxOutputTokens: 4000,
+          providerOptions: evaluationOptions("openai"),
+          maxOutputTokens: 6000,
           maxRetries: 0,
           abortSignal: signal,
           onStepFinish(step) {

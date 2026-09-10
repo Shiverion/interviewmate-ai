@@ -9,8 +9,9 @@ import {
 } from "@radix-ui/react-icons";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useKeys } from "@/components/providers/KeyProvider";
+import { interviewScope, isWorkspaceAdmin } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
 import DemoRoomModal from "@/components/dashboard/DemoRoomModal";
 type Session = {
@@ -38,10 +39,7 @@ export default function DashboardPage() {
       }
       setBusy(true);
       getDocs(
-        query(
-          collection(db, "interview_sessions"),
-          where("recruiter_id", "==", user.uid)
-        )
+        query(collection(db, "interview_sessions"), ...interviewScope(user))
       )
         .then((snapshot) => {
           if (active)
@@ -77,7 +75,11 @@ export default function DashboardPage() {
     <div>
       <div className="wm-section-heading pt-0">
         <div>
-          <p className="wm-eyebrow">Your hiring workspace</p>
+          <p className="wm-eyebrow">
+            {isWorkspaceAdmin(user)
+              ? "Admin workspace · All recruiters"
+              : "Your hiring workspace"}
+          </p>
           <h1 className="wm-heading">Make the next conversation count.</h1>
           <p className="wm-subtitle">
             Prepare an interview, explore the demo, or return to the evidence.

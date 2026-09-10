@@ -10,6 +10,7 @@ export interface WebRTCManagerConfig {
   onMessage?: (type: string, payload: unknown) => void;
   onTrack?: (track: MediaStreamTrack) => void;
   onDisconnect?: () => void;
+  languagePolicy?: string;
 }
 
 export class WebRTCAudioManager {
@@ -17,6 +18,8 @@ export class WebRTCAudioManager {
   private dc: RTCDataChannel | null = null;
   private audioEl: HTMLAudioElement | null = null;
   private closed = false;
+  private completedTranscripts = new Set<string>();
+  private partialTranscripts = new Map<string, string>();
 
   constructor(private config: WebRTCManagerConfig) {}
 
@@ -97,7 +100,35 @@ export class WebRTCAudioManager {
             eventType ===
             "conversation.item.input_audio_transcription.completed"
           ) {
+            if (parsed.item_id && this.completedTranscripts.has(parsed.item_id))
+              return;
+            if (parsed.item_id) {
+              this.completedTranscripts.add(parsed.item_id);
+              this.partialTranscripts.delete(parsed.item_id);
+            }
+            this.config.onMessage(
+              "user_transcript_partial",
+              [...this.partialTranscripts.values()].join(" ")
+            );
             this.config.onMessage("user_transcript_done", parsed.transcript);
+          } else if (
+            eventType === "conversation.item.input_audio_transcription.delta"
+          ) {
+            if (
+              parsed.item_id &&
+              !this.completedTranscripts.has(parsed.item_id) &&
+              typeof parsed.delta === "string"
+            ) {
+              this.partialTranscripts.set(
+                parsed.item_id,
+                (this.partialTranscripts.get(parsed.item_id) || "") +
+                  parsed.delta
+              );
+              this.config.onMessage(
+                "user_transcript_partial",
+                [...this.partialTranscripts.values()].join(" ")
+              );
+            }
           } else if (eventType === "input_audio_buffer.speech_started") {
             this.config.onMessage("user_started_speaking", null);
           } else if (eventType === "input_audio_buffer.speech_stopped") {
@@ -161,9 +192,24 @@ export class WebRTCAudioManager {
    */
   public sendEvent(eventObj: Record<string, unknown>): void {
     if (this.dc && this.dc.readyState === "open") {
+      const response = eventObj.response as
+        | { instructions?: string }
+        | undefined;
+      if (
+        eventObj.type === "response.create" &&
+        response?.instructions &&
+        this.config.languagePolicy
+      )
+        eventObj = {
+          ...eventObj,
+          response: {
+            ...response,
+            instructions: `${response.instructions}\n${this.config.languagePolicy}`,
+          },
+        };
       this.dc.send(JSON.stringify(eventObj));
     } else {
-      console.warn("Data channel is not open. Cannot send event:", eventObj);
+      // A disconnected room is handled by onDisconnect. Do not log interview content.
     }
   }
 
@@ -194,6 +240,8 @@ export class WebRTCAudioManager {
   public disconnect(): void {
     if (this.closed) return;
     this.closed = true;
+    this.partialTranscripts.clear();
+    this.completedTranscripts.clear();
     this.config.onClose?.();
     if (this.pc) {
       this.pc.close();

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { languageSchema, spokenLanguagePolicy } from "./language";
 
 export const RUBRIC_VERSION = "competency-evidence-v2";
 export const DEFAULT_COMPETENCIES = [
@@ -38,7 +39,12 @@ export const configurationSchema = z
       .default(15),
     maxTurns: z.number().int().min(1).max(30).default(7),
     strategy: z.enum(["structured", "adaptive"]).default("structured"),
-    language: z.enum(["English", "Bahasa Indonesia"]).default("English"),
+    language: languageSchema.default("English"),
+    voiceProvider: z.enum(["openai", "gemini"]).default("openai"),
+    transcriptionModel: z
+      .enum(["gpt-transcribe", "gpt-live-transcribe"])
+      .default("gpt-transcribe"),
+    reasoningEffort: z.enum(["low", "medium"]).default("low"),
     allowedModes: z
       .enum(["audio_only", "audio_and_text"])
       .default("audio_and_text"),
@@ -84,10 +90,9 @@ export function configurationFromContext(context: {
     context.configuration || {
       maxTurns: context.questionCount || 7,
       customQuestions: context.customQuestions || [],
-      language:
-        context.preferredLanguage === "Bahasa Indonesia"
-          ? "Bahasa Indonesia"
-          : "English",
+      language: languageSchema
+        .catch("English")
+        .parse(context.preferredLanguage),
       allowedModes: context.allowedModes || "audio_and_text",
       visualPanel: context.visualPanel || "none",
       codeDiff: context.codeDiff || "",
@@ -100,7 +105,7 @@ export function interviewingInstructions(
   cvText = "",
   projects = ""
 ) {
-  return `You are conducting an evidence-based interview for ${role.slice(0, 6500)}. Speak in ${config.language}. Use one question per response. Maximum ${config.maxTurns} interview turns; EVERY follow-up counts. Track competency coverage separately from turns. Competencies: ${JSON.stringify(config.competencies)}.
+  return `You are conducting an evidence-based interview for ${role.slice(0, 6500)}. ${spokenLanguagePolicy(config.language)} Use one question per response. Maximum ${config.maxTurns} interview turns; EVERY follow-up counts. Track competency coverage separately from turns. Competencies: ${JSON.stringify(config.competencies)}.
 ${config.strategy === "adaptive" ? "Adaptive mode: after an answer, ask at most one directly relevant follow-up about a missing ownership, decision, tradeoff, validation or outcome detail. Never repeat evidence already provided. Rotate to uncovered competencies before exhausting the turn budget." : "Structured mode: follow the core question plan, do not add follow-ups."}
 Core questions: ${JSON.stringify(config.customQuestions)}. If no questions are provided, form a relevant question for each competency. Do not ask about employer or school prestige, age, gender, location or other irrelevant identity attributes. Seniority must come from demonstrated scope and evidence.
 Wait for explicit response requests. Fillers and silence are not completed answers. Never score microphone failures or skipped questions. A skip means No Evidence Collected. End after objectives or turn budget are complete; thank the candidate and call end_interview.

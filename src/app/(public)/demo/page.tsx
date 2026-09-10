@@ -11,6 +11,8 @@ import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { configurationSchema } from "@/lib/interview/config";
 import { PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
 import { saveEvaluationProvider } from "@/lib/keys/store";
+import { LANGUAGES } from "@/lib/interview/language";
+
 type Availability = {
   available: boolean;
   message?: string;
@@ -23,6 +25,9 @@ export default function ReviewerDemoPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [language, setLanguage] = useState("English");
+  const [voiceProvider, setVoiceProvider] = useState("openai");
+  const [transcriptionModel, setTranscriptionModel] =
+    useState("gpt-transcribe");
   const [consent, setConsent] = useState(false);
   const [provider, setProvider] = useState<AIProvider>("openai");
   const [configured, setConfigured] = useState<string[]>([]);
@@ -51,7 +56,18 @@ export default function ReviewerDemoPage() {
     setError("");
     try {
       saveEvaluationProvider(provider);
-      const response = await fetch("/api/demo/start", { method: "POST" });
+      const configuration = configurationSchema.parse({
+        language,
+        voiceProvider,
+        transcriptionModel,
+        maxTurns: 8,
+        durationMinutes: 10,
+      });
+      const response = await fetch("/api/demo/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ configuration }),
+      });
       const data = await response.json();
       if (!response.ok) throw Error(data.error);
       useInterviewStore.getState().reset();
@@ -61,11 +77,7 @@ export default function ReviewerDemoPage() {
           sponsored: true,
           accessMode: "demo",
           returnTo: "/demo",
-          configuration: configurationSchema.parse({
-            language,
-            maxTurns: 8,
-            durationMinutes: 10,
-          }),
+          configuration: data.configuration || configuration,
           demoExpiresAt: data.expiresAt,
           candidateName: "Demo reviewer",
           jobTitle: "Frontend Engineer",
@@ -159,9 +171,38 @@ export default function ReviewerDemoPage() {
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             >
-              <option>English</option>
-              <option>Bahasa Indonesia</option>
+              {Object.keys(LANGUAGES).map((l) => (
+                <option key={l}>{l}</option>
+              ))}
             </select>
+          </div>
+          <div className="wm-field mt-5">
+            <label htmlFor="demo-voice">Interview voice</label>
+            <select
+              id="demo-voice"
+              value={voiceProvider}
+              onChange={(e) => setVoiceProvider(e.target.value)}
+            >
+              <option value="openai">GPT-Realtime 2.1 Mini</option>
+              <option value="gemini" disabled={!configured.includes("gemini")}>
+                Gemini 3.1 Flash Live (Preview)
+              </option>
+            </select>
+          </div>
+          <div className="wm-field mt-5">
+            <label htmlFor="demo-transcription">Transcription</label>
+            <select
+              id="demo-transcription"
+              value={transcriptionModel}
+              onChange={(e) => setTranscriptionModel(e.target.value)}
+            >
+              <option value="gpt-transcribe">GPT-Transcribe</option>
+              <option value="gpt-live-transcribe">GPT-Live-Transcribe</option>
+            </select>
+            <small>
+              Voice reasoning is Low. Both voice options use OpenAI
+              transcription.
+            </small>
           </div>
           <div className="wm-field mt-5">
             <label htmlFor="demo-provider">Evaluation provider</label>
@@ -182,13 +223,13 @@ export default function ReviewerDemoPage() {
               ))}
             </select>
             <p className="text-xs text-[var(--muted)] mt-2">
-              Voice uses OpenAI. This choice controls who reviews the
+              The voice choice is separate. This choice controls who reviews the
               transcript. Configured keys still need a live access check.
             </p>
           </div>
           <div className="space-y-3 text-sm mt-6">
             {[
-              "Live voice with OpenAI and Whisper",
+              "Live voice with your selected model and GPT transcription",
               "No CV upload or personal API key",
               "Your transcript stays available for review",
             ].map((t) => (
@@ -205,8 +246,9 @@ export default function ReviewerDemoPage() {
               onChange={(e) => setConsent(e.target.checked)}
               className="mt-1"
             />
-            I’ll use fictional answers. My audio goes to OpenAI; an evaluation
-            sends the transcript to the selected provider. The eight-minute free
+            I’ll use fictional answers. My audio goes to OpenAI for transcription.
+            Gemini voice also receives the transcript when selected. An evaluation
+            sends the transcript to the selected evaluation provider. The eight-minute free
             window includes pauses and reconnecting.
           </label>
           {availability && !availability.available && (

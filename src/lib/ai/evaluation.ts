@@ -3,6 +3,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 import { PROVIDERS, type AIProvider } from "./catalog";
+import { evaluationOptions } from "./model-policy";
 
 export async function evaluateWithProvider<T>(
   provider: AIProvider,
@@ -27,9 +28,10 @@ export async function evaluateWithProvider<T>(
       },
       body: JSON.stringify({
         model,
-        max_tokens: 2500,
+        max_tokens: 6000,
         temperature: 0,
-        thinking: { type: "disabled" },
+        thinking: { type: "enabled" },
+        reasoning_effort: "low",
         response_format: { type: "json_object" },
         messages: [
           {
@@ -61,12 +63,13 @@ export async function evaluateWithProvider<T>(
       provider === "gemini"
         ? createGoogleGenerativeAI({ apiKey: key })(model)
         : createOpenAI({ apiKey: key })(model),
+    providerOptions: evaluationOptions(provider),
     schema,
     system,
     prompt,
     abortSignal: signal,
     maxRetries: 0,
-    maxOutputTokens: 2500,
+    maxOutputTokens: 6000,
   });
   return { object: result.object, provider, model };
 }

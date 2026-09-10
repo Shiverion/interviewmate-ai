@@ -2,10 +2,12 @@
 
 Updated: 2026-09-10. [Specification](../../../Product_Sprint.md) · [Progress](../../README.md). This runbook supersedes the archived setup instructions.
 
+See [model refresh, private access, validation and remaining setup](2026-09-10-models-and-access.md) for the latest implementation. Firebase ownership rules are already deployed; English/Indonesian live voice validation remains open.
+
 ## Host setup
 
 1. Run `npm install` and `npm run dev`. Use `http://localhost:3000` consistently; Firebase authorization for localhost does not authorize 127.0.0.1. Add your actual public domain to Firebase authorized domains before testing it.
-2. In your private `.env.local`, configure `OPENAI_API_KEY` with valid Realtime access. The last recorded key check returned 401; replacing that key is a human action. Optionally set `GOOGLE_GENERATIVE_AI_API_KEY` and `DEEPSEEK_API_KEY` for other evaluators. Restart the server after changes. Never paste keys into a report, repository or chat.
+2. In your private `.env.local`, configure `OPENAI_API_KEY` with valid Realtime access. The 2026-09-10 access check now returns HTTP 200 and a synthetic Luna evaluation succeeds. Optionally set `GOOGLE_GENERATIVE_AI_API_KEY` and `DEEPSEEK_API_KEY` for other evaluators. Restart the server after changes. Never paste keys into a report, repository or chat.
 3. Run `node scripts/reviewer-invite.mjs create "Sprint reviewer"`. Read the code from the ignored `.demo-state/reviewer-invitation.txt` and redeem it at `/reviewer`. A local invitation has already been prepared during this revision. Share codes privately. Run `node scripts/reviewer-invite.mjs revoke INVITATION_ID` to revoke one. The invitation file stores hashes; its separate delivery file contains the code.
 4. For production use a persistent Node host, HTTPS, private durable `DEMO_STATE_DIR`, `DEMO_RUNTIME=persistent-node`, and a stable random `DEMO_COOKIE_SECRET` of at least 32 characters. The local fallback secret is development-only. Do not deploy this file-ledger implementation on ephemeral/serverless disks. Set provider billing alerts/limits and monitor cleanup failures.
 5. Keep Firebase configuration for the ordinary recruiter pipeline. Reviewer scheduling and records use separate private host storage and do not require creating a fake Firebase user. Never change Firebase rules to public access to bypass a failed acceptance check.
@@ -26,7 +28,7 @@ Personal setup, scheduling and Reviewer Mode use `InterviewSetupForm` and `inter
 
 Recruiter scheduling snapshots configuration and role context. CV parsing returns status, bounded text, pages, characters, warnings and failure reason; confirm the preview or explicitly continue without CV. Scanned PDFs have no extractable text; no OCR is included. GitHub metadata is ranked before retrieving up to three cleaned, bounded READMEs. Retrieval failure is non-blocking and repository ownership does not prove personal contribution.
 
-All voice rooms use `/api/realtime` and `src/lib/realtime/service.ts`. Old token creation is retired. An initial failure offers Retry Connection, Return to Setup and Exit Interview. Recovery retains completed answers and replaces the interrupted question. Technical interruption and skipped answers never directly reduce competency scores. Browser focus/visibility does not establish cheating and cannot inspect other devices or another app's content.
+All voice rooms share the turn controller. OpenAI WebRTC uses `/api/realtime` and `src/lib/realtime/service.ts`; optional Gemini speech also uses `/api/realtime/gemini`. Old token creation is retired. An initial failure offers Retry Connection, Return to Setup and Exit Interview. Recovery retains completed answers and replaces the interrupted question. Technical interruption and skipped answers never directly reduce competency scores. Browser focus/visibility does not establish cheating and cannot inspect other devices or another app's content.
 
 ## Step-by-step acceptance
 

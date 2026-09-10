@@ -17,6 +17,8 @@ import {
   type ProviderProfile,
 } from "./types";
 
+import { evaluationOptions, evaluationEffort } from "../ai/model-policy";
+
 const definitions = [
   {
     id: "openai",
@@ -30,14 +32,14 @@ const definitions = [
     label: "Gemini",
     keyName: "GOOGLE_GENERATIVE_AI_API_KEY",
     modelEnv: "BENCHMARK_GEMINI_MODEL",
-    fallback: "gemini-2.5-flash",
+    fallback: "gemini-3.5-flash-lite",
   },
   {
     id: "deepseek",
     label: "DeepSeek",
     keyName: "DEEPSEEK_API_KEY",
     modelEnv: "BENCHMARK_DEEPSEEK_MODEL",
-    fallback: "deepseek-v4-flash",
+    fallback: "deepseek-flash",
   },
 ] as const;
 export function systemFor(language: Language) {
@@ -61,7 +63,7 @@ export function configurationFor(id: ProviderId, language: Language) {
   // Separate experiment identity; legacy v1 records and configuration are never rewritten.
   const settings = {
     studyVersion: STUDY_VERSION,
-    adapterVersion: 1,
+    adapterVersion: 2,
     provider: id,
     model,
     language,
@@ -71,17 +73,12 @@ export function configurationFor(id: ProviderId, language: Language) {
         "utf8"
       )
     ),
-    temperature: 0,
-    maxOutputTokens: 4000,
+
+    maxOutputTokens: 6000,
     timeoutMs: 30000,
     maxRetries: 0,
     responseMode: id === "deepseek" ? "json_object" : "json_schema",
-    thinking:
-      id === "gemini"
-        ? "budget_zero"
-        : id === "deepseek"
-          ? "disabled"
-          : "provider_default",
+    thinking: id === "deepseek" ? "low" : evaluationEffort(),
     ...bootstrap.provenance,
     promptHash,
   };
@@ -195,10 +192,11 @@ export async function generateBenchmark(
           },
           body: JSON.stringify({
             model: c.model,
-            temperature: 0,
-            max_tokens: 4000,
+
+            max_tokens: 6000,
             stream: false,
-            thinking: { type: "disabled" },
+            thinking: { type: "enabled" },
+            reasoning_effort: "low",
             response_format: { type: "json_object" },
             messages: [
               { role: "system", content: c.system },
@@ -264,17 +262,11 @@ export async function generateBenchmark(
       system: c.system,
       prompt: JSON.stringify(input),
       output: Output.object({ schema: draftSchema }),
-      temperature: 0,
-      maxOutputTokens: 4000,
+
+      maxOutputTokens: 6000,
       maxRetries: 0,
       abortSignal: signal,
-      ...(id === "gemini"
-        ? {
-            providerOptions: {
-              google: { thinkingConfig: { thinkingBudget: 0 } },
-            },
-          }
-        : {}),
+      providerOptions: evaluationOptions(id),
     });
     if (result.finishReason !== "stop")
       throw new GenerationFailure(

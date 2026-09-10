@@ -89,7 +89,8 @@ test("DeepSeek uses JSON mode; schema and citation validation remain application
     jest.mocked(global.fetch).mock.calls[0][1]?.body as string
   );
   expect(request.response_format).toEqual({ type: "json_object" });
-  expect(request.thinking).toEqual({ type: "disabled" });
+  expect(request.thinking).toEqual({ type: "enabled" });
+  expect(request.reasoning_effort).toBe("low");
   expect(request.messages[1].content).toBe(JSON.stringify(fixtures[0].input));
 });
 test("DeepSeek rejects empty JSON and truncation rather than repairing an output", async () => {

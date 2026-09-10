@@ -18,13 +18,15 @@ describe("Reviewer access", () => {
     cy.contains("button", "Start free voice demo").should("be.disabled");
     cy.get("#demo-language").select("Bahasa Indonesia");
     cy.get("#demo-provider").select("gemini");
+    cy.get("#demo-voice").select("gemini");
+    cy.get("#demo-transcription").select("gpt-live-transcribe");
     cy.get('input[type="checkbox"]').check();
     cy.intercept("POST", "/api/demo/start", {
       sessionId: "demo-reviewer-11111111-1111-4111-8111-111111111111",
       expiresAt: Date.now() + 480000,
     }).as("startDemo");
     cy.contains("button", "Start free voice demo").click();
-    cy.wait("@startDemo");
+    cy.wait("@startDemo").its("request.body.configuration").should("include", { language: "Bahasa Indonesia", voiceProvider: "gemini", transcriptionModel: "gpt-live-transcribe", reasoningEffort: "low" });
     cy.location("pathname").should("eq", "/interview");
     cy.contains("Hosted voice").should("be.visible");
     cy.contains("button", "Start Interview").should("be.disabled");

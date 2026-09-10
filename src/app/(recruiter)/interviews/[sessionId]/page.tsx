@@ -3,6 +3,7 @@ import type { DocumentData } from "firebase/firestore";
 
 import { useEffect, useState } from "react";
 import { useAuthContext } from "@/components/providers/AuthProvider";
+import { canManageInterview } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
@@ -48,7 +49,7 @@ export default function CandidateReportPage() {
         const sData = sessionSnap.data();
 
         // Security Check: Ensure recruiter owns this session
-        if (sData.recruiter_id !== user!.uid) {
+        if (!canManageInterview(user, sData)) {
           setError("Unauthorized access");
           setLoading(false);
           return;
@@ -66,7 +67,7 @@ export default function CandidateReportPage() {
         }
       } catch (err: unknown) {
         console.error("Error fetching report:", err);
-        setError(err instanceof Error ? err.message : "Failed to load report");
+        setError("This report is unavailable to your account.");
       } finally {
         setLoading(false);
       }

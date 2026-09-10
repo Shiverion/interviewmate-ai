@@ -8,7 +8,7 @@ import {
   updateDoc,
   setDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes } from "firebase/storage";
 import {
   configurationSchema,
   type InterviewConfiguration,
@@ -44,6 +44,7 @@ export interface InterviewSession {
   candidate_id: string;
   candidate_email?: string;
   resume_url: string;
+  resume_storage_path?: string;
   status: "active" | "completed" | "revoked";
   allowed_modes: "audio_only" | "audio_and_text";
   visual_panel?: VisualPanel;
@@ -74,6 +75,10 @@ export async function createScheduledInterview(
   configuration?: InterviewConfiguration,
   cvParsing?: ParsingResult
 ): Promise<string> {
+  if (!candidateEmail.trim())
+    throw Error(
+      "Enter the candidate’s sign-in email before creating an invitation."
+    );
   const templateData = {
     recruiter_id: recruiterId,
     job_title: jobTitle,
@@ -93,15 +98,13 @@ export async function createScheduledInterview(
   const sessionRef = doc(sessionsCol);
 
   const fileExtension = resumeFile?.name.split(".").pop() || "pdf";
-  const storagePath = `resumes/${sessionRef.id}/${Date.now()}.${fileExtension}`;
+  const storagePath = `resumes/${recruiterId}/${sessionRef.id}/${Date.now()}.${fileExtension}`;
   const storageRef = ref(storage, storagePath);
 
   const [templateRef] = await Promise.all([
     addDoc(collection(db, "interview_templates"), templateData),
     resumeFile ? uploadBytes(storageRef, resumeFile) : Promise.resolve(),
   ]);
-
-  const downloadUrl = resumeFile ? await getDownloadURL(storageRef) : "";
 
   const sessionData: InterviewSession = {
     role_snapshot: { job_title: jobTitle, job_description: jobDescription },
@@ -124,8 +127,9 @@ export async function createScheduledInterview(
     recruiter_id: recruiterId,
     candidate_name: candidateName,
     candidate_id: candidateId,
-    candidate_email: candidateEmail,
-    resume_url: downloadUrl,
+    candidate_email: candidateEmail.trim().toLowerCase(),
+    resume_url: "",
+    ...(resumeFile ? { resume_storage_path: storagePath } : {}),
     status: "active",
     allowed_modes: allowedModes,
     visual_panel: visualPanel,

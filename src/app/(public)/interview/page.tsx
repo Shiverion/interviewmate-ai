@@ -6,12 +6,15 @@ import LottieAvatar from "@/components/interview/LottieAvatar";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import {
   getOpenAIKey,
+  getProviderKey,
   getEvaluationProvider,
   evaluationHeaders,
 } from "@/lib/keys/store";
 import Link from "next/link";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
-import { doc, updateDoc } from "firebase/firestore";
+import { canManageInterview } from "@/lib/firebase/access";
+import { auth } from "@/lib/firebase/config";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
 import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
 import RecoveryActions from "@/components/interview/RecoveryActions";
@@ -97,6 +100,7 @@ function InterviewRoomContent() {
     localStream,
     transcript,
     activeDeltaMessage,
+    candidateDeltaMessage,
     _sessionContext,
     sendTextMessage,
   } = useInterviewStore();
@@ -231,16 +235,25 @@ function InterviewRoomContent() {
                 })
               );
               if (!isDemoSession && isFirebaseReady())
-                void updateDoc(doc(db, "interview_sessions", sessionId), {
-                  evaluation: data.evaluation,
-                  evaluation_model: data.model,
-                  evaluation_provider: data.provider,
-                  status: "evaluated",
-                }).catch(() =>
-                  setEvaluationError(
-                    "Assessment saved locally; hosted report saving failed."
-                  )
-                );
+                void getDoc(doc(db, "interview_sessions", sessionId))
+                  .then((snapshot) => {
+                    if (
+                      !snapshot.exists() ||
+                      !canManageInterview(auth.currentUser, snapshot.data())
+                    )
+                      return;
+                    return updateDoc(snapshot.ref, {
+                      evaluation: data.evaluation,
+                      evaluation_model: data.model,
+                      evaluation_provider: data.provider,
+                      status: "evaluated",
+                    });
+                  })
+                  .catch(() =>
+                    setEvaluationError(
+                      "Assessment saved locally; hosted report saving failed."
+                    )
+                  );
             } else setEvaluationResult(data.evaluation as EvaluationResult);
           }
           setIsEvaluating(false);
@@ -345,9 +358,17 @@ function InterviewRoomContent() {
             language={_sessionContext?.preferredLanguage}
             showAlert={false}
           />
+          {!_sessionContext?.sponsored &&
+            _sessionContext?.configuration?.voiceProvider === "gemini" &&
+            !getProviderKey("gemini") && (
+              <p role="alert">
+                Gemini voice needs a Gemini key in{" "}
+                <Link href="/settings">Models &amp; access</Link>.
+              </p>
+            )}
           {!_sessionContext?.sponsored && !getOpenAIKey() && (
             <p className="wm-note">
-              Live voice needs an OpenAI key.{" "}
+              Voice transcription needs an OpenAI key.{" "}
               <Link href="/settings">Add one in Models & access</Link> or{" "}
               <Link href="/demo">try the free reviewer demo</Link>.
             </p>
@@ -368,7 +389,10 @@ function InterviewRoomContent() {
             }}
             disabled={
               !_sessionContext ||
-              (!_sessionContext?.sponsored && !getOpenAIKey()) ||
+              (!_sessionContext?.sponsored &&
+                (!getOpenAIKey() ||
+                  (_sessionContext?.configuration?.voiceProvider === "gemini" &&
+                    !getProviderKey("gemini")))) ||
               integrity.record?.acknowledgedAt == null ||
               ["ended", "completed"].includes(control.record?.phase || "")
             }
@@ -693,6 +717,14 @@ function InterviewRoomContent() {
                     </div>
                   </div>
                 ))}
+                {candidateDeltaMessage && (
+                  <p
+                    className="text-sm text-[var(--text-muted)]"
+                    aria-label="Draft candidate transcript"
+                  >
+                    You (transcribing): {candidateDeltaMessage}
+                  </p>
+                )}
                 {activeDeltaMessage && (
                   <div className="flex flex-col items-start">
                     <span className="text-xs text-[var(--muted)] mb-1 px-1 uppercase tracking-wider opacity-70">
@@ -731,6 +763,14 @@ function InterviewRoomContent() {
                     {item.text}
                   </p>
                 ))}
+                {candidateDeltaMessage && (
+                  <p
+                    className="text-sm text-[var(--text-muted)]"
+                    aria-label="Draft candidate transcript"
+                  >
+                    You (transcribing): {candidateDeltaMessage}
+                  </p>
+                )}
                 {activeDeltaMessage && (
                   <p className="text-lg text-[var(--foreground)] opacity-100 font-medium translate-y-0 transition-all">
                     <span className="opacity-50 text-xs uppercase tracking-wider block mb-1 text-primary-400">
@@ -754,10 +794,18 @@ function InterviewRoomContent() {
         {hasVisualPanel && sessionId && (
           <div className="flex-1 min-h-0 pl-4 overflow-hidden">
             {visualPanel === "code" && (
-              <CodeEditor key={sessionId} sessionId={sessionId} isCandidate={true} />
+              <CodeEditor
+                key={sessionId}
+                sessionId={sessionId}
+                isCandidate={true}
+              />
             )}
             {visualPanel === "whiteboard" && (
-              <Whiteboard key={sessionId} sessionId={sessionId} isCandidate={true} />
+              <Whiteboard
+                key={sessionId}
+                sessionId={sessionId}
+                isCandidate={true}
+              />
             )}
             {visualPanel === "code_review" && <CodeReview diff={codeDiff} />}
           </div>
