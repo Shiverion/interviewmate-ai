@@ -6,25 +6,45 @@ service cloud.firestore {
       return signedIn() && request.auth.token.email_verified == true
         && request.auth.token.email.lower() == 'miqbal.izzulhaq@gmail.com';
     }
-    function owns(data) { return signedIn() && data.recruiter_id == request.auth.uid; }
+    function owns(data) { return signedIn() && data.get('recruiter_id', null) == request.auth.uid; }
     function manages(data) { return owns(data) || admin(); }
+    // candidate_email is always written pre-lowercased by the app (see
+    // src/lib/firebase/interviews.ts); comparing it raw here (rather than
+    // data.candidate_email.lower()) is required for Firestore to prove a
+    // candidate_email-filtered list() query safe without a per-document scan.
     function invited(data) {
       return signedIn() && request.auth.token.email_verified == true
         && data.candidate_email is string && data.candidate_email != ''
-        && request.auth.token.email.lower() == data.candidate_email.lower();
+        && request.auth.token.email.lower() == data.candidate_email;
     }
     function candidateAccess(data) {
       return invited(data) && data.status in ['active', 'completed', 'evaluated']
         && request.time >= data.valid_from && request.time < data.expires_at;
     }
+    // A signed-in person's view of their own record, independent of the
+    // live-interview admission window (that window only gates answering) —
+    // but not once the recruiter/admin has revoked it, matching what
+    // "revoke" is meant to do: cut off all further candidate access.
+    function ownRecord(data) {
+      return invited(data) && data.get('status', '') in ['active', 'completed', 'evaluated'];
+    }
     match /users/{userId} {
       allow read, write: if signedIn() && request.auth.uid == userId;
     }
+    match /app_config/{id} {
+      allow get: if signedIn();
+      allow write: if admin();
+    }
     match /interview_sessions/{sessionId} {
-      allow get: if manages(resource.data) || candidateAccess(resource.data);
-      allow list: if manages(resource.data);
-      allow create: if owns(request.resource.data);
-      allow delete: if manages(resource.data);
+      allow get, list: if manages(resource.data) || ownRecord(resource.data);
+      allow create: if owns(request.resource.data) || (
+        signedIn() && request.auth.token.email_verified == true
+        && request.resource.data.source == 'reviewer_invitation'
+        && request.resource.data.recruiter_id
+          == get(/databases/$(database)/documents/app_config/admin).data.uid
+        && request.resource.data.candidate_email == request.auth.token.email.lower()
+      );
+      allow delete: if manages(resource.data) || ownRecord(resource.data);
       allow update: if manages(resource.data)
         && request.resource.data.recruiter_id == resource.data.recruiter_id;
       // Candidates can submit their own work, never change an invitation or its assessment.
@@ -42,6 +62,13 @@ service cloud.firestore {
       allow create: if owns(request.resource.data);
       allow update: if manages(resource.data)
         && request.resource.data.recruiter_id == resource.data.recruiter_id;
+    }
+    match /pipeline_candidates/{candidateId} {
+      allow read, list: if manages(resource.data);
+      allow create: if owns(request.resource.data);
+      allow update: if manages(resource.data)
+        && request.resource.data.recruiter_id == resource.data.recruiter_id;
+      allow delete: if manages(resource.data);
     }
     match /candidate_reports/{reportId} {
       allow read, delete: if manages(resource.data);

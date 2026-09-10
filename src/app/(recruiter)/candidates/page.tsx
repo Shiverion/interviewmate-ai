@@ -15,6 +15,10 @@ import {
   deleteInterviewSession,
   revokeInterviewSession,
 } from "@/lib/firebase/interviews";
+import {
+  deletePipelineCandidate,
+  pipelineScope,
+} from "@/lib/firebase/pipeline";
 
 type CandidateRecord = DocumentData & { id: string };
 type StatusFilter = "all" | "active" | "completed";
@@ -34,6 +38,8 @@ function displayStatus(record: CandidateRecord) {
   if (record.status === "revoked") return "Revoked";
   if (millis(record.expires_at) && millis(record.expires_at) < Date.now()) return "Expired";
   if (record.status === "evaluated" || record.status === "completed") return "Completed";
+  if (record.status === "not_invited") return "Not invited";
+  if (record.status === "screened") return "Screened";
   return "Active";
 }
 
@@ -56,6 +62,7 @@ export default function CandidatesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [pipelineUnavailable, setPipelineUnavailable] = useState(false);
 
   const loadRecords = useCallback(async () => {
     if (!user || !isFirebaseReady()) {
@@ -68,10 +75,42 @@ export default function CandidatesPage() {
       const snapshot = await getDocs(
         query(collection(db, "interview_sessions"), ...interviewScope(user))
       );
-      const next: CandidateRecord[] = snapshot.docs
+      const sessions: CandidateRecord[] = snapshot.docs
         .map((item) => ({ id: item.id, ...item.data() }) as CandidateRecord)
         .filter((record) => !record.synthetic && !/^(demo|reviewer)-/.test(record.id))
-        .sort((a, b) => {
+      let pipelineRecords: CandidateRecord[] = [];
+      try {
+        const pipelineSnapshot = await getDocs(
+          query(collection(db, "pipeline_candidates"), ...pipelineScope(user))
+        );
+        setPipelineUnavailable(false);
+        const sessionsById = new Map(sessions.map((session) => [session.id, session]));
+        pipelineRecords = pipelineSnapshot.docs.map((item) => {
+          const pipeline = { id: item.id, ...item.data() } as CandidateRecord;
+          const session = pipeline.session_id ? sessionsById.get(pipeline.session_id) : undefined;
+          return {
+            ...pipeline,
+            ...(session || {}),
+            id: pipeline.id,
+            pipeline_id: pipeline.id,
+            session_id: pipeline.session_id || session?.id,
+            candidate_name: session?.candidate_name || pipeline.candidate_name,
+            candidate_email: session?.candidate_email || pipeline.candidate_email,
+            ats_score: session?.ats_score || pipeline.ats_score,
+          };
+        });
+      } catch {
+        // Keep the interview records usable while a Firebase rules deployment
+        // is being rolled out for the new pipeline collection.
+        setPipelineUnavailable(true);
+      }
+      const linkedSessionIds = new Set(
+        pipelineRecords.map((record) => record.session_id).filter(Boolean)
+      );
+      const next: CandidateRecord[] = [
+        ...pipelineRecords,
+        ...sessions.filter((session) => !linkedSessionIds.has(session.id)),
+      ].sort((a, b) => {
           const scoreA = typeof a.ats_score?.overall_match === "number" ? a.ats_score.overall_match : -1;
           const scoreB = typeof b.ats_score?.overall_match === "number" ? b.ats_score.overall_match : -1;
           if (scoreA !== scoreB) return scoreB - scoreA;
@@ -112,15 +151,21 @@ export default function CandidatesPage() {
   );
 
   async function copyLink(record: CandidateRecord) {
-    await navigator.clipboard.writeText(`${window.location.origin}/apply/${record.id}`);
+    const sessionId = record.session_id || record.id;
+    if (!record.session_id && record.pipeline_id) {
+      setError("This candidate has not been invited yet, so there is no link to copy.");
+      return;
+    }
+    await navigator.clipboard.writeText(`${window.location.origin}/apply/${sessionId}`);
     setNotice(`Invitation link copied for ${record.candidate_name || "this candidate"}.`);
     window.setTimeout(() => setNotice(""), 2200);
   }
 
   async function revoke(record: CandidateRecord) {
+    if (!record.session_id) return;
     if (!window.confirm(`Revoke the invitation for ${record.candidate_name || "this candidate"}?`)) return;
     try {
-      await revokeInterviewSession(record.id);
+      await revokeInterviewSession(record.session_id);
       setRecords((current) => current.map((item) => item.id === record.id ? { ...item, status: "revoked" } : item));
       setNotice("Invitation revoked.");
     } catch {
@@ -131,7 +176,8 @@ export default function CandidatesPage() {
   async function remove(record: CandidateRecord) {
     if (!window.confirm(`Delete ${record.candidate_name || "this candidate"}'s interview record? This cannot be undone.`)) return;
     try {
-      await deleteInterviewSession(record.id, record.resume_storage_path);
+      if (record.session_id) await deleteInterviewSession(record.session_id, record.resume_storage_path);
+      if (record.pipeline_id) await deletePipelineCandidate(record.pipeline_id);
       setRecords((current) => current.filter((item) => item.id !== record.id));
       setExpandedId(null);
       setNotice("Candidate record deleted.");
@@ -171,6 +217,7 @@ export default function CandidatesPage() {
 
       {notice && <p role="status" className="wm-note mb-5 border-emerald-500/30 bg-emerald-500/5 text-emerald-300">{notice}</p>}
       {error && <p role="alert" className="wm-note mb-5 border-red-500/30 bg-red-500/5 text-red-300">{error}</p>}
+      {pipelineUnavailable && <p role="status" className="wm-note mb-5 border-amber-500/30 bg-amber-500/5 text-amber-300">The candidate collection is not available yet. Deploy the latest Firestore rules to show screened and not-invited candidates here; existing interview sessions remain visible.</p>}
 
       <section className="wm-panel overflow-hidden p-0">
         {loading ? (
@@ -196,7 +243,7 @@ export default function CandidatesPage() {
                       <td colSpan={6} className="p-0">
                         <button type="button" aria-expanded={expanded} onClick={() => setExpandedId(expanded ? null : record.id)} className="grid w-full grid-cols-[4rem_minmax(14rem,1.2fr)_minmax(14rem,1fr)_6rem_8rem_5rem] items-center text-left hover:bg-[var(--surface-elevated)]/60">
                           <span className="px-5 py-4 font-mono text-[var(--muted)]">{score === null ? "—" : `#${rank}`}</span>
-                          <span className="px-5 py-4"><strong className="block truncate">{record.candidate_name || "Unnamed candidate"}</strong><span className="mt-1 block truncate text-xs text-[var(--muted)]">{record.role_snapshot?.job_title || "Role not recorded"}</span></span>
+                          <span className="px-5 py-4"><strong className="block truncate">{record.candidate_name || "Unnamed candidate"}</strong><span className="mt-1 block truncate text-xs text-[var(--muted)]">{record.role_snapshot?.job_title || record.job_title || "Role not recorded"}</span></span>
                           <span className="truncate px-5 py-4 text-[var(--muted)]">{record.candidate_email || "Email not recorded"}</span>
                           <span className={`px-5 py-4 text-lg font-bold ${score === null ? "text-[var(--muted)]" : scoreColor(score)}`}>{score === null ? "—" : `${score}%`}</span>
                           <span className={`px-5 py-4 text-xs ${status === "Active" ? "text-primary-400" : status === "Completed" ? "text-emerald-400" : "text-[var(--muted)]"}`}>{status}</span>
@@ -208,12 +255,12 @@ export default function CandidatesPage() {
                               <div className="space-y-3">
                                 <h3 className="text-sm font-semibold">Candidate and invitation</h3>
                                 <dl className="space-y-2 text-xs"><div><dt className="text-[var(--muted)]">Candidate ID</dt><dd className="font-mono">{record.candidate_id || "—"}</dd></div><div><dt className="text-[var(--muted)]">Email</dt><dd>{record.candidate_email || "—"}</dd></div><div><dt className="text-[var(--muted)]">Created</dt><dd>{formatDate(record.created_at)}</dd></div><div><dt className="text-[var(--muted)]">Valid window</dt><dd>{formatDate(record.valid_from)} → {formatDate(record.expires_at)}</dd></div></dl>
-                                <div className="flex flex-wrap gap-2 pt-1"><button type="button" className="wm-button secondary text-xs" onClick={() => void copyLink(record)}>Copy invitation</button><a className="wm-button secondary text-xs" href={`/apply/${record.id}`} target="_blank" rel="noreferrer">Open invitation</a></div>
+                                <div className="flex flex-wrap gap-2 pt-1"><button type="button" disabled={!record.session_id} className="wm-button secondary text-xs disabled:opacity-50" onClick={() => void copyLink(record)}>Copy invitation</button>{record.session_id && <a className="wm-button secondary text-xs" href={`/apply/${record.session_id}`} target="_blank" rel="noreferrer">Open invitation</a>}</div>
                               </div>
                               <div className="space-y-3">
                                 <h3 className="text-sm font-semibold">Role and interview setup</h3>
-                                <dl className="space-y-2 text-xs"><div><dt className="text-[var(--muted)]">Role</dt><dd>{record.role_snapshot?.job_title || "—"}</dd></div><div><dt className="text-[var(--muted)]">Language</dt><dd>{record.configuration?.language || "—"}</dd></div><div><dt className="text-[var(--muted)]">Interview mode</dt><dd>{record.allowed_modes || record.configuration?.allowedModes || "—"}</dd></div><div><dt className="text-[var(--muted)]">Turns / strategy</dt><dd>{record.configuration?.maxTurns || "—"} · {record.configuration?.strategy || "—"}</dd></div><div><dt className="text-[var(--muted)]">Panels</dt><dd>{record.configuration?.visualPanel || "None"}</dd></div></dl>
-                                {record.role_snapshot?.job_description && <details><summary className="cursor-pointer text-xs text-primary-400">Show job description</summary><p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-[var(--muted)]">{record.role_snapshot.job_description}</p></details>}
+                                <dl className="space-y-2 text-xs"><div><dt className="text-[var(--muted)]">Role</dt><dd>{record.role_snapshot?.job_title || record.job_title || "—"}</dd></div><div><dt className="text-[var(--muted)]">Language</dt><dd>{record.configuration?.language || "—"}</dd></div><div><dt className="text-[var(--muted)]">Interview mode</dt><dd>{record.allowed_modes || record.configuration?.allowedModes || "—"}</dd></div><div><dt className="text-[var(--muted)]">Turns / strategy</dt><dd>{record.configuration?.maxTurns || "—"} · {record.configuration?.strategy || "—"}</dd></div><div><dt className="text-[var(--muted)]">Panels</dt><dd>{record.configuration?.visualPanel || "None"}</dd></div></dl>
+                                {(record.role_snapshot?.job_description || record.job_description) && <details><summary className="cursor-pointer text-xs text-primary-400">Show job description</summary><p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-[var(--muted)]">{record.role_snapshot?.job_description || record.job_description}</p></details>}
                               </div>
                               <div className="space-y-3">
                                 <h3 className="text-sm font-semibold">ATS and evaluation</h3>
@@ -223,7 +270,7 @@ export default function CandidatesPage() {
                             </div>
                             <div className="mt-6 border-t border-[var(--border)] pt-4">
                               <details><summary className="cursor-pointer text-xs font-semibold text-[var(--muted)]">Show parsed CV details</summary><div className="mt-3 grid gap-4 md:grid-cols-2"><div className="text-xs text-[var(--muted)]">Status: {record.cv_parsing?.status || "—"} · Pages: {record.cv_parsing?.pageCount || "—"} · Characters: {record.cv_parsing?.characterCount || "—"}</div><pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 text-xs leading-relaxed">{record.cv_parsing?.text || "No parsed CV text stored."}</pre></div></details>
-                              <div className="mt-4 flex flex-wrap gap-3"><Link className="text-xs font-medium text-primary-400" href={`/pipeline/${record.id}`}>Open full report</Link>{status === "Active" && <button type="button" className="text-xs text-amber-400" onClick={() => void revoke(record)}>Revoke invitation</button>}<button type="button" className="text-xs text-red-400" onClick={() => void remove(record)}>Delete record</button></div>
+                              <div className="mt-4 flex flex-wrap gap-3">{record.session_id && <Link className="text-xs font-medium text-primary-400" href={`/pipeline/${record.session_id}`}>Open full report</Link>}{status === "Active" && record.session_id && <button type="button" className="text-xs text-amber-400" onClick={() => void revoke(record)}>Revoke invitation</button>}<button type="button" className="text-xs text-red-400" onClick={() => void remove(record)}>Delete record</button></div>
                             </div>
                           </div>
                         )}

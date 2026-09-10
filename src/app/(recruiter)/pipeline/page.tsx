@@ -13,6 +13,10 @@ import {
   createScheduledInterview,
   type InterviewSession,
 } from "@/lib/firebase/interviews";
+import {
+  savePipelineCandidate,
+  updatePipelineCandidate,
+} from "@/lib/firebase/pipeline";
 import { validatedCvText, type ParsingResult } from "@/lib/pdf/result";
 
 type AtsScore = NonNullable<InterviewSession["ats_score"]>;
@@ -31,6 +35,7 @@ type PipelineCandidate = {
   status: CandidateStatus;
   inviteStatus: InviteStatus;
   sessionId?: string;
+  pipelineId?: string;
   error?: string;
   selected: boolean;
 };
@@ -181,6 +186,7 @@ export default function PipelinePage() {
     // ranking instead of leaving old scores attached to the new description.
     const pending = candidates;
     let completed = 0;
+    let persistenceMisses = 0;
     for (const candidate of pending) {
       updateCandidate(candidate.id, {
         status: "parsing",
@@ -226,10 +232,42 @@ export default function PipelinePage() {
         };
         if (!scoreResponse.ok || !scoreData.ats_score)
           throw Error(scoreData.error || "ATS scoring failed.");
+        const extractedName =
+          candidate.candidateName === candidateNameFromFile(candidate.file)
+            ? nameFromText(resumeText, candidate.candidateName)
+            : candidate.candidateName;
+        const extractedEmail = candidate.candidateEmail || emailFromText(resumeText);
+        let pipelineId: string | undefined = candidate.pipelineId;
+        if (user) {
+          try {
+            const pipelineData = {
+              candidate_id: candidate.id,
+              candidate_name: extractedName,
+              candidate_email: extractedEmail,
+              job_title: jobTitle.trim(),
+              job_description: jobDescription.trim(),
+              configuration,
+              file_name: candidate.fileName,
+              resume_text: resumeText.slice(0, 24000),
+              cv_parsing: parsing,
+              ats_score: scoreData.ats_score,
+              status: "screened" as const,
+            };
+            if (pipelineId) await updatePipelineCandidate(pipelineId, pipelineData);
+            else pipelineId = await savePipelineCandidate(user.uid, pipelineData);
+          } catch {
+            // Ranking should remain usable if a deployment has not picked up
+            // the optional pipeline_candidates rule yet.
+            persistenceMisses++;
+          }
+        }
         updateCandidate(candidate.id, {
           status: "ready",
           atsScore: scoreData.ats_score,
           selected: false,
+          candidateName: extractedName,
+          candidateEmail: extractedEmail,
+          pipelineId,
         });
         completed++;
       } catch (caught) {
@@ -256,7 +294,7 @@ export default function PipelinePage() {
     });
     setMessage(
       completed
-        ? `${completed} resume${completed === 1 ? "" : "s"} ranked. Review the order and choose who should receive an invitation.`
+        ? `${completed} resume${completed === 1 ? "" : "s"} ranked. Review the order and choose who should receive an invitation.${persistenceMisses ? ` ${persistenceMisses} record${persistenceMisses === 1 ? " was" : "s were"} not saved to the dashboard; deploy the latest Firestore rules before relying on persistence.` : ""}`
         : "No resumes could be ranked. Check the PDF files and try again."
     );
   }
@@ -329,6 +367,12 @@ export default function PipelinePage() {
           candidate.atsScore
         );
         updateCandidate(candidate.id, { inviteStatus: "created", sessionId });
+        if (candidate.pipelineId) {
+          await updatePipelineCandidate(candidate.pipelineId, {
+            status: "invited",
+            session_id: sessionId,
+          }).catch(() => undefined);
+        }
         created++;
       } catch (caught) {
         updateCandidate(candidate.id, {
@@ -337,6 +381,11 @@ export default function PipelinePage() {
         });
       }
     }
+    await Promise.all(
+      candidates
+        .filter((candidate) => candidate.status === "ready" && !candidate.selected && candidate.pipelineId)
+        .map((candidate) => updatePipelineCandidate(candidate.pipelineId!, { status: "not_invited" }).catch(() => undefined))
+    );
     setInviting(false);
     setMessage(
       `${created} invitation${created === 1 ? "" : "s"} created. Copy each link below and send it to the matching candidate.`
