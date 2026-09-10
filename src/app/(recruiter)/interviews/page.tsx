@@ -79,23 +79,39 @@ function completedMillis(session: Session) {
   );
 }
 
+function assessmentScore(session: Session): number | null {
+  const evaluation = session.evaluation;
+  if (!evaluation) return null;
+
+  if (evaluation.schemaVersion === "competency-evidence-v2") {
+    const evidenceScore = evaluation.dimensions?.evidenceScore;
+    if (typeof evidenceScore === "number") return evidenceScore;
+
+    const evidenceQuality = evaluation.dimensions?.evidenceQuality;
+    const coverage = evaluation.dimensions?.competencyCoverage;
+    if (
+      typeof evidenceQuality === "number" &&
+      typeof coverage?.total === "number" &&
+      coverage.total > 0
+    ) {
+      return Math.round(
+        (evidenceQuality / 4) *
+          ((coverage.assessed || 0) / coverage.total) *
+          100
+      );
+    }
+  }
+
+  return typeof evaluation.overallScore === "number"
+    ? evaluation.overallScore
+    : null;
+}
+
 function evaluationLabel(session: Session) {
   const evaluation = session.evaluation;
   if (!evaluation) return null;
   if (evaluation.schemaVersion === "competency-evidence-v2") {
-    const dimensions = evaluation.dimensions;
-    const score =
-      typeof dimensions?.evidenceScore === "number"
-        ? dimensions.evidenceScore
-        : typeof dimensions?.evidenceQuality === "number" &&
-            (dimensions.competencyCoverage?.total || 0) > 0
-          ? Math.round(
-              (dimensions.evidenceQuality / 4) *
-                ((dimensions.competencyCoverage?.assessed || 0) /
-                  (dimensions.competencyCoverage?.total || 1)) *
-                100
-            )
-          : null;
+    const score = assessmentScore(session);
     if (typeof score === "number") return `Evidence ${Math.round(score)}/100`;
     return /evaluat|pending/i.test(evaluation.status || "")
       ? "Evaluation pending"
@@ -317,13 +333,13 @@ export default function InterviewsPage() {
   const sortedSessions = [...filteredSessions].sort((a, b) => {
     if (sortOrder === "none") return 0;
 
-    if (
-      typeof a.evaluation?.overallScore !== "number" ||
-      typeof b.evaluation?.overallScore !== "number"
-    )
-      return 0;
-    const scoreA = a.evaluation.overallScore;
-    const scoreB = b.evaluation.overallScore;
+    const scoreA = assessmentScore(a);
+    const scoreB = assessmentScore(b);
+
+    // Keep pending or unavailable assessments at the end of either sort.
+    if (scoreA === null && scoreB === null) return 0;
+    if (scoreA === null) return 1;
+    if (scoreB === null) return -1;
 
     if (sortOrder === "desc") return scoreB - scoreA;
     return scoreA - scoreB;
@@ -477,39 +493,43 @@ export default function InterviewsPage() {
                   <th className="px-6 py-4 font-medium">Link Status</th>
                   <th className="px-6 py-4 font-medium">Created On</th>
                   <th className="px-6 py-4 font-medium">Completed On</th>
-                  <th
-                    className="px-6 py-4 font-medium cursor-pointer hover:text-[var(--foreground)] transition-colors group flex items-center gap-2"
-                    onClick={toggleSort}
-                  >
-                    Assessment
-                    <span className="flex flex-col opacity-50 group-hover:opacity-100">
-                      <svg
-                        className={`w-3 h-3 -mb-1 ${sortOrder === "desc" ? "text-primary-400" : ""}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                      <svg
-                        className={`w-3 h-3 ${sortOrder === "asc" ? "text-primary-400" : ""}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </span>
+                  <th className="px-6 py-4 font-medium">
+                    <button
+                      type="button"
+                      onClick={toggleSort}
+                      className="group flex items-center gap-2 text-left hover:text-[var(--foreground)] transition-colors"
+                      aria-label="Sort interviews by assessment"
+                    >
+                      Assessment
+                      <span className="flex flex-col opacity-50 group-hover:opacity-100">
+                        <svg
+                          className={`w-3 h-3 -mb-1 ${sortOrder === "desc" ? "text-primary-400" : ""}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 15l7-7 7 7"
+                          />
+                        </svg>
+                        <svg
+                          className={`w-3 h-3 ${sortOrder === "asc" ? "text-primary-400" : ""}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </span>
+                    </button>
                   </th>
                   <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
