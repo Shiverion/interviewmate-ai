@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   collection,
@@ -24,6 +24,8 @@ type CandidateRecord = DocumentData & { id: string };
 type StatusFilter = "all" | "active" | "completed";
 
 function millis(value: unknown) {
+  if (typeof value === "number") return value;
+  if (value instanceof Date) return value.getTime();
   return value && typeof (value as { toMillis?: unknown }).toMillis === "function"
     ? (value as { toMillis: () => number }).toMillis()
     : 0;
@@ -41,6 +43,24 @@ function displayStatus(record: CandidateRecord) {
   if (record.status === "not_invited") return "Not invited";
   if (record.status === "screened") return "Screened";
   return "Active";
+}
+
+function atsSnapshot(record: CandidateRecord) {
+  const value = record.ats_score ?? record.atsScore;
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function completedAt(record: CandidateRecord) {
+  if (["completed", "evaluated"].includes(record.status))
+    return (
+      record.completed_at ??
+      record.completedAt ??
+      record.updated_at ??
+      record.created_at
+    );
+  return record.completed_at ?? record.completedAt;
 }
 
 function scoreColor(score: number) {
@@ -96,7 +116,11 @@ export default function CandidatesPage() {
             session_id: pipeline.session_id || session?.id,
             candidate_name: session?.candidate_name || pipeline.candidate_name,
             candidate_email: session?.candidate_email || pipeline.candidate_email,
-            ats_score: session?.ats_score || pipeline.ats_score,
+            ats_score:
+              session?.ats_score ||
+              session?.atsScore ||
+              pipeline.ats_score ||
+              pipeline.atsScore,
           };
         });
       } catch {
@@ -111,8 +135,10 @@ export default function CandidatesPage() {
         ...pipelineRecords,
         ...sessions.filter((session) => !linkedSessionIds.has(session.id)),
       ].sort((a, b) => {
-          const scoreA = typeof a.ats_score?.overall_match === "number" ? a.ats_score.overall_match : -1;
-          const scoreB = typeof b.ats_score?.overall_match === "number" ? b.ats_score.overall_match : -1;
+          const atsA = atsSnapshot(a);
+          const atsB = atsSnapshot(b);
+          const scoreA = typeof atsA?.overall_match === "number" ? atsA.overall_match : -1;
+          const scoreB = typeof atsB?.overall_match === "number" ? atsB.overall_match : -1;
           if (scoreA !== scoreB) return scoreB - scoreA;
           return millis(b.created_at) - millis(a.created_at);
         });
@@ -226,31 +252,75 @@ export default function CandidatesPage() {
           <div className="px-6 py-20 text-center text-sm text-[var(--muted)]">No candidate records match this view. Upload resumes from the pipeline to create the first invitation.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[980px] table-fixed text-left text-sm">
               <thead className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-xs uppercase tracking-wider text-[var(--muted)]">
-                <tr><th className="px-5 py-3">Rank</th><th className="px-5 py-3">Candidate</th><th className="px-5 py-3">Email</th><th className="px-5 py-3">ATS</th><th className="px-5 py-3">Status</th><th className="px-5 py-3 text-right">Details</th></tr>
+                <tr>
+                  <th className="w-[5rem] px-5 py-3">Rank</th>
+                  <th className="w-[20%] px-5 py-3">Candidate</th>
+                  <th className="w-[27%] px-5 py-3">Email</th>
+                  <th className="w-[8rem] px-5 py-3">ATS</th>
+                  <th className="w-[10rem] px-5 py-3">Status</th>
+                  <th className="w-[11rem] px-5 py-3">Completed</th>
+                  <th className="w-[7rem] px-5 py-3 text-right">Details</th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
                 {filtered.map((record) => {
                   const expanded = expandedId === record.id;
                   const rank = records.findIndex((item) => item.id === record.id) + 1;
-                  const score = typeof record.ats_score?.overall_match === "number" ? record.ats_score.overall_match : null;
+                  const ats = atsSnapshot(record);
+                  const score = typeof ats?.overall_match === "number" ? ats.overall_match : null;
                   const status = displayStatus(record);
-                  const matched = tags(record.ats_score?.matched_keywords);
-                  const missing = tags(record.ats_score?.missing_keywords);
+                  const completed = completedAt(record);
+                  const matched = tags(ats?.matched_keywords);
+                  const missing = tags(ats?.missing_keywords);
                   return (
-                    <tr key={record.id} className="align-top">
-                      <td colSpan={6} className="p-0">
-                        <button type="button" aria-expanded={expanded} onClick={() => setExpandedId(expanded ? null : record.id)} className="grid w-full grid-cols-[4rem_minmax(14rem,1.2fr)_minmax(14rem,1fr)_6rem_8rem_5rem] items-center text-left hover:bg-[var(--surface-elevated)]/60">
-                          <span className="px-5 py-4 font-mono text-[var(--muted)]">{score === null ? "—" : `#${rank}`}</span>
-                          <span className="px-5 py-4"><strong className="block truncate">{record.candidate_name || "Unnamed candidate"}</strong><span className="mt-1 block truncate text-xs text-[var(--muted)]">{record.role_snapshot?.job_title || record.job_title || "Role not recorded"}</span></span>
-                          <span className="truncate px-5 py-4 text-[var(--muted)]">{record.candidate_email || "Email not recorded"}</span>
-                          <span className={`px-5 py-4 text-lg font-bold ${score === null ? "text-[var(--muted)]" : scoreColor(score)}`}>{score === null ? "—" : `${score}%`}</span>
-                          <span className={`px-5 py-4 text-xs ${status === "Active" ? "text-primary-400" : status === "Completed" ? "text-emerald-400" : "text-[var(--muted)]"}`}>{status}</span>
-                          <span className="px-5 py-4 text-right text-xs font-semibold text-primary-400">{expanded ? "Close" : "Expand"}</span>
-                        </button>
-                        {expanded && (
-                          <div className="border-t border-[var(--border)] bg-[var(--surface-elevated)]/40 px-5 py-5 sm:px-8">
+                    <Fragment key={record.id}>
+                      <tr
+                        className="align-top transition-colors hover:bg-[var(--surface-elevated)]/60"
+                      >
+                        <td className="px-5 py-4 font-mono text-[var(--muted)]">
+                          {score === null ? "—" : `#${rank}`}
+                        </td>
+                        <td className="px-5 py-4">
+                          <strong className="block truncate">
+                            {record.candidate_name || "Unnamed candidate"}
+                          </strong>
+                          <span className="mt-1 block truncate text-xs text-[var(--muted)]">
+                            {record.role_snapshot?.job_title ||
+                              record.job_title ||
+                              "Role not recorded"}
+                          </span>
+                        </td>
+                        <td className="truncate px-5 py-4 text-[var(--muted)]">
+                          {record.candidate_email || "Email not recorded"}
+                        </td>
+                        <td className={`px-5 py-4 text-lg font-bold ${score === null ? "text-[var(--muted)]" : scoreColor(score)}`}>
+                          {score === null ? "Not scored" : `${score}%`}
+                        </td>
+                        <td className={`px-5 py-4 text-xs ${status === "Active" ? "text-primary-400" : status === "Completed" ? "text-emerald-400" : "text-[var(--muted)]"}`}>
+                          {status}
+                        </td>
+                        <td className="px-5 py-4 text-xs text-[var(--muted)]">
+                          {formatDate(completed)}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <button
+                            type="button"
+                            aria-expanded={expanded}
+                            onClick={() =>
+                              setExpandedId(expanded ? null : record.id)
+                            }
+                            className="text-xs font-semibold text-primary-400 hover:text-primary-300"
+                          >
+                            {expanded ? "Close" : "Expand"}
+                          </button>
+                        </td>
+                      </tr>
+                      {expanded && (
+                        <tr>
+                          <td colSpan={7} className="p-0">
+                            <div className="border-t border-[var(--border)] bg-[var(--surface-elevated)]/40 px-5 py-5 sm:px-8">
                             <div className="grid gap-6 lg:grid-cols-3">
                               <div className="space-y-3">
                                 <h3 className="text-sm font-semibold">Candidate and invitation</h3>
@@ -264,18 +334,19 @@ export default function CandidatesPage() {
                               </div>
                               <div className="space-y-3">
                                 <h3 className="text-sm font-semibold">ATS and evaluation</h3>
-                                {record.ats_score ? <><p className="text-xs leading-relaxed text-[var(--muted)]">{record.ats_score.summary || "No ATS summary recorded."}</p><div><p className="mb-1 text-xs text-[var(--muted)]">Matched keywords</p><div className="flex flex-wrap gap-1">{matched.length ? matched.slice(0, 16).map((tag) => <span key={tag} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">{tag}</span>) : <span className="text-xs text-[var(--muted)]">—</span>}</div></div><div><p className="mb-1 text-xs text-[var(--muted)]">Missing keywords</p><div className="flex flex-wrap gap-1">{missing.length ? missing.slice(0, 10).map((tag) => <span key={tag} className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[11px] text-red-300">{tag}</span>) : <span className="text-xs text-[var(--muted)]">—</span>}</div></div></> : <p className="text-xs text-[var(--muted)]">No ATS snapshot was saved for this older interview.</p>}
+                                {ats ? <><p className="text-xs leading-relaxed text-[var(--muted)]">{typeof ats.summary === "string" ? ats.summary : "No ATS summary recorded."}</p><div><p className="mb-1 text-xs text-[var(--muted)]">Matched keywords</p><div className="flex flex-wrap gap-1">{matched.length ? matched.slice(0, 16).map((tag) => <span key={tag} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-300">{tag}</span>) : <span className="text-xs text-[var(--muted)]">—</span>}</div></div><div><p className="mb-1 text-xs text-[var(--muted)]">Missing keywords</p><div className="flex flex-wrap gap-1">{missing.length ? missing.slice(0, 10).map((tag) => <span key={tag} className="rounded-full border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[11px] text-red-300">{tag}</span>) : <span className="text-xs text-[var(--muted)]">—</span>}</div></div></> : <p className="text-xs text-[var(--muted)]">No ATS snapshot was saved for this older interview.</p>}
                                 <p className="text-xs text-[var(--muted)]">Evaluation: <strong className="text-[var(--foreground)]">{typeof record.evaluation?.overallScore === "number" ? `${Math.round(record.evaluation.overallScore)}%` : record.evaluation?.status || "Not evaluated"}</strong></p>
                               </div>
                             </div>
                             <div className="mt-6 border-t border-[var(--border)] pt-4">
                               <details><summary className="cursor-pointer text-xs font-semibold text-[var(--muted)]">Show parsed CV details</summary><div className="mt-3 grid gap-4 md:grid-cols-2"><div className="text-xs text-[var(--muted)]">Status: {record.cv_parsing?.status || "—"} · Pages: {record.cv_parsing?.pageCount || "—"} · Characters: {record.cv_parsing?.characterCount || "—"}</div><pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-lg border border-[var(--border)] bg-[var(--background)] p-3 text-xs leading-relaxed">{record.cv_parsing?.text || "No parsed CV text stored."}</pre></div></details>
-                              <div className="mt-4 flex flex-wrap gap-3">{record.session_id && <Link className="text-xs font-medium text-primary-400" href={`/pipeline/${record.session_id}`}>Open full report</Link>}{status === "Active" && record.session_id && <button type="button" className="text-xs text-amber-400" onClick={() => void revoke(record)}>Revoke invitation</button>}<button type="button" className="text-xs text-red-400" onClick={() => void remove(record)}>Delete record</button></div>
+                              <div className="mt-4 flex flex-wrap gap-3">{record.session_id && <Link className="text-xs font-medium text-primary-400" href={`/interviews/${record.session_id}`}>Open interview record</Link>}{status === "Active" && record.session_id && <button type="button" className="text-xs text-amber-400" onClick={() => void revoke(record)}>Revoke invitation</button>}<button type="button" className="text-xs text-red-400" onClick={() => void remove(record)}>Delete record</button></div>
                             </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>

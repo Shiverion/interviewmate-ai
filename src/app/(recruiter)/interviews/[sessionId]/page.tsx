@@ -129,7 +129,7 @@ export default function CandidateReportPage() {
   if (evaluation?.schemaVersion === "competency-evidence-v2")
     return (
       <div className="max-w-5xl mx-auto space-y-6 pb-12">
-        <Link href="/pipeline">← Pipeline</Link>
+        <Link href="/interviews">← Interview records</Link>
         <h1 className="text-3xl">{candidate_name} · Interview evidence</h1>
         <EvidenceAssessment assessment={evaluation} />
         <HumanReviewPanel
@@ -234,7 +234,7 @@ export default function CandidateReportPage() {
     <div className="max-w-5xl mx-auto pb-12 animate-fade-in relative">
       {/* Back Button */}
       <Link
-        href="/dashboard"
+          href="/interviews"
         className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors mb-6"
       >
         <svg
@@ -250,7 +250,7 @@ export default function CandidateReportPage() {
             d="M10 19l-7-7m0 0l7-7m-7 7h18"
           />
         </svg>
-        Back to Dashboard
+        Back to Interview records
       </Link>
 
       {/* Header Identity Card */}

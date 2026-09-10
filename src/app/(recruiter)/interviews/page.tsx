@@ -29,6 +29,8 @@ type Session = {
   candidate_email?: string;
   status?: string;
   created_at?: { toMillis: () => number };
+  completed_at?: { toMillis: () => number };
+  updated_at?: { toMillis: () => number };
   expires_at?: { toMillis: () => number };
   synthetic?: boolean;
   resume_storage_path?: string;
@@ -36,10 +38,59 @@ type Session = {
   evaluation?: {
     schemaVersion?: string;
     status?: string;
-    overallScore: number | null;
+    overallScore?: number | null;
     is_passing?: boolean;
+    dimensions?: {
+      evidenceScore?: number | null;
+      evidenceQuality?: number | null;
+      competencyCoverage?: { assessed?: number; total?: number };
+    };
   };
 };
+
+function millis(value: unknown) {
+  if (typeof value === "number") return value;
+  if (value instanceof Date) return value.getTime();
+  return value && typeof (value as { toMillis?: unknown }).toMillis === "function"
+    ? (value as { toMillis: () => number }).toMillis()
+    : 0;
+}
+
+function completedMillis(session: Session) {
+  return (
+    millis(session.completed_at) ||
+    millis(session.updated_at) ||
+    (session.status === "completed" || session.status === "evaluated"
+      ? millis(session.created_at)
+      : 0)
+  );
+}
+
+function evaluationLabel(session: Session) {
+  const evaluation = session.evaluation;
+  if (!evaluation) return null;
+  if (evaluation.schemaVersion === "competency-evidence-v2") {
+    const dimensions = evaluation.dimensions;
+    const score =
+      typeof dimensions?.evidenceScore === "number"
+        ? dimensions.evidenceScore
+        : typeof dimensions?.evidenceQuality === "number" &&
+            (dimensions.competencyCoverage?.total || 0) > 0
+          ? Math.round(
+              (dimensions.evidenceQuality / 4) *
+                ((dimensions.competencyCoverage?.assessed || 0) /
+                  (dimensions.competencyCoverage?.total || 1)) *
+                100
+            )
+          : null;
+    return typeof score === "number"
+      ? `Evidence ${Math.round(score)}/100`
+      : evaluation.status || "Evidence ready";
+  }
+  return typeof evaluation.overallScore === "number"
+    ? `${Math.round(evaluation.overallScore)}%`
+    : evaluation.status || "Evaluation ready";
+}
 
 export default function InterviewsPage() {
   const { user } = useAuthContext();
@@ -264,14 +315,18 @@ export default function InterviewsPage() {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-heading tracking-tight">
-            Pipeline Management
+            Interview records
           </h1>
           <p className="mt-2 text-[var(--muted)]">
-            Manage all scheduled candidate links and review AI evaluations.
+            Open the full transcript, evaluation and invitation details for each candidate.
           </p>
         </div>
 
-        <div className="flex bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-1 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Link href="/candidates" className="wm-button secondary">
+            Candidates
+          </Link>
+          <div className="flex bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-1">
           <button
             onClick={() => setStatusFilter("all")}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === "all" ? "bg-[var(--background)] shadow-sm text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"}`}
@@ -290,6 +345,7 @@ export default function InterviewsPage() {
           >
             Completed
           </button>
+          </div>
         </div>
       </div>
 
@@ -395,11 +451,12 @@ export default function InterviewsPage() {
                   <th className="px-6 py-4 font-medium">Candidate ID</th>
                   <th className="px-6 py-4 font-medium">Link Status</th>
                   <th className="px-6 py-4 font-medium">Created On</th>
+                  <th className="px-6 py-4 font-medium">Completed On</th>
                   <th
                     className="px-6 py-4 font-medium cursor-pointer hover:text-[var(--foreground)] transition-colors group flex items-center gap-2"
                     onClick={toggleSort}
                   >
-                    Assessment · legacy score sorting
+                    Assessment
                     <span className="flex flex-col opacity-50 group-hover:opacity-100">
                       <svg
                         className={`w-3 h-3 -mb-1 ${sortOrder === "desc" ? "text-primary-400" : ""}`}
@@ -436,7 +493,7 @@ export default function InterviewsPage() {
                 {sortedSessions.map((session) => {
                   const isExpired =
                     !!session.expires_at &&
-                    session.expires_at.toMillis() < Date.now();
+                    millis(session.expires_at) < Date.now();
                   const displayStatus =
                     session.status === "revoked"
                       ? "Revoked"
@@ -458,6 +515,7 @@ export default function InterviewsPage() {
                     typeof window !== "undefined"
                       ? `${window.location.origin}/apply/${session.id}`
                       : "";
+                  const assessment = evaluationLabel(session);
 
                   return (
                     <tr
@@ -492,19 +550,61 @@ export default function InterviewsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-[var(--muted)]">
-                        {session.created_at
-                          ? new Date(
-                              session.created_at.toMillis()
-                            ).toLocaleDateString()
+                        {millis(session.created_at)
+                          ? new Date(millis(session.created_at)).toLocaleString()
                           : "Just now"}
                       </td>
+                      <td className="px-6 py-4 text-[var(--muted)]">
+                        {session.status === "completed" || session.status === "evaluated"
+                          ? completedMillis(session)
+                            ? new Date(completedMillis(session)).toLocaleString()
+                            : "—"
+                          : "—"}
+                      </td>
                       <td className="px-6 py-4">
-                        {session.status === "evaluated" &&
-                        session.evaluation?.schemaVersion ===
-                          "competency-evidence-v2" ? (
-                          <span className="text-xs">
-                            {session.evaluation.status}
+                        {assessment ? (
+                          <span className="text-xs font-medium text-accent-400">
+                            {assessment}
                           </span>
+                        ) : session.status === "completed" || session.status === "evaluated" ? (
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-[var(--muted)]">
+                              Evaluation pending
+                            </span>
+                            <button
+                              onClick={() => {
+                                setConfirmConfig({
+                                  isOpen: true,
+                                  title: "Run evaluation?",
+                                  message:
+                                    "This will evaluate the saved transcript and attach the result to this interview record.",
+                                  onConfirm: () => {
+                                    void handleEvaluate(session.id);
+                                    setConfirmConfig((prev) => ({
+                                      ...prev,
+                                      isOpen: false,
+                                    }));
+                                  },
+                                });
+                              }}
+                              className="p-1 hover:bg-accent-500/10 rounded text-accent-500 transition-colors"
+                              title="Run evaluation"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         ) : typeof session.evaluation?.overallScore ===
                           "number" ? (
                           <div className="flex items-center gap-2 font-bold text-[var(--foreground)]">
@@ -603,14 +703,12 @@ export default function InterviewsPage() {
                           </>
                         )}
 
-                        {displayStatus === "Evaluated" && (
-                          <Link
-                            href={`/pipeline/${session.id}`}
-                            className="text-accent-400 hover:text-accent-300 transition-colors text-xs font-medium"
-                          >
-                            View Report &rarr;
-                          </Link>
-                        )}
+                        <Link
+                          href={`/interviews/${session.id}`}
+                          className="text-accent-400 hover:text-accent-300 transition-colors text-xs font-medium"
+                        >
+                          {displayStatus === "Active" ? "Open record" : "View record"} &rarr;
+                        </Link>
                         <span className="text-[var(--border)]">|</span>
                         <button
                           onClick={() => handleDelete(session)}

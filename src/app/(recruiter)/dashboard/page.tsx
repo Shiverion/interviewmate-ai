@@ -256,7 +256,7 @@ export default function DashboardPage() {
       )}
       <div className="wm-section-heading">
         <h2>Recent conversations</h2>
-          <Link className="text-sm flex items-center gap-2" href="/pipeline">
+          <Link className="text-sm flex items-center gap-2" href="/interviews">
           View all interviews <ArrowRightIcon />
         </Link>
       </div>
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                     <td>
                       <Link
                         className="inline-flex items-center gap-2"
-                        href={`/pipeline/${s.id}`}
+                        href={`/interviews/${s.id}`}
                       >
                         Open record <ArrowRightIcon />
                       </Link>
