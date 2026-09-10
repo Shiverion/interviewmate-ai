@@ -35,6 +35,25 @@ const draft: EvidenceDraft = {
 test("new interview configuration leaves additional competency rubric empty", () => {
   expect(defaultConfiguration().competencies).toEqual([]);
 });
+test("blank optional competency entries are ignored when restoring old setup state", () => {
+  const parsed = configurationSchema.parse({
+    competencies: [
+      { id: "old_one", label: "Old option", description: "   " },
+      {
+        id: "system_design",
+        label: "System design",
+        description: "Architecture choices and tradeoffs.",
+      },
+    ],
+  });
+  expect(parsed.competencies).toEqual([
+    {
+      id: "system_design",
+      label: "System design",
+      description: "Architecture choices and tradeoffs.",
+    },
+  ]);
+});
 test("an empty rubric accepts competencies derived from the role context", () => {
   const derived = finalizeEvidence(
     {

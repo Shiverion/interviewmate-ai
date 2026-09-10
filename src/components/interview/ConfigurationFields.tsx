@@ -246,10 +246,25 @@ export default function ConfigurationFields({
         </div>
         <div className="grid sm:grid-cols-2 gap-3 mt-3">
           {value.competencies.map((c, i) => (
-            <label key={c.id} className="wm-field">
-              {c.label}
+            <div key={c.id} className="wm-field">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-medium">{c.label}</span>
+                <button
+                  type="button"
+                  className="wm-button secondary text-xs"
+                  onClick={() =>
+                    change(
+                      "competencies",
+                      value.competencies.filter((_, n) => n !== i)
+                    )
+                  }
+                >
+                  Remove
+                </button>
+              </div>
               <textarea
                 rows={2}
+                aria-label={`${c.label} description`}
                 value={c.description}
                 onChange={(e) =>
                   change(
@@ -260,7 +275,7 @@ export default function ConfigurationFields({
                   )
                 }
               />
-            </label>
+            </div>
           ))}
         </div>
         <p className="text-xs text-[var(--muted)] mt-3">

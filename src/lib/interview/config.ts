@@ -68,6 +68,22 @@ export const ADDITIONAL_COMPETENCY_OPTIONS = [
     description: "Planning, execution, risk management and outcomes.",
   },
 ] as const;
+
+const competencyConfigSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]{0,39}$/),
+  label: z.string().min(1).max(100),
+  description: z.string().min(1).max(500),
+});
+
+function removeBlankCompetencies(value: unknown) {
+  if (!Array.isArray(value)) return value;
+  return value.filter((item) => {
+    if (!item || typeof item !== "object") return true;
+    const description = (item as { description?: unknown }).description;
+    return !(typeof description === "string" && description.trim() === "");
+  });
+}
+
 export const configurationSchema = z
   .object({
     version: z.literal("interview-config-v2").default("interview-config-v2"),
@@ -95,16 +111,10 @@ export const configurationSchema = z
       .max(30)
       .default([]),
     rubricVersion: z.literal(RUBRIC_VERSION).default(RUBRIC_VERSION),
-    competencies: z
-      .array(
-        z.object({
-          id: z.string().regex(/^[a-z][a-z0-9_-]{0,39}$/),
-          label: z.string().min(1).max(100),
-          description: z.string().min(1).max(500),
-        })
-      )
-      .max(8)
-      .default([]),
+    competencies: z.preprocess(
+      removeBlankCompetencies,
+      z.array(competencyConfigSchema).max(8).default([])
+    ),
     githubUsername: z.string().max(39).default(""),
     visualPanel: z
       .enum(["none", "code", "whiteboard", "code_review"])
