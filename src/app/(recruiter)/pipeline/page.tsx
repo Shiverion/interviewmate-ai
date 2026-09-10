@@ -381,26 +381,36 @@ export default function PipelinePage() {
             </button>
           </section>
 
-          {!!rankedCandidates.length && (
-            <section className="wm-panel overflow-hidden p-0">
+          <section className="wm-panel overflow-hidden p-0">
               <div className="flex flex-col gap-4 border-b border-[var(--border)] p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Step 3</p>
                   <h2 className="mt-1 text-xl font-semibold">Review the ATS ranking</h2>
-                  <p className="mt-1 text-sm text-[var(--muted)]">Scores are a screening signal. Keep the recruiter decision in your hands.</p>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    {rankedCandidates.length
+                      ? "Scores are a screening signal. Keep the recruiter decision in your hands."
+                      : candidates.length
+                        ? "Your CVs are ready for ATS analysis. Run the ranking from Step 2 to populate this dashboard."
+                        : "Upload CVs in Step 2, then run ATS analysis to populate this dashboard."}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-[var(--muted)]" htmlFor="top-limit">Preselect</label>
-                  <select id="top-limit" value={topLimit} onChange={(event) => setTopLimit(event.target.value as typeof topLimit)} className="rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-2 text-sm">
-                    <option value="20">Top 20</option>
-                    <option value="10">Top 10</option>
-                    <option value="5">Top 5</option>
-                    <option value="all">All ranked</option>
-                  </select>
-                  <button type="button" className="wm-button secondary" onClick={selectTop}>Apply</button>
-                </div>
+                {rankedCandidates.length ? (
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-[var(--muted)]" htmlFor="top-limit">Preselect</label>
+                    <select id="top-limit" value={topLimit} onChange={(event) => setTopLimit(event.target.value as typeof topLimit)} className="rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-2 text-sm">
+                      <option value="20">Top 20</option>
+                      <option value="10">Top 10</option>
+                      <option value="5">Top 5</option>
+                      <option value="all">All ranked</option>
+                    </select>
+                    <button type="button" className="wm-button secondary" onClick={selectTop}>Apply</button>
+                  </div>
+                ) : (
+                  <span className="rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-1.5 text-xs text-[var(--muted)]">Waiting for CVs</span>
+                )}
               </div>
-              <div className="overflow-x-auto">
+              {rankedCandidates.length ? (
+                <div className="overflow-x-auto">
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-xs uppercase tracking-wider text-[var(--muted)]">
                     <tr><th className="px-5 py-3">Invite</th><th className="px-5 py-3">Rank</th><th className="px-5 py-3">Candidate</th><th className="px-5 py-3">ATS score</th><th className="px-5 py-3">Candidate sign-in email</th><th className="px-5 py-3">Status</th><th className="px-5 py-3 text-right">Link</th></tr>
@@ -431,9 +441,16 @@ export default function PipelinePage() {
                     })}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              ) : (
+                <div className="flex min-h-40 items-center justify-center p-8 text-center">
+                  <div>
+                    <p className="text-sm font-medium">No ranked candidates yet</p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">This dashboard will show candidate names, emails, ATS scores and invite controls after Step 2 analysis.</p>
+                  </div>
+                </div>
+              )}
             </section>
-          )}
           <section className="wm-panel flex flex-col gap-4 border-primary-500/30 bg-primary-500/5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-primary-400">Step 4</p>
