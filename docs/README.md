@@ -2,6 +2,8 @@
 
 Updated: 2026-09-10. This is the authoritative progress tracker. [Product specification](../Product_Sprint.md) · [Product overview](../README.md) · [Current runbook](hr-product-sprint/implementation/current-runbook.md)
 
+**Current priority: freeze features and finish a small live pilot plus submission artifacts.** The [full readiness audit and lean finish plan](../Product_Sprint.md#current-readiness-audit-and-lean-finish-plan--2026-09-10) distinguishes the original company challenge from our 16 added improvements. We have not passed everything: live voice/evaluation, a measured pilot baseline and the final video are still open. Independent recruiter calibration and enterprise infrastructure are future work, not mandatory quest deliverables. A sole-reviewer pilot is acceptable when its limits are explicit.
+
 | Phase | Progress | Remaining evidence |
 |---|---|---|
 | [1 · Discovery](hr-product-sprint/phases/01-discovery-and-ux.md) | Desk research and inherited-product inspection complete; target user and workflow hypothesis defined. | No recruiter interview or measured manual-review baseline. |

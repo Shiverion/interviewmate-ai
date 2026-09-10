@@ -1,5 +1,89 @@
 # 5-Day Remote HR Product Sprint
 
+## Current readiness audit and lean finish plan — 2026-09-10
+
+**Verdict: not all requirements have passed. The software implementation is substantially built; live product evaluation and final submission are incomplete.** This is an internal readiness assessment, not a verdict from the quest evaluator.
+
+The original company challenge and our later 16 improvements are different scopes. The company asks for a useful working prototype, an honest case study/handoff and a five-minute video. It does not require enterprise infrastructure, custom-model training, a large model tournament or a statistically representative hiring study. We should now freeze feature development and finish the evidence and deliverables.
+
+This section is the current priority order. The original challenge and all accepted improvements remain below for traceability. A deferred item is **not** being relabelled as passed. Earlier references to production readiness or independent reviewer calibration are engineering next steps, not additional company submission requirements.
+
+### Evidence checked
+
+- Implementation commit: `5ac77a0` on `codex/hr-product-sprint`.
+- Recorded validation: **138 automated tests / 18 suites; 24 selected browser checks; source lint; type checking; production build passed**. The [dated record](docs/hr-product-sprint/evaluation/results/2026-09-10-evidence-revision.md) records the runs and their limits. This audit read those results and relevant source; it did not rerun unchanged tests.
+- Model responses in automated tests were mocked. The no-answer assessment is deterministic and does not call a provider. These checks do not prove live speech quality, semantic grading accuracy or fairness.
+- The seven-page [PDF](deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](deliverables/case-study-content.json), [video script](deliverables/demo-script.md) and [setup guide](docs/hr-product-sprint/implementation/current-runbook.md) exist.
+- Last recorded provider check: OpenAI HTTP 401; other host evaluation keys were absent. Access must be rechecked after credentials are configured. That is a historical result, not a fresh claim about today's account state.
+- No completed live model-comparison results, timed human baseline, final video or verified public reviewer deployment are recorded. The “0 of 3 attached” text later in this file was copied from the challenge page; it is not a live submission-portal status check.
+
+### Original five-day challenge: did we meet it?
+
+| Phase | What is ready | What prevents a complete pass | Readiness |
+|---|---|---|---|
+| 1 — Discovery and workflow | Target recruiter, first-screen handoff problem, desk research, workflow, reuse decision and concept. | A measured baseline metric is missing. A small builder pilot can supply a clearly labelled baseline; access to a recruiter is helpful, not required to submit. | Mostly ready |
+| 2 — UX and AI design | Workflow/design artifacts, shared configuration, provider selection, prompts, evidence rubric, recovery and review flow. | Update the case study with any adjustments found during the live pilot. | Ready for prototype scope |
+| 3 — Working prototype | Next.js app, voice orchestration, scheduling, evidence reports, reviewer access and tested UI/logic. | Demonstrate a successful real voice → transcript → assessment → saved human review flow. Check the scheduled path if included in the demo. | Implemented; live acceptance pending |
+| 4 — Evaluate and iterate | Synthetic cases, frozen historical data, regression tests, evaluation workspace and result logging. | Actual model outputs, human judgments, observed failures and a manual-versus-assisted baseline comparison. | Incomplete |
+| 5 — Handoff and submission | PDF draft, editable sources, organized documentation and five-minute script. | Insert measured pilot results, record the video and verify the reviewer can access the submitted prototype. | Incomplete |
+
+### All 16 accepted improvements: current status
+
+“Software-verified” means the relevant code/UI checks passed, not that every real-world behavior is proven. “Built; live check” means the feature exists but cannot yet be marked fully passed.
+
+| # | Requirement | Status | Smallest remaining check or honest limitation |
+|---|---|---|---|
+| 1 | Retry, return to setup and exit | Built; live check | Intentionally fail a real voice connection, recover, and confirm completed answers/configuration remain. Browser recovery behavior has passed. |
+| 2 | Baseline and model comparison | Incomplete | Keep the frozen model/prompt/data baseline. Compare a small identical case set against one alternative first. A broad comparison across every provider is deferred, not passed. |
+| 3 | BYOK / Demo / Reviewer access | Built; host check | Verify one funded reviewer session and its limits. Demo limits identify a browser cookie, not a verified person; budget units bound operations, not exact currency spending. Retain basic caps and private keys; defer enterprise infrastructure. |
+| 4 | Provider health and fallback visibility | Built; live check | Observe a real success/error and one controlled fallback. Do not claim fallback works across live providers based only on mocked calls. |
+| 5 | Fillers, buffer, silence and mic failure | Built; live check | Speak fillers, pause/continue, wait for repeat/skip, and mute/disconnect the mic. Event/timing logic is tested; natural conversation is not yet measured. |
+| 6 | Structured / Adaptive interviewing | Built; live check | Demonstrate a relevant follow-up without repeating answered detail and confirm the turn budget. Adaptive relevance currently relies on model instructions; a separate planning agent is unnecessary for this sprint. |
+| 7 | Explicit evidence rubric | Logic verified; model grading pending | Empty input abstains deterministically, quotes are checked, and missing coverage does not lower assessed quality. Human-check real levels and whether the quotes actually support them. |
+| 8 | One shared realtime service | Code verified; live check | Use the shared service successfully in the personal/reviewer room and a scheduled interview. There is no need for another transport rewrite. |
+| 9 | Shared configuration and snapshots | Built; live check | Confirm a scheduled link retains its settings. Hosted Unlimited has a separate funding deadline; the public demo is deliberately limited. This is not literally unlimited hosted usage. |
+| 10 | Prestige-neutral evaluation | Partially verified | Metadata invariance is tested, but identical answers with different employer/school/title labels inside the transcript still need a real model counterfactual check. Do not claim the model is bias-free. |
+| 11 | Two-stage GitHub context | Built; sample check | Try one relevant public profile and one unavailable username. Check useful README context and non-blocking failure; no larger retrieval system is needed. |
+| 12 | CV parsing and preview | Built; sample check | Try a text PDF, scanned PDF and invalid file; verify preview or explicit no-CV continuation. Error-string rejection is tested. Defer OCR. |
+| 13 | Contextual review / synthetic separation | Software-verified | Navigation/access and synthetic reviewer storage are implemented. Verify the deployed reviewer path once; further product expansion is unnecessary. |
+| 14 | Stable judgments and source-linked records | Software-verified | Browser tests cover typing, reload, submission and read-only completion; records contain source/model/rubric provenance. Collect a few actual human judgments next. |
+| 15 | Prototype, PDF and video | Incomplete | PDF is a draft with honest gaps; video is a script only. Finish real test evidence, update the PDF and record the five-minute demo. |
+| 16 | Documentation cleanup | Complete for this revision | Authoritative documents are identified, earlier designs archived, obsolete root reports removed and 504 checked links resolve. Keep final results synchronized. |
+
+### Finish the quest without overengineering
+
+1. **Make the existing primary stack work.** Configure a valid voice credential and one evaluator. Recheck access without exposing keys. Do not add providers or change models just to increase the model count.
+2. **Run a small live acceptance session.** One English structured session, one English adaptive/recovery session and one short Bahasa Indonesia extension can cover the interaction checks above. Reuse the scheduled path for one English session. Record observed behavior and fix reproducible blockers only.
+3. **Run a small synthetic evaluation pilot.** Reuse roughly five existing scenarios: concrete evidence, vague answers, missing evidence, contradictory ownership and an injection attempt. Also record the deterministic empty case, repeat a clear and a sparse case, and add a same-evidence prestige variant. Use the same rubric and keep original outputs, corrections and failures. This is a pilot, not a comprehensive benchmark.
+4. **Human-check and time the work.** The builder may be the sole reviewer for this submission. For two comparable synthetic transcripts, time manually producing a brief and time verifying/correcting an AI draft; record the order, minutes, errors and learning effects. Label this a single-reviewer convenience pilot, not a recruiter productivity study. A second reviewer is a future improvement, not a blocker.
+5. **Keep the optional model comparison small.** To address our added comparison requirement, run the same small case set through one alternative with prompt/rubric/data fixed. Record actual model, results, failure rate and elapsed time; use observed provider usage for cost if available. If access is unavailable, retain the primary and explicitly mark the comparison deferred. The original quest does not require all providers to be benchmarked.
+6. **Finish the three artifacts.** Add actual pilot results and limitations to the PDF; record the five-minute video; provide a working reviewer-accessible prototype link or accepted runnable package. If offering hosted voice, verify its actual host and usage caps. Attach the artifacts and check access from a fresh browser.
+
+The next action is **provider setup followed by the English live acceptance check**, not Phase 6 or another feature build. The [runbook](docs/hr-product-sprint/implementation/current-runbook.md) contains the detailed steps; use the smaller sequence above to prioritize them.
+
+### Defer until after submission
+
+- Additional LLM/transcription integrations or an exhaustive multi-provider, multi-language test matrix. The current three evaluation adapters can stay; the live voice path currently uses one transcription default, Whisper. Three validated transcription alternatives are not established.
+- Local model hosting, custom model training, automatic candidate-data collection and continuous learning.
+- Eye tracking, extra proctoring signals, OCR and more advanced GitHub retrieval.
+- A separate adaptive-planning agent, new analytics dashboards, another frontend redesign and new report formats.
+- Enterprise databases, distributed queues, extensive production compliance work and statistically powered fairness studies.
+
+**Keep the existing essentials:** server-only host keys, reviewer admission, basic rate/usage caps, honest synthetic labels, safe recovery, human review and evidence-based abstention. If reviewers are given a publicly hosted voice demo, the current hosting/cleanup requirements still apply; “prototype” does not make exposed keys or unbounded spending acceptable.
+
+### Submission definition of done
+
+- [ ] A fresh reviewer can access and finish the demonstrated workflow without supplying a personal API key.
+- [ ] At least one recorded English live interview produces a usable transcript, evidence assessment and saved human review; the claimed adaptive/recovery behavior is shown working.
+- [ ] A small synthetic pilot has actual outputs, human checks, failure notes and a clearly labelled baseline comparison. Indonesian results are reported separately if included.
+- [ ] The PDF contains those actual results and honest limitations rather than only planned tests.
+- [ ] The approximately five-minute video is recorded and playable.
+- [ ] All three deliverables are attached/shared and their access is verified.
+
+No overall completion percentage is assigned: more feature code does not compensate for missing evaluation evidence or a missing required video.
+
+## Original company challenge
+
 Over 5 days of remote work, identify a real recruiting problem, design a near-future AI-native HR solution, build a functional prototype, evaluate its logic with mock data, and submit a portfolio-ready case study designed for engineering handoff.
 
 ## Objective
