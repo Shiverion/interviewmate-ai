@@ -26,7 +26,7 @@ export default function LoginPage() {
       "returnUrl"
     );
     return requested &&
-      /^\/(apply\/|dashboard$|pipeline(?:\/|$)|interviews(?:\/|$)|settings$|invitations(?:\/|$)?$|reviewer(?:\?|$)|my-results(?:\?|$)?$)/.test(
+      /^\/(apply\/|dashboard$|pipeline(?:\/|$)|candidates(?:\/|$)|interviews(?:\/|$)|settings$|invitations(?:\/|$)?$|reviewer(?:\?|$)|my-results(?:\?|$)?$)/.test(
         requested
       ) &&
       !requested.includes("\\")

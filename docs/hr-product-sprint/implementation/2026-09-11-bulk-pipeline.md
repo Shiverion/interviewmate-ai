@@ -6,6 +6,8 @@ Updated: 2026-09-11. This note documents the first implementation of the recruit
 
 Recruiters can now open `/pipeline`, paste one role brief, upload multiple CV PDFs, rank the CVs with the existing `/api/ats-score` logic used by `/ats-check`, select candidates, and create interview invitation links in one flow. The primary navigation points to `/pipeline`; `/interviews` remains available for existing interview records.
 
+The **Candidates** navigation item opens `/candidates`, a compact dashboard of persisted candidate sessions. Rows show rank, candidate, email, ATS score and status; expanding a row reveals the invitation, role setup, ATS evidence, evaluation state and parsed-CV details without turning the default view into a wide data grid.
+
 ## Recruiter flow
 
 1. Enter a role title and job description (at least 50 characters is recommended for useful keyword coverage).
@@ -24,6 +26,7 @@ PDFs are sent to the existing parser for text extraction. The original PDF is up
 | Area | File | Responsibility |
 |---|---|---|
 | Bulk UI | `src/app/(recruiter)/pipeline/page.tsx` | Upload, parse, score, sort, select and create links |
+| Candidate dashboard | `src/app/(recruiter)/candidates/page.tsx` | Minimal ranking table with expandable candidate details |
 | Detail route | `src/app/(recruiter)/pipeline/[sessionId]/page.tsx` | Canonical pipeline report URL; reuses the existing report page |
 | ATS scoring | `src/app/api/ats-score/route.ts` | Deterministic keyword, skill and experience scoring |
 | PDF parsing | `src/app/api/parse-resume/route.ts` | Bounded PDF text extraction and warnings |

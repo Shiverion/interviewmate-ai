@@ -25,6 +25,7 @@ export default function Header() {
       ? [
           ["Workspace", "/dashboard"],
           ["Pipeline", "/pipeline"],
+          ["Candidates", "/candidates"],
           ["Invitations", "/invitations"],
           ["Resume check", "/ats-check"],
           ["Models & access", "/settings"],
