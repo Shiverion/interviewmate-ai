@@ -31,15 +31,12 @@ export default function Header() {
           ["Resume check", "/ats-check"],
           ["Models & access", "/settings"],
         ]
-      : [
-          ["My results", "/my-results"],
-          ["Resume check", "/ats-check"],
-        ];
+      : [];
   return (
     <header className="wm-header">
       <div className="wm-header-inner">
         <Link
-          href={!user ? "/" : admin ? "/dashboard" : "/my-results"}
+          href={user ? "/dashboard" : "/"}
           className="wm-brand"
         >
           <span className="wm-mark">

@@ -17,7 +17,6 @@ import {
   deleteInterviewSession,
 } from "@/lib/firebase/interviews";
 import Link from "next/link";
-import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
 import { useToast } from "@/components/providers/ToastProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { evaluationHeaders } from "@/lib/keys/store";
@@ -129,8 +128,6 @@ export default function InterviewsPage() {
   const { showToast } = useToast();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
 
   // Confirmation State
   const [confirmConfig, setConfirmConfig] = useState<{
@@ -198,13 +195,6 @@ export default function InterviewsPage() {
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
-
-  const handleSuccess = (sessionId: string) => {
-    setIsModalOpen(false);
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    setGeneratedLink(`${origin}/apply/${sessionId}`);
-    fetchSessions(); // Refresh list automatically
-  };
 
   const handleRevoke = async (sessionId: string) => {
     setConfirmConfig({
@@ -415,51 +405,7 @@ export default function InterviewsPage() {
           />
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-6 py-2.5 rounded-xl gradient-primary text-white font-medium shadow-lg shadow-primary-500/20 hover:-translate-y-0.5 transition-all"
-        >
-          Schedule Interview
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </button>
       </div>
-
-      {/* Success Banner */}
-      {generatedLink && (
-        <div className="mb-8 p-4 bg-primary-500/10 border border-primary-500/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-slide-up">
-          <div>
-            <h3 className="font-semibold text-primary-400">
-              Interview Scheduled Successfully!
-            </h3>
-            <p className="text-sm text-[var(--muted)] mt-1">
-              Share this unique, expiring link with your candidate.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] rounded-lg p-1.5 w-full sm:w-auto overflow-hidden">
-            <span className="text-sm px-2 truncate max-w-[200px] sm:max-w-xs">
-              {generatedLink}
-            </span>
-            <button
-              onClick={() => copyToClipboard(generatedLink)}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors shrink-0"
-            >
-              Copy Link
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="glass-card overflow-hidden">
         {loading ? (
@@ -781,11 +727,6 @@ export default function InterviewsPage() {
         )}
       </div>
 
-      <CreateInterviewModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handleSuccess}
-      />
       {/* Confirmation Dialog */}
       <ConfirmDialog
         isOpen={confirmConfig.isOpen}

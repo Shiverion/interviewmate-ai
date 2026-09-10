@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRightIcon,
-  PlusIcon,
   SpeakerLoudIcon,
   FileTextIcon,
 } from "@radix-ui/react-icons";
@@ -12,7 +11,6 @@ import { useKeys } from "@/components/providers/KeyProvider";
 import { interviewScope, isWorkspaceAdmin } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
 import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
-import CreateInterviewModal from "@/components/dashboard/CreateInterviewModal";
 import DemoRoomModal from "@/components/dashboard/DemoRoomModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -34,6 +32,7 @@ export default function DashboardPage() {
   const { user } = useAuthContext();
   const { keys } = useKeys();
   const { showToast } = useToast();
+  const admin = isWorkspaceAdmin(user);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [reviewerResults, setReviewerResults] = useState<ReviewerResult[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -43,10 +42,7 @@ export default function DashboardPage() {
   }>({ isOpen: false, id: "", label: "" });
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
-  const [schedule, setSchedule] = useState(false);
   const [demo, setDemo] = useState(false);
-  const [link, setLink] = useState("");
-  const [copied, setCopied] = useState(false);
   const [inviteLabel, setInviteLabel] = useState("Sprint reviewer");
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteError, setInviteError] = useState("");
@@ -57,7 +53,9 @@ export default function DashboardPage() {
   useEffect(() => {
     let active = true;
     async function load() {
-      if (!user || !isFirebaseReady()) {
+      if (!user || !admin || !isFirebaseReady()) {
+        setSessions([]);
+        setReviewerResults([]);
         setBusy(false);
         return;
       }
@@ -87,35 +85,31 @@ export default function DashboardPage() {
         .finally(() => {
           if (active) setBusy(false);
         });
-      if (isWorkspaceAdmin(user)) {
-        void setDoc(
-          doc(db, "app_config", "admin"),
-          { uid: user.uid },
-          { merge: true }
-        ).catch(() => undefined);
-        user
-          .getIdToken()
-          .then((token) =>
-            fetch("/api/reviewer/sessions?admin=1", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-          )
-          .then((response) => (response.ok ? response.json() : { results: [] }))
-          .then((data) => {
-            if (active) setReviewerResults(data.results || []);
+      void setDoc(
+        doc(db, "app_config", "admin"),
+        { uid: user.uid },
+        { merge: true }
+      ).catch(() => undefined);
+      user
+        .getIdToken()
+        .then((token) =>
+          fetch("/api/reviewer/sessions?admin=1", {
+            headers: { Authorization: `Bearer ${token}` },
           })
-          .catch(() => {
-            if (active) setReviewerResults([]);
-          });
-      } else {
-        setReviewerResults([]);
-      }
+        )
+        .then((response) => (response.ok ? response.json() : { results: [] }))
+        .then((data) => {
+          if (active) setReviewerResults(data.results || []);
+        })
+        .catch(() => {
+          if (active) setReviewerResults([]);
+        });
     }
     void load();
     return () => {
       active = false;
     };
-  }, [user, link]);
+  }, [admin, user]);
   const count = (states: string[]) =>
     sessions.filter((s) => states.includes(s.status || "")).length;
   async function deleteReviewerResult(id: string) {
@@ -165,24 +159,65 @@ export default function DashboardPage() {
       setInviteBusy(false);
     }
   }
+
+  if (!admin) {
+    return (
+      <div className="wm-page max-w-4xl">
+        <p className="wm-eyebrow">Personal demo access</p>
+        <h1 className="wm-heading">Try the interview experience.</h1>
+        <p className="wm-subtitle max-w-2xl">
+          Choose a hosted voice demo or bring your own model key. You can set
+          the role, add an optional CV, complete the interview and review the
+          evaluation. Personal demo data stays in this browser and is never
+          added to the recruiter workspace.
+        </p>
+        <section className="wm-demo-banner mt-8">
+          <div>
+            <span className="wm-tag">
+              <span className="wm-dot" />
+              Browser-only session
+            </span>
+            <h2>Choose how to start.</h2>
+            <p className="wm-subtitle">
+              No candidate records, CV files or transcripts are written to
+              Firestore from this personal path.
+            </p>
+          </div>
+          <div className="space-y-3 min-w-64">
+            <Link className="wm-button w-full" href="/demo">
+              <SpeakerLoudIcon />
+              Try free voice demo
+            </Link>
+            <button
+              type="button"
+              className="wm-button secondary w-full"
+              onClick={() => setDemo(true)}
+            >
+              Demo with my own key <ArrowRightIcon />
+            </button>
+          </div>
+        </section>
+        <p className="wm-note mt-6">
+          Your own key is saved only in this browser. Clear browser storage to
+          remove it.
+        </p>
+        <DemoRoomModal isOpen={demo} onClose={() => setDemo(false)} />
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="wm-section-heading pt-0">
         <div>
           <p className="wm-eyebrow">
-            {isWorkspaceAdmin(user)
-              ? "Admin workspace · All recruiters"
-              : "Your hiring workspace"}
+            Admin workspace · All recruiters
           </p>
           <h1 className="wm-heading">Make the next conversation count.</h1>
           <p className="wm-subtitle">
             Prepare an interview, explore the demo, or return to the evidence.
           </p>
         </div>
-        <button className="wm-button" onClick={() => setSchedule(true)}>
-          <PlusIcon />
-          Schedule Interview
-        </button>
       </div>
       <section className="wm-demo-banner mt-7">
         <div>
@@ -229,31 +264,6 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
-      {link && (
-        <div className="wm-note mt-6">
-          <p className="font-medium">Your candidate link is ready</p>
-          <div className="flex flex-wrap gap-3 mt-2 items-center">
-            <a className="break-all" href={link}>
-              {link}
-            </a>
-            <button
-              className="wm-button secondary"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(link);
-                  setCopied(true);
-                } catch {
-                  setError(
-                    "Copy isn't available here. Select and copy the link above."
-                  );
-                }
-              }}
-            >
-              {copied ? "Copied" : "Copy link"}
-            </button>
-          </div>
-        </div>
-      )}
       <div className="wm-section-heading">
         <h2>Recent conversations</h2>
           <Link className="text-sm flex items-center gap-2" href="/interviews">
@@ -279,12 +289,6 @@ export default function DashboardPage() {
                 Scheduled interviews and their review status will appear in this
                 space.
               </p>
-              <button
-                className="wm-button secondary"
-                onClick={() => setSchedule(true)}
-              >
-                Schedule an interview
-              </button>
             </div>
           ) : (
             <table className="wm-table">
@@ -457,15 +461,6 @@ export default function DashboardPage() {
           </div>
         </section>
       )}
-      <CreateInterviewModal
-        isOpen={schedule}
-        onClose={() => setSchedule(false)}
-        onSuccess={(id) => {
-          setSchedule(false);
-          setCopied(false);
-          setLink(`${window.location.origin}/apply/${id}`);
-        }}
-      />
       <DemoRoomModal isOpen={demo} onClose={() => setDemo(false)} />
       <ConfirmDialog
         isOpen={deleteConfirm.isOpen}
