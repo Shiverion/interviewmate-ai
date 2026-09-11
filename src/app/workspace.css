@@ -635,10 +635,86 @@ textarea {
 }
 
 /* ── Interactive case study ─────────────────────────── */
+.cs-standalone-shell {
+  --background: #080a0c;
+  --foreground: #f5f7f3;
+  --surface: #11161a;
+  --surface-elevated: #171e23;
+  --border: #2b363d;
+  --border-hover: #50606a;
+  --muted: #a5b0b4;
+  --muted-foreground: #a5b0b4;
+  --color-primary-400: #d9ff6a;
+  --color-primary-500: #c5ed55;
+  --color-primary-600: #a8d23d;
+  --color-primary-700: #8bb52d;
+  --color-primary-800: #27321c;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+.cs-standalone-shell a {
+  color: inherit;
+}
 .cs-page {
   max-width: 1320px;
   margin: 0 auto;
   padding: 54px 32px 64px;
+}
+.cs-standalone-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 48px;
+  margin-bottom: 58px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--border);
+}
+.cs-standalone-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  text-decoration: none;
+}
+.cs-standalone-brand span {
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+.cs-standalone-brand small {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+.cs-standalone-bar nav {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  margin-left: auto;
+}
+.cs-standalone-bar nav a,
+.cs-standalone-demo {
+  color: var(--muted);
+  font-size: 11px;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.cs-standalone-bar nav a:hover,
+.cs-standalone-demo:hover {
+  color: var(--foreground);
+}
+.cs-standalone-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary-500);
+  white-space: nowrap;
+}
+.cs-standalone-demo svg {
+  width: 13px;
 }
 .cs-hero {
   display: grid;
@@ -901,6 +977,150 @@ textarea {
 .cs-workflow-detail {
   background: var(--surface-elevated);
 }
+.cs-hands-on-section {
+  background: var(--surface-elevated);
+  margin-right: -32px;
+  margin-left: -32px;
+  padding-right: 32px;
+  padding-left: 32px;
+}
+.cs-hands-on {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr);
+  gap: 14px;
+  align-items: stretch;
+}
+.cs-hands-on-steps {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+.cs-hands-on-step {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  gap: 11px;
+  align-items: center;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--muted);
+  text-align: left;
+}
+.cs-hands-on-step:hover {
+  background: var(--surface);
+  color: var(--foreground);
+}
+.cs-hands-on-step.is-active {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 8px 22px rgb(27 44 35 / 0.05);
+}
+.cs-hands-on-step > span {
+  color: var(--color-primary-500);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.cs-hands-on-step strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.cs-hands-on-step svg {
+  width: 15px;
+  opacity: 0.7;
+}
+.cs-hands-on-preview {
+  min-height: 360px;
+  padding: 34px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface);
+}
+.cs-preview-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 34px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+.cs-preview-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary-500);
+}
+.cs-preview-live > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary-500);
+}
+.cs-hands-on-preview h3 {
+  max-width: 600px;
+  margin: 14px 0 12px;
+  color: var(--foreground);
+  font-size: clamp(25px, 3vw, 42px);
+  line-height: 1.08;
+  font-weight: 520;
+}
+.cs-hands-on-preview > p {
+  max-width: 670px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.cs-preview-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 26px;
+}
+.cs-preview-chips span {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-elevated);
+  color: var(--foreground);
+  font-size: 12px;
+}
+.cs-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 42px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+.cs-preview-footer > div {
+  display: flex;
+  gap: 7px;
+}
+.cs-preview-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--color-primary-700);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+.cs-preview-button.quiet {
+  background: transparent;
+  color: var(--foreground);
+}
+.cs-preview-button svg {
+  width: 14px;
+}
 .cs-detail-line {
   color: var(--muted);
   font-size: 13px;
@@ -1067,7 +1287,8 @@ textarea {
 @media (max-width: 960px) {
   .cs-hero,
   .cs-section-intro.split,
-  .cs-workflow {
+  .cs-workflow,
+  .cs-hands-on {
     grid-template-columns: 1fr;
   }
   .cs-hero {
@@ -1100,6 +1321,22 @@ textarea {
   .cs-page {
     padding: 28px 20px 46px;
   }
+  .cs-standalone-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 32px;
+  }
+  .cs-standalone-bar nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    overflow-x: auto;
+  }
+  .cs-standalone-bar nav a {
+    white-space: nowrap;
+  }
   .cs-hero {
     padding-top: 20px;
   }
@@ -1124,6 +1361,12 @@ textarea {
     padding-right: 20px;
     padding-left: 20px;
   }
+  .cs-hands-on-section {
+    margin-right: -20px;
+    margin-left: -20px;
+    padding-right: 20px;
+    padding-left: 20px;
+  }
   .cs-phase-rail {
     gap: 3px;
   }
@@ -1136,6 +1379,13 @@ textarea {
     grid-template-columns: 1fr;
   }
   .cs-footer {
+    flex-direction: column;
+  }
+  .cs-hands-on-preview {
+    padding: 22px;
+  }
+  .cs-preview-footer {
+    align-items: flex-start;
     flex-direction: column;
   }
 }

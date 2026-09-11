@@ -11,10 +11,19 @@ export default function PublicLayout({
 }) {
     const pathname = usePathname();
     const isCandidatePage = pathname.includes("/apply") || pathname.includes("/interview");
+    const isCaseStudyPage = pathname === "/case-study" || pathname.startsWith("/case-study/");
     // The live interview room can be taller than the viewport on smaller
     // screens. Let the page scroll naturally while the transcript keeps its
     // own scroll area.
     const isInterviewRoom = pathname.includes("/interview");
+
+    if (isCaseStudyPage) {
+        return (
+            <div className="cs-standalone-shell">
+                <main>{children}</main>
+            </div>
+        );
+    }
 
     return (
         <div className={isInterviewRoom ? "flex min-h-screen flex-col" : "min-h-screen"}>

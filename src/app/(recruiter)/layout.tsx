@@ -17,12 +17,25 @@ export default function RecruiterLayout({
     const pathname = usePathname();
     const router = useRouter();
     const admin = isWorkspaceAdmin(user);
+    // Route groups can stay mounted for a moment during a client-side
+    // navigation. Treat public pages as public here too, otherwise a
+    // signed-in non-admin can be bounced back to /dashboard while opening
+    // the case study or demo.
+    const isPublicPath =
+        pathname === "/" ||
+        pathname === "/login" ||
+        pathname === "/case-study" ||
+        pathname.startsWith("/case-study/") ||
+        pathname === "/demo" ||
+        pathname.startsWith("/demo/") ||
+        pathname === "/ats-check" ||
+        pathname.startsWith("/ats-check/");
 
     useEffect(() => {
-        if (!loading && user && !admin && pathname !== "/dashboard") {
+        if (!loading && user && !admin && pathname !== "/dashboard" && !isPublicPath) {
             router.replace("/dashboard");
         }
-    }, [admin, loading, pathname, router, user]);
+    }, [admin, isPublicPath, loading, pathname, router, user]);
 
     return (
         <AuthGate>

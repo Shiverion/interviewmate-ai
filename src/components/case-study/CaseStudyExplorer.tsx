@@ -75,12 +75,62 @@ const handoffItems = [
   ["What is deliberately deferred", "Automatic rejection, covert monitoring, OCR, HRIS/email integration and fine-tuning on raw candidate data."],
 ];
 
+const walkthrough = [
+  {
+    label: "Role brief",
+    eyebrow: "01 · Define the signal",
+    title: "Start with one role brief",
+    body: "The recruiter enters the job description once. It becomes the shared context for ATS ranking, interview prompts and the evidence rubric.",
+    chips: ["Data Scientist", "Fraud detection", "Evidence-first"],
+  },
+  {
+    label: "CV batch",
+    eyebrow: "02 · Inspect the batch",
+    title: "See the shortlist before inviting",
+    body: "CVs are parsed into candidate records, ranked against the role and kept visible for human selection. Email and name extraction remove repetitive data entry.",
+    chips: ["Aisha Rahman · 91 ATS", "Bima Santoso · 74 ATS", "Clara Nguyen · 46 ATS"],
+  },
+  {
+    label: "Invite",
+    eyebrow: "03 · Configure once",
+    title: "Create a focused interview link",
+    body: "Select candidates, set the language and turn budget, then create links in one batch. The candidate only receives their own session.",
+    chips: ["English baseline", "10 minute window", "Voice + text"],
+  },
+  {
+    label: "Interview",
+    eyebrow: "04 · Let the candidate stay in control",
+    title: "Speak, edit, then send",
+    body: "Voice transcription remains a draft until the candidate sends it. The interviewer waits for the answer and uses the role and CV context to ask the next useful question.",
+    chips: ["Editable transcript", "No hidden auto-send", "Recovery-aware"],
+  },
+  {
+    label: "Evidence",
+    eyebrow: "05 · Review the record",
+    title: "Finish with a score people can explain",
+    body: "The result shows a percentage, competency coverage and cited quotes. Recruiters can inspect the record before making a human decision.",
+    chips: ["Evidence 61 / 100", "Coverage 7 / 7", "Human review required"],
+  },
+];
+
 export default function CaseStudyExplorer() {
   const [activePhase, setActivePhase] = useState(0);
   const [activeStage, setActiveStage] = useState(0);
+  const [activeWalkthrough, setActiveWalkthrough] = useState(0);
+  const currentWalkthrough = walkthrough[activeWalkthrough];
 
   return (
     <div className="cs-page">
+      <div className="cs-standalone-bar">
+        <a href="#overview" className="cs-standalone-brand"><span>INTERVIEWMATE</span><small>PRODUCT BRIEF · 2026</small></a>
+        <nav aria-label="Case study sections">
+          <a href="#sprint">Sprint</a>
+          <a href="#hands-on">Walkthrough</a>
+          <a href="#evaluation">Evidence</a>
+          <a href="#handoff">Handoff</a>
+        </nav>
+        <Link className="cs-standalone-demo" href="/demo">Open demo <ArrowRightIcon /></Link>
+      </div>
       <section className="cs-hero" id="overview">
         <div className="cs-hero-copy">
           <p className="wm-eyebrow">Interactive product sprint case study</p>
@@ -89,6 +139,9 @@ export default function CaseStudyExplorer() {
             InterviewMate turns batch resume screening and first-screen interviews into one traceable recruiter workflow. This page explains the product decision, the AI boundaries and the evidence behind the MVP.
           </p>
           <div className="cs-actions">
+            <a className="wm-button" href="#hands-on">
+              Try the product brief <ArrowRightIcon />
+            </a>
             <Link className="wm-button" href="/demo">
               Try the live demo <ArrowRightIcon />
             </Link>
@@ -170,6 +223,47 @@ export default function CaseStudyExplorer() {
             <h3>{workflow[activeStage][0]}</h3>
             <p>{workflow[activeStage][1]}</p>
             <div className="cs-detail-line"><LightningBoltIcon /><span>Designed to keep the next decision visible instead of hiding it inside the model.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="cs-section cs-hands-on-section" id="hands-on">
+        <div className="cs-section-intro split">
+          <div><p className="wm-eyebrow">Hands-on product brief</p><h2>Walk the workflow before you read the report.</h2></div>
+          <p>This small, self-contained walkthrough uses fictional data. Choose a step, inspect the decision it exposes and then open the live prototype when you want to try the real interaction.</p>
+        </div>
+        <div className="cs-hands-on">
+          <div className="cs-hands-on-steps" role="tablist" aria-label="Hands-on workflow">
+            {walkthrough.map((item, index) => (
+              <button
+                className={`cs-hands-on-step ${index === activeWalkthrough ? "is-active" : ""}`}
+                key={item.label}
+                onClick={() => setActiveWalkthrough(index)}
+                role="tab"
+                aria-selected={index === activeWalkthrough}
+                aria-controls={`hands-on-panel-${index}`}
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{item.label}</strong>
+                {index < activeWalkthrough ? <CheckCircledIcon /> : <ArrowRightIcon />}
+              </button>
+            ))}
+          </div>
+          <div className="cs-hands-on-preview" id={`hands-on-panel-${activeWalkthrough}`} role="tabpanel">
+            <div className="cs-preview-topline"><span>Sample workspace</span><span className="cs-preview-live"><span /> Interactive brief</span></div>
+            <span className="cs-panel-kicker">{currentWalkthrough.eyebrow}</span>
+            <h3>{currentWalkthrough.title}</h3>
+            <p>{currentWalkthrough.body}</p>
+            <div className="cs-preview-chips">
+              {currentWalkthrough.chips.map((chip) => <span key={chip}>{chip}</span>)}
+            </div>
+            <div className="cs-preview-footer">
+              <span>Step {activeWalkthrough + 1} of {walkthrough.length}</span>
+              <div>
+                <button className="cs-preview-button quiet" onClick={() => setActiveWalkthrough(Math.max(0, activeWalkthrough - 1))} disabled={activeWalkthrough === 0}>Back</button>
+                <button className="cs-preview-button" onClick={() => setActiveWalkthrough(Math.min(walkthrough.length - 1, activeWalkthrough + 1))} disabled={activeWalkthrough === walkthrough.length - 1}>{activeWalkthrough === walkthrough.length - 1 ? "Complete" : "Next step"}<ArrowRightIcon /></button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
