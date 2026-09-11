@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { adminFirestore, adminFirestoreConfigured } from "@/lib/firebase/admin";
 
 export const DEMO_LIMITS = {
   starts: 5,
@@ -34,7 +35,7 @@ export type DemoLease = {
   evaluationModel?: string;
   evaluationProvider?: string;
 };
-type Ledger = {
+export type Ledger = {
   reviewerSessions?: Record<
     string,
     {
@@ -70,18 +71,32 @@ type Ledger = {
     { units: number; minute: number; requests: number }
   >;
   redemptions?: Record<string, number>;
+  reviewerInvitations?: unknown[];
+  humanReviews?: Record<string, unknown>;
   daily: Record<string, number>;
   leases: Record<string, DemoLease>;
 };
+
+/**
+ * Vercel functions do not share a writable filesystem. When the Firebase
+ * service account is configured, keep the same ledger shape in one Firestore
+ * document and update it transactionally. Local development and tests keep
+ * using the file-backed ledger so they remain fast and deterministic.
+ */
+export function firestoreLedgerEnabled() {
+  return process.env.NODE_ENV === "production" && adminFirestoreConfigured();
+}
+
 export function demoAvailability() {
   if (!process.env.OPENAI_API_KEY?.trim())
     return "The host has not configured voice access yet.";
   if (
     process.env.NODE_ENV === "production" &&
-    (process.env.VERCEL ||
-      process.env.DEMO_RUNTIME !== "persistent-node" ||
-      !process.env.DEMO_STATE_DIR ||
-      (process.env.DEMO_COOKIE_SECRET?.length || 0) < 32)
+    (!firestoreLedgerEnabled() &&
+      (process.env.VERCEL ||
+        process.env.DEMO_RUNTIME !== "persistent-node" ||
+        !process.env.DEMO_STATE_DIR ||
+        (process.env.DEMO_COOKIE_SECRET?.length || 0) < 32))
   )
     return "Hosted voice is awaiting its persistent runtime and usage storage.";
   return null;
@@ -89,6 +104,25 @@ export function demoAvailability() {
 const directory = () =>
   path.resolve(process.env.DEMO_STATE_DIR || ".demo-state");
 export async function withLedger<T>(fn: (data: Ledger) => T): Promise<T> {
+  if (firestoreLedgerEnabled()) {
+    const db = adminFirestore();
+    const ref = db.collection("demo_runtime").doc("ledger");
+    return db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      const stored = snapshot.data()?.payload;
+      const data: Ledger =
+        stored && typeof stored === "object"
+          ? (stored as Ledger)
+          : { daily: {}, leases: {} };
+      const result = fn(data);
+      const payload = JSON.parse(JSON.stringify(data)) as Ledger;
+      transaction.set(ref, {
+        payload,
+        updated_at: new Date(),
+      });
+      return result;
+    });
+  }
   const dir = directory();
   await mkdir(dir, { recursive: true });
   const lockPath = path.join(dir, "ledger.lock");

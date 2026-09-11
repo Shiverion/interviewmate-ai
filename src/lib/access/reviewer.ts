@@ -8,7 +8,7 @@ import {
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { readFileSync } from "node:fs";
-import { withLedger } from "@/lib/demo/ledger";
+import { firestoreLedgerEnabled, withLedger } from "@/lib/demo/ledger";
 import { z } from "zod";
 const invitation = z.object({
   id: z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/),
@@ -29,6 +29,10 @@ export type ReviewerGrant = z.infer<typeof invitation>;
 export const accessDirectory = () =>
   path.resolve(process.env.DEMO_STATE_DIR || ".demo-state");
 export async function invitations() {
+  if (firestoreLedgerEnabled()) {
+    const stored = await withLedger((data) => data.reviewerInvitations ?? []);
+    return z.array(invitation).max(100).parse(stored);
+  }
   try {
     const raw =
       process.env.REVIEWER_INVITES_JSON ||
@@ -171,6 +175,17 @@ async function ensureCookieSecret() {
 async function writeInvitations(
   mutate: (current: ReviewerGrant[]) => ReviewerGrant[]
 ) {
+  if (firestoreLedgerEnabled()) {
+    return withLedger((data) => {
+      const current = z
+        .array(invitation)
+        .max(100)
+        .parse(data.reviewerInvitations ?? []);
+      const next = mutate(current);
+      data.reviewerInvitations = next;
+      return next;
+    });
+  }
   if (process.env.REVIEWER_INVITES_JSON)
     throw Error(
       "Invitation management is handled by the configured invite store."
@@ -272,6 +287,17 @@ export async function saveHumanRecord(grant: ReviewerGrant, record: unknown) {
   const id = createHash("sha256")
     .update(grant.id + body)
     .digest("hex");
+  if (firestoreLedgerEnabled()) {
+    await withLedger((data) => {
+      const reviews = (data.humanReviews ??= {});
+      reviews[`${grant.id}:${id}`] = {
+        grantId: grant.id,
+        id,
+        record,
+      };
+    });
+    return id;
+  }
   const dir = path.join(accessDirectory(), "human-reviews", grant.id);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, id + ".json"), body, {
