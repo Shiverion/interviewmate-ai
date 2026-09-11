@@ -1,6 +1,6 @@
-# Controlled model comparison
+# Controlled model comparison (deferred follow-up)
 
-Updated: 2026-09-10. Results pending working credentials and human review. [Frozen baseline](model-baseline-29e40ba.json) · [Dataset](dataset/README.md) · [Current setup](../implementation/current-runbook.md).
+Updated: 2026-09-11. This is an optional controlled study, not a release blocker or a claim that one model is best. The shipped defaults and smoke evidence are in the [production release record](results/2026-09-11-production-release.md). [Frozen baseline](model-baseline-29e40ba.json) · [Dataset](dataset/README.md) · [Current setup](../implementation/current-runbook.md).
 
 ## Preserve two experiments
 
@@ -10,7 +10,7 @@ Updated: 2026-09-10. Results pending working credentials and human review. [Froz
 
 ## Model matrix and execution
 
-Keep current model defaults: realtime `gpt-realtime`, transcription `whisper-1`, evaluators `gpt-4o`, `gemini-2.5-flash`, `deepseek-v4-flash`. The older Review Brief experiment may use a different OpenAI model; use its recorded `MODEL` and frozen configuration, not this product list.
+Keep the shipped product defaults for the baseline: realtime `gpt-realtime-2.1-mini`, transcription `gpt-transcribe`, and evaluator `gpt-5.6-luna`. Optional comparison adapters are `gemini-3.5-flash-lite`, `deepseek-flash`, `gemini-3.1-flash-live-preview`, and `gpt-live-transcribe`. The older Review Brief experiment may use a different OpenAI model; use its recorded `MODEL` and frozen configuration, not this product list.
 
 Candidate fast/cost experiments include Gemini 3.1 Flash-Lite alongside the current Gemini baseline, and an account-available small OpenAI realtime model. Model names are experiment candidates, not recommendations or measured winners. Validate current availability in the provider account before each run. [Gemini 3.1 Flash-Lite documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite), [OpenAI Realtime reference](https://platform.openai.com/docs/api-reference/realtime).
 

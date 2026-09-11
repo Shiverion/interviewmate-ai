@@ -2,7 +2,7 @@
 
 [Evaluation home](README.md) · [Dataset](dataset/README.md) · [Phase 4 report](../phases/04-evaluation-and-iteration.md) · [Prototype runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md)
 
-Updated: 2026-09-08. The dataset and harness are ready. The first batch stopped on **AI_UNAVAILABLE** after one API attempt. No generated draft or semantic-quality result exists for this dataset yet.
+Updated: 2026-09-11. The dataset and harness remain ready for a controlled follow-up. The first batch stopped on **AI_UNAVAILABLE** after one pre-release API attempt; that result is historical. The production release was smoke-tested separately, but no independent semantic-quality benchmark is claimed.
 
 ## Current evidence
 

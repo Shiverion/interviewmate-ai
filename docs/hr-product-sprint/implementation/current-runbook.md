@@ -2,15 +2,15 @@
 
 Updated: 2026-09-11. [Specification](../../../Product_Sprint.md) · [Progress](../../README.md). This runbook supersedes the archived setup instructions. See the [bulk candidate pipeline implementation note](2026-09-11-bulk-pipeline.md) for the CV-to-invitation flow.
 
-See [model refresh, private access, validation and remaining setup](2026-09-10-models-and-access.md) for the latest implementation. Baseline Firebase ownership rules are deployed; include and verify the latest `pipeline_candidates` match before relying on persisted bulk rows. English/Indonesian live voice validation remains open.
+See [model refresh, private access, validation and remaining setup](2026-09-10-models-and-access.md) for the latest implementation and the [production release record](../evaluation/results/2026-09-11-production-release.md) for the verified deployment. Firebase ownership rules, indexes and the `pipeline_candidates` match are deployed. English is the baseline and Bahasa Indonesia is the separate multilingual extension.
 
 ## Host setup
 
 1. Run `npm install` and `npm run dev`. Use `http://localhost:3000` consistently; Firebase authorization for localhost does not authorize 127.0.0.1. Add your actual public domain to Firebase authorized domains before testing it.
-2. In your private `.env.local`, configure `OPENAI_API_KEY` with valid Realtime access. The 2026-09-10 access check now returns HTTP 200 and a synthetic Luna evaluation succeeds. Optionally set `GOOGLE_GENERATIVE_AI_API_KEY` and `DEEPSEEK_API_KEY` for other evaluators. Restart the server after changes. Never paste keys into a report, repository or chat.
+2. In your private `.env.local`, configure `OPENAI_API_KEY` with valid Realtime access. The production server uses encrypted Vercel values for `OPENAI_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `DEMO_COOKIE_SECRET` and `NEXT_PUBLIC_APP_URL`. Optionally set `GOOGLE_GENERATIVE_AI_API_KEY` and `DEEPSEEK_API_KEY` for other evaluators. Restart the server after local changes. Never paste keys into a report, repository or chat.
 3. As the verified administrator, use **Create an interview invitation** on Dashboard. Copy the generated code and send it privately. The script `node scripts/reviewer-invite.mjs create "Sprint reviewer"` remains available for local setup; its code is written to the ignored `.demo-state/reviewer-invitation.txt`. Redeem the code at `/reviewer`. Run `node scripts/reviewer-invite.mjs revoke INVITATION_ID` to revoke one. The invitation file stores hashes; its separate delivery file contains the code.
-4. For production use a persistent Node host, HTTPS, private durable `DEMO_STATE_DIR`, `DEMO_RUNTIME=persistent-node`, and a stable random `DEMO_COOKIE_SECRET` of at least 32 characters. The local fallback secret is development-only. Do not deploy this file-ledger implementation on ephemeral/serverless disks. Set provider billing alerts/limits and monitor cleanup failures.
-5. Keep Firebase configuration for the ordinary recruiter pipeline. Reviewer scheduling and records use separate private host storage and do not require creating a fake Firebase user. Never change Firebase rules to public access to bypass a failed acceptance check.
+4. Production runs on Vercel serverless with Firestore as the authoritative reviewer/demo ledger; no writable `/var/task` filesystem is required. Set a stable random `DEMO_COOKIE_SECRET` of at least 32 characters, provider billing alerts/limits and monitoring for cleanup failures.
+5. Keep Firebase configuration for the ordinary recruiter pipeline and the hosted ledger. Reviewer scheduling and records use server-side Admin SDK access and do not require a fake Firebase user. Never change Firebase rules to public access to bypass a failed acceptance check.
 
 ## Access and limits
 
@@ -20,7 +20,7 @@ See [model refresh, private access, validation and remaining setup](2026-09-10-m
 | Demo     | Host keys remain server-side                                                           | Five starts per signed browser cookie per UTC day, eight-minute funding window, eight connections, bounded answer/evaluation inputs. Clearing cookies can evade the per-browser limit; the shared host cap is the backstop. |
 | Reviewer | Server-validated signed invitation                                                     | Default 30 starts/day, 12 billable/record operations per minute, 500 usage units, seven-day expiry; hosted candidate journey only, one active lease per invitation. Revocation checked on requests and call cleanup.        |
 
-Voice reserves one usage unit per funded minute; an evaluation reserves three. Unlimited active interview time has a 30-minute hosted funding window, displayed before use. Units cap operations, not exact currency cost. Host downtime or failed provider hangup can extend a call: persistent monitoring and provider billing controls are release requirements. A production Redis/database transaction store and verified identity replace the prototype's cookie/file limits.
+Voice reserves one usage unit per funded minute; an evaluation reserves three. Unlimited active interview time has a 30-minute hosted funding window, displayed before use. Units cap operations, not exact currency cost. Firestore transactions back the hosted ledger; the signed cookie is an admission handle, not an identity proof. Server-authoritative audit, retention/deletion tooling and stronger abuse controls remain future hardening.
 
 ## Configuration and flow
 
@@ -48,7 +48,7 @@ All voice rooms share the turn controller. OpenAI WebRTC uses `/api/realtime` an
 10. **Human review:** this remains an internal, contextual evaluation workflow and is not exposed through the candidate invitation. When an administrator opens a candidate or synthetic report, select all judgments, type ID/notes, reload, submit, reload again. Judgments must persist and completed fields become read-only; export includes source/version/model/rubric/hash and timestamp. Browser checks cover this path with synthetic data.
 11. **Providers:** record primary/active model, fallback reason and errors. BYOK fallback requires the explicit Settings checkbox; it may send the transcript to another configured provider. Provider diagnostics reflect real requests and become stale; no inference health probes are sent. Model failures should produce no saved assessment.
 12. **Indonesian extension:** repeat the same scenarios in Bahasa Indonesia with corrected reference transcripts. Keep its results separate from English. A single bilingual evaluator is useful for a pilot but not inter-rater agreement.
-13. **Release:** record live test evidence, complete the PDF result table, record the five-minute video, deploy and redeem a fresh reviewer invitation on HTTPS. Do not mark the quest complete until those steps succeed.
+13. **Release:** use the [production release record](../evaluation/results/2026-09-11-production-release.md), record the five-minute video and attach the three submission artifacts. Do not claim independent recruiter accuracy or fairness results that were not measured.
 
 ## Engineer handoff
 
@@ -58,7 +58,7 @@ The code editor and whiteboard previously accessed `interview_code` and `intervi
 
 Validation: 13 targeted automated tests passed for local-session isolation, authentication, both panel writes, denied reads/writes, missing records, read-only viewing and save cancellation. These use mocked Firestore; deployed permissions still need a signed-in browser check. Start a scheduled interview with Code Editor, type a short snippet, wait two seconds and check `code_workspace` on that session. Repeat with Whiteboard and `whiteboard_workspace`. Confirm Demo/Reviewer panels say Local only and produce no Firestore permission error. Do not mark live syncing verified until that check passes.
 
-Configuration: `src/lib/interview/config.ts`; turn policy: `turn-policy.ts`; connection orchestration: `src/lib/store/useInterviewStore.ts`; evidence validation: `src/lib/ai/evidence.ts`; provider adapter: `evaluation.ts`; access/usage: `src/lib/access/reviewer.ts` and `src/lib/demo/ledger.ts`. Human reviews persist locally and, with an invitation, to private host files. No training job or analytics export consumes these records automatically.
+Configuration: `src/lib/interview/config.ts`; turn policy: `turn-policy.ts`; connection orchestration: `src/lib/store/useInterviewStore.ts`; evidence validation: `src/lib/ai/evidence.ts`; provider adapter: `evaluation.ts`; access/usage: `src/lib/access/reviewer.ts` and `src/lib/demo/ledger.ts`. Human reviews persist in the scoped Firestore ledger for recruiter/invitation records; local drafts remain browser-local. No training job or analytics export consumes these records automatically.
 
 Run `npm test -- --runInBand`, `npx tsc --noEmit`, `npm run build`, and `npx cypress run --spec "cypress/e2e/revision.cy.ts,cypress/e2e/reviewer-demo.cy.ts,cypress/e2e/integrity.cy.ts"`. The revision browser test requires a valid local invitation and writes clearly synthetic local records. It does not call a paid model.
 

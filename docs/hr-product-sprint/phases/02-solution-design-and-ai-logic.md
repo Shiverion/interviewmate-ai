@@ -2,7 +2,7 @@
 
 # Phase 2: solution design and AI logic
 
-Status: **Complete — design package and authored wireframe ready for Phase 3.**
+Status: **Complete — design package implemented in the production prototype.**
 
 Started: 2026-09-07. Updated/completed: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
@@ -12,7 +12,11 @@ Started: 2026-09-07. Updated/completed: 2026-09-08 (Asia/Jakarta). Planned alloc
 
 Defined InterviewMate Review Brief as four evidence-based criterion entries with traceable candidate quotations, explicit limitations, reviewer corrections and a reviewed export. [D02](../../archive/pre-evidence-v2/hr-product-sprint/decisions/002-review-brief-design.md) records the selected architecture: one structured server-side generation, deterministic checks and human review, with no numeric hiring score.
 
-The [clickable wireframe](../design/wireframe.html) uses authored examples to illustrate the experience. The live API/product flow remains Phase 3 work. Recruiter validation, human timing and model-quality evaluation remain outstanding.
+The [clickable wireframe](../design/wireframe.html) preserves the early design intent. The live product now implements the shared configuration, mandatory voice + text composer, evidence rubric, recovery/guardrail behavior, provider routing, reviewer boundaries and optional CV/GitHub context. Recruiter timing and independent model-quality calibration remain outside this single-builder release.
+
+### Release note — 2026-09-11
+
+The design package is the source for the implemented UX and AI behavior. The current production validation is summarized in the [release record](../evaluation/results/2026-09-11-production-release.md); the older authored wireframe and design examples remain useful references, not a second product surface.
 
 ## Deliverables and reading order
 
@@ -59,7 +63,7 @@ These results are design-artifact checks, not measured AI accuracy, time savings
 
 ## Open items and next action
 
-The [Phase 3 report](03-prototype-build.md) now records the implemented local page and generation/review contract. Its successful live generation verification is pending provider access. No API key or Firebase round trip was used for Phase 2; retain that distinction from subsequent implementation checks.
+The [Phase 3 report](03-prototype-build.md) records the implemented generation/review contract. The sentence about pending provider access belongs to the original Phase 2 boundary: Phase 2 itself used no API key or Firebase round trip. Subsequent production checks are recorded in the [release record](../evaluation/results/2026-09-11-production-release.md).
 
 Human timing still awaits an available reviewer. The [Phase 4 dataset](../evaluation/dataset/README.md) now contains frozen C01–C08 inputs/references and two variants. They must remain versioned, with the withheld cases excluded from prompt tuning after authorship. Broader browser/accessibility checks and practitioner calibration remain future work.
 

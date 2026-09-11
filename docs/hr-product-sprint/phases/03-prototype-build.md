@@ -2,11 +2,11 @@
 
 # Phase 3: prototype build
 
-September 10 implementation: shared GA realtime service, three access modes with private reviewer invitations, one interview configuration, evidence-v2 reports and contextual persistent human review. Reviewer links now expose a constrained candidate journey (setup → live interview → one evaluation view → done); evaluation tools remain internal. Voice + text is mandatory and the candidate explicitly sends edited transcript drafts. CV parsing and GitHub context have bounded validation/retrieval. See the [current runbook](../implementation/current-runbook.md) and [requirement matrix](../implementation/revision-tracker.md) for implemented scope and live acceptance gaps. Historical build details below describe the original review-brief baseline.
+September 10 implementation: shared GA realtime service, three access modes with private reviewer invitations, one interview configuration, evidence-v2 reports and contextual persistent human review. Reviewer links now expose a constrained candidate journey (setup → live interview → one evaluation view → done); evaluation tools remain internal. Voice + text is mandatory and the candidate explicitly sends edited transcript drafts. CV parsing and GitHub context have bounded validation/retrieval. See the [current runbook](../implementation/current-runbook.md) and [requirement matrix](../implementation/revision-tracker.md) for implemented scope. Historical build details below describe the original review-brief baseline.
 
-2026-09-09 update: keyless dashboard access, three-provider evaluation settings, redesigned workspace and limited reviewer voice are implemented. See the [access runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md). Real voice acceptance is blocked by the OpenAI server credential returning HTTP 401; Gemini/DeepSeek host credentials are absent.
+2026-09-11 release note: keyless dashboard access, provider settings, redesigned workspace, hosted voice, reviewer invitations, Firestore-backed usage state, and the batch CV pipeline are deployed at [interviewmate-ai.shiverion.com](https://interviewmate-ai.shiverion.com/). See the [production release record](../evaluation/results/2026-09-11-production-release.md). The pre-release access note remains archived for historical context.
 
-Status: **In progress — runnable prototype implemented; successful live generation verification pending provider access.**
+Status: **Complete — runnable production prototype verified.**
 
 Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
@@ -14,13 +14,15 @@ Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 
 ## Outcome and deliverables
 
+> **Historical verification below:** the original local Review Brief checks and failed-provider snapshots are retained for traceability. Use the release note above and the [production release record](../evaluation/results/2026-09-11-production-release.md) for current readiness.
+
 The local [review workspace](http://127.0.0.1:3000/review-brief) implements synthetic transcript input, four evidence criteria, exact candidate quotations, source inspection, corrections, review confirmation and JSON/text exports. It reuses the existing Next.js/React application, theme tokens and installed AI SDK. It has its own development-only page and API, outside the recruiter login/key gates.
 
 The [runbook and source map](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md) is the canonical setup and maintenance guide. The [Phase 2 package](../../archive/pre-evidence-v2/hr-product-sprint/design/README.md) remains the design reference; the [backlog](../../archive/pre-evidence-v2/hr-product-sprint/implementation/phase-3-backlog.md) maps delivered behavior to B01–B06.
 
 The current recruiter application also includes the [bulk CV pipeline](../implementation/2026-09-11-bulk-pipeline.md): `/pipeline` parses and ranks multiple resumes, the recruiter confirms invitation checkboxes, and `/candidates` keeps screened and invited records visible with expandable details. That path uses the existing scheduled-session persistence and is evaluated separately from this local Review Brief workspace.
 
-An actual synthetic request reached the provider and returned **HTTP 503 / AI_UNAVAILABLE**. The configured server key or requested model was rejected; the adapter intentionally does not expose provider error text. The [original failed attempt](../implementation/verification/2026-09-08-provider-attempt.json) is preserved. No live model draft, quality measurement or time-saving result is claimed. Authored examples are fully interactive and permanently labelled.
+The original **HTTP 503 / AI_UNAVAILABLE** response is preserved as a historical pre-release failure. The current release record documents successful production smoke and the passing automated checks. This still does not claim live model accuracy, recruiter productivity savings or fairness; those require a controlled study beyond the sprint prototype.
 
 ## Implemented behavior
 

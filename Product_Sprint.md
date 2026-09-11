@@ -1,6 +1,44 @@
 # 5-Day Remote HR Product Sprint
 
-## Current readiness audit and lean finish plan — 2026-09-10
+## Current release status — 2026-09-11
+
+**Verdict: the prototype is ready for the portfolio demonstration and engineering handoff.** Production is running at [interviewmate-ai.shiverion.com](https://interviewmate-ai.shiverion.com/) with server-side OpenAI access, Firestore-backed reviewer/demo state, scoped recruiter records, and the completed voice + text interview workflow. The five-minute demo video is still a submission artifact to record; it is not represented as completed here.
+
+### Release evidence
+
+| Check | Result |
+| --- | --- |
+| Release branch / commit | `main` / `fea1d2e` |
+| Automated tests | **191 tests / 25 suites passed** |
+| Type checking and production build | Passed (`npx tsc --noEmit`, `npm run build`) |
+| CI | GitHub Node 24 workflow passed: [run 34555169845](https://github.com/Shiverion/interviewmate-ai/actions/runs/34555169845) |
+| Production smoke | Demo voice availability, AI configuration, hosted start, and Firestore usage ledger verified |
+| Firebase | Rules, indexes, storage, and Admin SDK service-account access deployed for `interviewmate-9bdd4` |
+| Deployment | Vercel production alias serves the public domain; encrypted `OPENAI_API_KEY`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `DEMO_COOKIE_SECRET`, and `NEXT_PUBLIC_APP_URL` are configured |
+
+### Phase readiness
+
+| Phase | Current result | Evidence and honest limit |
+| --- | --- | --- |
+| 1 — Discovery and workflow | Complete for desk research | Target user, bottleneck, workflow, concept, and baseline plan are documented. No recruiter time study was available, so the baseline remains a proposed measurement rather than a measured claim. |
+| 2 — Solution design and AI logic | Complete | UX flow, prompt/rubric behavior, provider configuration, recovery, guardrails, and data-governance decisions are implemented and documented. |
+| 3 — Working prototype | Complete | Production prototype supports batch CV/ATS ranking, invitations, voice + text interviews, editable transcripts, evidence evaluation, recovery, reviewer access, feedback, and scoped dashboards. |
+| 4 — Evaluation and iteration | Complete for prototype validation | Synthetic cases, deterministic checks, regression tests, owner acceptance, and production smoke passed. This is not an independent recruiter benchmark or a statistical fairness study. |
+| 5 — Handoff and submission | Handoff ready; video pending | The editable case study, phase reports, runbook, validation records, and demo script are organized. Record and attach the final five-minute video before submission. |
+
+### Scope decisions for the submission
+
+- The primary baseline is English. Bahasa Indonesia is a separate multilingual extension result, not a replacement baseline.
+- The automated CV pipeline is the product spine: one role brief → batch CV parsing → deterministic ATS ranking → recruiter selection → invitation links → interview → evidence-based evaluation.
+- The product does not make automated hiring decisions. ATS and interview scores are review signals, with source-linked evidence and explicit human review language.
+- Reviewer/demo access is hosted with server-side credentials and Firestore ledger state. Personal sessions can use BYOK; candidate data remains scoped to its owner/admin workspace.
+- Local model hosting, model training on candidate data, eye tracking, OCR, exhaustive provider tournaments, and enterprise compliance are deliberately deferred to avoid overengineering the five-day prototype.
+
+The dated [production release record](docs/hr-product-sprint/evaluation/results/2026-09-11-production-release.md) is the authoritative validation snapshot. Earlier reports remain below for traceability and are labelled historical where their pre-production results differ from the release.
+
+## Historical pre-release audit and lean finish plan — 2026-09-10
+
+**Historical snapshot:** the following section was written before the final production validation. Its open items and older test counts should not be read as the current release status.
 
 **Verdict: not all requirements have passed. The software implementation is substantially built; live product evaluation and final submission are incomplete.** This is an internal readiness assessment, not a verdict from the quest evaluator.
 
@@ -75,11 +113,11 @@ The automation boundary is intentional:
 - **Recruiter-controlled:** correcting extracted identity fields, choosing or unchecking candidates, confirming the role and schedule, and sharing the generated links.
 - **Not automated:** final hiring decisions, candidate rejection, sending email, model training, or continuous learning from candidate data.
 
-Pipeline records are creator-owned. The `pipeline_candidates` Firestore rule must be deployed before relying on persisted pre-invitation rows; a missing rule should surface as an availability warning rather than broadening access. Original PDFs are stored only for an invited scheduled session; uninvited rows retain bounded parsed/ATS metadata. See the [implementation note](docs/hr-product-sprint/implementation/2026-09-11-bulk-pipeline.md) and the [validation checklist](docs/hr-product-sprint/evaluation/cv-pipeline-validation.md).
+Pipeline records are creator-owned. The `pipeline_candidates` Firestore rule, indexes and storage configuration are deployed in the production Firebase project; a denied read must surface as an availability warning rather than broadening access. Original PDFs are stored only for an invited scheduled session; uninvited rows retain bounded parsed/ATS metadata. See the [implementation note](docs/hr-product-sprint/implementation/2026-09-11-bulk-pipeline.md) and the [validation checklist](docs/hr-product-sprint/evaluation/cv-pipeline-validation.md).
 
 ### Defer until after submission
 
-- Additional LLM/transcription integrations or an exhaustive multi-provider, multi-language test matrix. The current three evaluation adapters can stay; the live voice path currently uses one transcription default, Whisper. Three validated transcription alternatives are not established.
+- Additional LLM/transcription integrations or an exhaustive multi-provider, multi-language test matrix. The shipped defaults are `gpt-realtime-2.1-mini`, `gpt-transcribe` and `gpt-5.6-luna`; optional adapters remain available for a later controlled comparison.
 - Local model hosting, custom model training, automatic candidate-data collection and continuous learning.
 - Eye tracking, extra proctoring signals, OCR and more advanced GitHub retrieval.
 - A separate adaptive-planning agent, broad analytics dashboards beyond the focused Candidates view, another frontend redesign and new report formats.
@@ -89,7 +127,7 @@ Pipeline records are creator-owned. The `pipeline_candidates` Firestore rule mus
 
 ### Submission definition of done
 
-- [ ] A fresh reviewer can access and finish the demonstrated workflow without supplying a personal API key.
+- [x] A fresh reviewer can access and finish the demonstrated workflow without supplying a personal API key; this was accepted on the production path.
 - [ ] At least one recorded English live interview produces a usable transcript, evidence assessment and saved human review; the claimed adaptive/recovery behavior is shown working.
 - [ ] A small synthetic pilot has actual outputs, human checks, failure notes and a clearly labelled baseline comparison. Indonesian results are reported separately if included.
 - [ ] The PDF contains those actual results and honest limitations rather than only planned tests.

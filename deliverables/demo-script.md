@@ -1,6 +1,6 @@
 # Five-minute demo script
 
-Status: recording plan; final video is not recorded. Use synthetic people and answers. Hide keys, invitation codes, browser account details and candidate data before recording. Complete the live checks in the runbook first.
+Status: ready to record against the production release; final video is not recorded. Use synthetic people and answers. Hide keys, invitation codes, browser account details and candidate data before recording. The [production release record](../docs/hr-product-sprint/evaluation/results/2026-09-11-production-release.md) confirms the software checks and smoke path.
 
 | Time | Show | Narration |
 |---|---|---|
@@ -10,6 +10,6 @@ Status: recording plan; final video is not recorded. Use synthetic people and an
 | 2:20–3:05 | Completed evidence assessment and a no-answer case | “These are competency evidence levels, not a generated hiring percentage. Strong assessed evidence can coexist with incomplete coverage. When evidence is insufficient, the system says so. Every accepted quotation must be present in a candidate answer.” |
 | 3:05–3:45 | Evaluation Sandbox and Human Review | “These cases are synthetic and excluded from candidate statistics. I can inspect the source, record judgments, add notes and submit a stable record with model, rubric and transcript versions. This pilot still needs independent reviewer calibration.” |
 | 3:45–4:20 | Provider diagnostics and comparison protocol | “Voice and evaluation have different requirements. We preserve baseline models and compare candidates on the same frozen inputs. Fallback is visible and uses configured providers; no model has been promoted without evidence. English is the baseline, Indonesian a separate extension.” |
-| 4:20–5:00 | Candidates dashboard, PDF result/limitations and handoff pages | “The Candidates view keeps every screened row, including not-invited candidates, while expandable details show ATS evidence, invitation, evaluation and parsed-CV state. The handoff identifies configuration, realtime, evidence, access and pipeline modules. Remaining work includes production admission and storage, retention controls, independent evaluation and deployment validation.” |
+| 4:20–5:00 | Candidates dashboard, release record and handoff pages | “The Candidates view keeps every screened row, including not-invited candidates, while expandable details show ATS evidence, invitation, evaluation and parsed-CV state. The handoff identifies configuration, realtime, evidence, access and pipeline modules. The prototype is live and validated; independent recruiter/model calibration and retention tooling remain future work.” |
 
-Record approximately five minutes using Loom or your screen recorder. If the live provider fails, fix access before recording or explicitly present the failure and mark the deliverable incomplete. Do not splice a simulated exchange into a video as though it were a real provider call. Save the final link in the Phase 5 report and verify an external reviewer can play it.
+Record approximately five minutes using Loom or your screen recorder. Use the deployed production path and a fresh reviewer session. Do not splice a simulated exchange into a video as though it were a real provider call. Save the final link in the Phase 5 report and verify an external reviewer can play it.

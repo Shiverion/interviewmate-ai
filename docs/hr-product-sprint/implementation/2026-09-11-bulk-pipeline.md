@@ -1,12 +1,16 @@
 # Bulk candidate pipeline
 
-Updated: 2026-09-11. This note documents the first implementation of the recruiter bulk pipeline described in the sprint extension.
+Updated: 2026-09-11. This note documents the production-ready recruiter bulk pipeline described in the sprint extension. Automated checks and the production smoke path are recorded in the [release record](../evaluation/results/2026-09-11-production-release.md).
 
 ## Outcome
 
 Recruiters can now open `/pipeline`, paste one role brief, upload multiple CV PDFs, rank the CVs with the existing `/api/ats-score` logic used by `/ats-check`, select candidates, and create interview invitation links in one flow. The primary navigation points to `/pipeline`; `/interviews` remains available for existing interview records.
 
-The **Candidates** navigation item opens `/candidates`, a compact dashboard of persisted pipeline candidates and interview sessions. Rows show rank, candidate, email, ATS score and status; expanding a row reveals the invitation, role setup, ATS evidence, evaluation state and parsed-CV details without turning the default view into a wide data grid. Candidates remain visible with `screened` or `not_invited` status even when the recruiter does not create a link.
+The **Candidates** navigation item opens `/candidates`, a compact dashboard of persisted pipeline candidates and interview sessions. Rows show rank, candidate, email, ATS score and status; expanding a row reveals the invitation, role setup, ATS evidence, evaluation state and parsed-CV details without turning the default view into a wide data grid. Candidates remain visible with `screened` or `not_invited` status even when the recruiter does not create a link. Recruiter selection is always required; ATS ranking is not an automatic rejection decision.
+
+## Release verification
+
+The final release passed the repository test suite (191 tests / 25 suites), type checking, production build and GitHub Node 24 CI. A production smoke session verified hosted demo availability, server-side AI configuration, invitation state and Firestore-backed usage accounting. The ten-CV fixture and checklist remain the repeatable regression protocol; they do not represent a recruiter accuracy benchmark.
 
 ## Recruiter flow
 

@@ -2,17 +2,19 @@
 
 # Phase 5: case study and engineering handoff
 
-2026-09-09 update: the [reviewer access runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md) now documents the redesigned workspace, free voice architecture, key setup, persistent-server requirement and remaining manual checks. Final case study and recording remain pending successful live evidence.
+2026-09-11 release note: the production reviewer path, hosted voice architecture, server-side secrets, Firestore ledger, scoped workspaces and batch pipeline are live. The [production release record](../evaluation/results/2026-09-11-production-release.md) is the current evidence snapshot; the archived access runbook remains historical.
 
-Status: **In progress — PDF and recording script produced; live footage and deployed reviewer acceptance pending.**
+Status: **Handoff ready — editable case study and production validation complete; five-minute video pending.**
 
-September 10–11 deliverables: [seven-page case study PDF](../../../deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](../../../deliverables/case-study-content.json), [five-minute demo script](../../../deliverables/demo-script.md), [current setup/handoff](../implementation/current-runbook.md), [bulk pipeline handoff](../implementation/2026-09-11-bulk-pipeline.md), [CV pipeline validation](../evaluation/cv-pipeline-validation.md), and [validation record](../evaluation/results/2026-09-10-evidence-revision.md). The PDF separates software results from unmeasured model quality and records release limitations. The pipeline note and checklist now document the CV-to-scheduled-invite extension; the PDF and video still need their measured live results. Later historical planning below remains for traceability.
+September 10–11 deliverables: [seven-page case study PDF](../../../deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](../../../deliverables/case-study-content.json), [five-minute demo script](../../../deliverables/demo-script.md), [current setup/handoff](../implementation/current-runbook.md), [bulk pipeline handoff](../implementation/2026-09-11-bulk-pipeline.md), [CV pipeline validation](../evaluation/cv-pipeline-validation.md), and [production validation record](../evaluation/results/2026-09-11-production-release.md). The case-study sources separate verified software behavior from unmeasured model quality and record release limitations. The only remaining submission action is to record and attach the five-minute video; regenerate the PDF only if the submission portal requires a fresh export.
 
 Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](04-evaluation-and-iteration.md) · [Sprint index](../README.md)
 
 ## Objective
+
+> **Current handoff note:** the tables and planning notes below include earlier local-only states. The shipped production behavior, release evidence and remaining video action are defined in the release note above.
 
 Package a runnable demonstration, a case study with honest evidence, and engineering/design guidance sufficient to continue the product. Record a five-minute demo after there is a verified workflow and actual results to show.
 
@@ -59,9 +61,9 @@ Never describe saved output as a live model response. If using a replay for reco
 
 | Required deliverable | Location | Status |
 |---|---|---|
-| Runnable prototype / interactive workflow | [Review runbook](../../archive/pre-evidence-v2/hr-product-sprint/implementation/review-brief-runbook.md), [benchmark workspace](../evaluation/english-first-pilot.md) | Implemented locally; successful live generation pending |
-| Case study and engineering handoff Markdown | To be produced here or linked as a final artifact | Pending Phases 1-4 |
-| Five-minute Loom or screen-recorded video | No recording yet | Pending verified demonstration |
+| Runnable prototype / interactive workflow | [Production release record](../evaluation/results/2026-09-11-production-release.md), [current runbook](../implementation/current-runbook.md) | Deployed and owner-accepted; no hiring-validity claim |
+| Case study and engineering handoff Markdown | Phase reports, release record, runbook and pipeline note | Organized and ready for engineering review |
+| Five-minute Loom or screen-recorded video | [Demo script](../../../deliverables/demo-script.md) | No recording yet; this is the remaining submission artifact |
 
 ## Exit criteria
 
@@ -76,7 +78,7 @@ Never describe saved output as a live model response. If using a replay for reco
 
 The [session-control handoff](../implementation/session-integrity.md) documents the latest candidate guardrails, recovery checkpoints, replacement-question bank and test procedure. Before production use, engineers must implement server-owned timing, terminal/restart authorization, question selection, authenticated checkpoint reconciliation, retention/deletion and access isolation. Live WebRTC recovery and equivalence of replacement questions still need human validation. Describe this as a browser prototype in the case study; do not claim tamper-proof enforcement or guaranteed cheating prevention.
 
-The local review prototype and English-first benchmark workspace now exist. Successful live model evaluation, human judgments, the final case study and recording remain pending. Use the [setup/reviewer guide](../evaluation/english-first-pilot.md) and [governance record](../evaluation/data-governance.md) as handoff inputs. Assemble the final artifacts from measured evidence and record the verified workflow.
+The local review prototype and English-first benchmark workspace remain available as reproducible inputs. The shipped production behavior and owner acceptance are recorded above; independent model comparison and recruiter judgments remain future research. Use the [setup/reviewer guide](../evaluation/english-first-pilot.md) and [governance record](../evaluation/data-governance.md) as handoff inputs, then record the verified workflow with the demo script.
 
 ## Progress log
 

@@ -2,9 +2,9 @@
 
 # Phase 4: evaluation and iteration
 
-2026-09-09–11 update: added automated access/quota/provider-routing checks for the [reviewer voice demo](../../archive/pre-evidence-v2/hr-product-sprint/implementation/reviewer-demo-and-access.md) and the ten-CV pipeline fixture/checklist. English remains the baseline and Indonesian the multilingual pilot. Real voice/model quality remains unverified: the current OpenAI server key returns HTTP 401, and Gemini/DeepSeek host keys are absent. Software test success is not model-quality evidence.
+2026-09-11 release note: automated access/quota/provider-routing checks, the ten-CV pipeline fixture, owner acceptance and production smoke are complete. English remains the baseline and Indonesian the multilingual pilot. The [production release record](../evaluation/results/2026-09-11-production-release.md) separates verified software behavior from model-quality claims.
 
-Status: **In progress — English-first comparison implemented; live provider access and human review pending.**
+Status: **Complete for prototype validation — controlled model comparison and independent recruiter calibration deferred.**
 
 Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
@@ -12,13 +12,15 @@ Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 
 ## Outcome and deliverables
 
-September 10 revision: evidence, access, persistence and recovery checks are recorded in the [revision validation](../evaluation/results/2026-09-10-evidence-revision.md). A [separate model/rubric comparison protocol](../evaluation/model-comparison-v2.md) preserves baseline provenance. Successful live provider comparison, transcript-embedded prestige counterfactuals and independent human calibration remain open; no model has been promoted.
+> **Historical runner details below:** the frozen dataset, old failure output and blank manual result fields are preserved as reproducible evidence. The current release status is the production validation record linked above.
+
+September 10 revision: evidence, access, persistence and recovery checks are recorded in the [revision validation](../evaluation/results/2026-09-10-evidence-revision.md). A [separate model/rubric comparison protocol](../evaluation/model-comparison-v2.md) preserves baseline provenance for future work. The current release used owner acceptance and production smoke; it does not claim an independent accuracy, fairness or productivity benchmark.
 
 The [manual session-control validation checklist](../evaluation/session-control-validation.md) provides step-by-step rehearsal and live checks. The [owner's self-test](../evaluation/results/2026-09-09-session-control-self-test.md) reports A1–A10 passing on the previous implementation, with warning-delivery/default-sound caveats and a visible-window focus gap. Part B is blocked by sign-in; a read-only Firebase check confirmed `localhost` is authorized but `127.0.0.1` is not. The resulting focus/sound changes require fresh manual validation and do not change the model-quality evaluation status below.
 
 Phase 4 now has a [frozen synthetic dataset](../evaluation/dataset/README.md), [evaluation guide](../evaluation/phase-4-guide.md), repeatable runner and software checks. Eight base cases cover concrete evidence, vague accounts, missing topics, conflicting ownership, unknown speakers, instruction injection, cautious language and an interrupted interview. Two matched variants change an introductory name or conversational fillers.
 
-The first genuine API batch attempted C01-r1 and returned **HTTP 503 / AI_UNAVAILABLE**. The runner preserved the response and original server record, then stopped. It did not manufacture a draft or run the other 29 slots against a known access failure. Successful generation remains pending from Phase 3.
+The first genuine API batch attempted C01-r1 and returned **HTTP 503 / AI_UNAVAILABLE**; that result remains a historical pre-release record. Later production smoke verified the configured server path. The frozen runner and original failure are retained so a future controlled comparison can reproduce the limitation without rewriting the evidence.
 
 | Deliverable | Actual state | Evidence |
 |---|---|---|

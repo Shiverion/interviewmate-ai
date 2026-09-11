@@ -43,7 +43,7 @@ Update the current-state prose as work changes. Preserve historical log entries;
 
 Use `Not measured`, `Not collected` or `Not run` for missing evidence. Use `Not applicable` when a denominator is zero. An executed source audit is not a human timing study or an AI-quality evaluation.
 
-Phase statuses are **Planned**, **In progress**, **Complete**, or **Blocked**, followed by the material qualification. Phase 1 currently uses **Desk-research package complete; human timing pending** so its outstanding empirical measure stays visible. Distinguish a draft brief from a human-reviewed brief in both specs and results.
+Phase statuses are **Planned**, **In progress**, **Complete**, or **Blocked**, followed by the material qualification. Phase 1 uses **Complete for desk research; manual timing unmeasured** so its empirical limitation stays visible. Distinguish a draft brief from a human-reviewed brief in both specs and results.
 
 ## Files, links and recorded evidence
 

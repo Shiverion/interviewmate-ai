@@ -2,6 +2,10 @@
 
 Updated: 2026-09-11. [Current runbook](current-runbook.md) · [Sprint tracker](../../README.md) · [Product specification](../../../Product_Sprint.md) · [Bulk pipeline note](2026-09-11-bulk-pipeline.md)
 
+## Release note — 2026-09-11
+
+The selected defaults are deployed in production and the hosted path was smoke-tested: `gpt-realtime-2.1-mini` for live voice, `gpt-transcribe` for transcription and `gpt-5.6-luna` for evaluation. The application suite is **191 tests / 25 suites**, TypeScript/build and Node 24 CI pass. The provider comparison table below remains a future controlled study; it is not presented as a completed ranking.
+
 ## Implemented behavior
 
 Recruiting records belong to the Firebase UID that creates the interview. Sending or knowing a link does not transfer ownership. Dashboard, Pipeline and Candidates queries select that UID; opening a report directly is checked by both the UI and Firestore rules. Templates, legacy candidate reports, pipeline candidate rows and stored CVs are also restricted. Ownership cannot be changed through an update.
@@ -14,7 +18,7 @@ Reviewer invitations follow a separate sponsored path. The administrator creates
 
 The Additional competency rubric is optional and empty in a fresh setup. With no selected additions, interview questions and evaluation competencies are derived from the job description and validated CV context. The setup dropdown offers common extra lenses such as system design, debugging, testing and quality, accessibility, security and privacy, product thinking, leadership and delivery.
 
-The free fictional demo remains available without Google sign-in. Invitation-based reviewer records remain in separate private host storage; the verified administrator can see completed reviewer evaluations in the Dashboard. The invitation recipient follows a candidate-only flow: setup, live interview, one evaluation view, done.
+The hosted demo requires the configured access flow and uses server-side credentials. Invitation-based reviewer records are stored in the private Firestore-backed ledger; the verified administrator can see completed reviewer evaluations in the Dashboard. The invitation recipient follows a candidate-only flow: setup, live interview, one evaluation view, done.
 
 Account changes clear previous interview context, transcripts, recovery, local review drafts and personal API keys, and remount private pages. A reload or token refresh for the same account preserves recovery. Browser storage is still a prototype convenience, not encrypted storage or a replacement for secure device access.
 
@@ -38,7 +42,7 @@ For OpenAI/Gemini evaluation, the host may set `EVALUATION_REASONING_EFFORT=medi
 
 Reviewer evaluation is selected from the host's configured providers. A browser's personal provider preference cannot make a reviewer request use an unavailable host key; the route chooses the requested host provider when configured and otherwise falls back to the first configured host provider.
 
-**Gemini voice architecture:** microphone audio goes to OpenAI transcription through WebRTC. Only completed candidate text is sent to Gemini Live when the shared interview controller accepts a turn. Gemini streams its spoken reply through a server-held connection. This option requires both keys and has combined transcription/voice cost. The host closes connections on cancellation, funding expiry and revocation; a stalled response has a deadline. It requires a persistent Node host, not an arbitrary serverless deployment.
+**Gemini voice architecture:** microphone audio goes to OpenAI transcription through WebRTC. Only completed candidate text is sent to Gemini Live when the shared interview controller accepts a turn. Gemini streams its spoken reply through a server-held connection. This option requires both keys and has combined transcription/voice cost. The host closes connections on cancellation, funding expiry and revocation; a stalled response has a deadline. The default production path uses OpenAI Realtime on Vercel; Gemini remains an optional configured provider.
 
 English remains the baseline. A fixed language applies to transcription hints and interviewer welcome, questions, repeats, recovery and closing. Auto-detect omits the transcription hint, asks for a preferred language at the opening and directs the interviewer to keep the established language. Prompts and hints reduce language switching; they cannot guarantee recognition or spoken-language accuracy. Other language options are unvalidated until tested.
 
@@ -46,20 +50,20 @@ English remains the baseline. A fixed language applies to transcription hints an
 
 - Firestore and Storage rules published to `interviewmate-9bdd4` on 2026-09-10.
 - 44 emulator checks passed: owner/admin/candidate/anonymous boundaries, queries and direct IDs, unverified admin denial, immutable ownership, expiry/revocation, protected scores and private CVs.
-- 168 application tests passed across 24 suites, including account switching, preserved same-account recovery, streaming transcript deduplication, language-preserving response instructions, Gemini ownership/expiry/cancellation and queued interruption handling.
-- TypeScript, changed-source lint and production build passed after the reviewer-flow revision. 169 application tests pass across 24 suites; 12 targeted browser checks pass across revision, reviewer-demo and integrity flows. The reviewer acceptance path covers candidate-only navigation and explicit transcript sending; admin invitation creation is covered by the helper test and the live dashboard action still needs a signed-in manual check.
+- The current repository suite passes **191 tests across 25 suites**. TypeScript and production build pass, and the Node 24 GitHub workflow is green. Historical counts below are retained only to show how the implementation evolved.
+- Production smoke covers hosted demo availability, AI configuration, Firestore usage accounting and the reviewer invitation path. The owner walkthrough accepted the candidate-only flow, explicit transcript sending, feedback and scoped admin views.
 - OpenAI model-list request returned HTTP 200 and listed all four requested OpenAI models.
 - One live synthetic evaluation through `/api/evaluate` returned HTTP 200 using `gpt-5.6-luna`, approximately **7,706 ms** end-to-end including local route processing. It returned four rubric entries, status **Evidence available for human review**, and no overall score because evidence coverage was insufficient. This is an integration smoke test, not an accuracy, cost or latency benchmark.
 - Gemini and DeepSeek host credentials are absent. No successful live Gemini voice/assessment or DeepSeek run is claimed. No human microphone test was performed in this revision.
 
-## Your remaining setup and validation
+## Deferred controlled study and optional setup
 
-1. Open `http://localhost:3000` consistently. Your existing OpenAI server key now passes the access check. Set `GOOGLE_GENERATIVE_AI_API_KEY` in private `.env.local` for hosted Gemini voice/evaluation; optionally add `DEEPSEEK_API_KEY` for the third evaluator. Restart the server after changes. Personal sessions use keys entered in Settings; Gemini voice needs both OpenAI and Gemini keys.
+1. Open `http://localhost:3000` consistently for local work. Production already has the encrypted server values. Set `GOOGLE_GENERATIVE_AI_API_KEY` in private `.env.local` only if you want to compare Gemini voice/evaluation; optionally add `DEEPSEEK_API_KEY` for the third evaluator. Personal sessions use keys entered in Settings; Gemini voice needs both OpenAI and Gemini keys.
 2. Sign out and back in with your Google admin account. Confirm **Admin workspace · All recruiters** appears and existing interviews are visible. Changing accounts intentionally removes locally saved personal keys; enter them again if needed.
 3. In a separate browser profile, sign in with another Google account. Its Dashboard/Pipeline should be empty until that account creates interviews. Opening an admin-owned report URL must not reveal the report. Create one synthetic interview there; confirm it appears for that creator and your admin account.
 4. Run the [bulk CV pipeline checklist](../evaluation/cv-pipeline-validation.md) with the fictional batch. Then schedule a synthetic interview using the candidate's actual Google sign-in email. Open the link in the candidate profile. Verify the correct email can join and a different account cannot. Submit answers, then open Pipeline/Candidates as the recruiter and run Evaluate. Verify only the recruiter/admin can persist the assessment.
 5. Try two short voice sessions with the same scripted answers: English first, then Bahasa Indonesia. Record wrong-language words, omitted words, language of the spoken questions, interruptions and reconnect behavior. Repeat with GPT-Live-Transcribe. Test Auto-detect separately; do not merge its results into the English baseline.
-6. After adding Gemini, repeat the same script with Gemini voice. Review the transcript against your recording before scoring evaluation quality. Keep the models unranked until there are comparable human-reviewed results. Finish the small pilot, update the PDF and record the five-minute demo.
+6. If a controlled comparison is useful after submission, repeat the same script with Gemini voice and alternate evaluators. Review transcripts against recordings and keep models unranked until comparable human-reviewed results exist. This study is optional and does not block the current prototype release or five-minute demo.
 
 ## Engineering notes and reproducible checks
 

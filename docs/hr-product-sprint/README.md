@@ -1,5 +1,7 @@
 # HR product sprint
 
+Updated: 2026-09-11. **Release status: prototype accepted for portfolio demonstration and engineering handoff; final five-minute video remains to be recorded.** See the [production release record](evaluation/results/2026-09-11-production-release.md) for the current evidence snapshot. Historical reports retain their original dates and results.
+
 [Authoritative specification](../../Product_Sprint.md) · [Live progress](../README.md) · [Current runbook](implementation/current-runbook.md)
 
 ## Phase reports
@@ -10,4 +12,4 @@
 - [Phase 4: evaluation](phases/04-evaluation-and-iteration.md)
 - [Phase 5: case study and handoff](phases/05-case-study-and-handoff.md)
 
-The September 10–11 requirements extend the initial review-brief scope. Current behavior is defined by Product_Sprint.md and the current runbook. The recruiter automation is documented in the [bulk CV pipeline note](implementation/2026-09-11-bulk-pipeline.md) and validated with the [CV pipeline checklist](evaluation/cv-pipeline-validation.md). Earlier scope decisions are archived; frozen evaluation inputs remain available for controlled comparisons.
+The September 10–11 requirements extend the initial review-brief scope. Current behavior is defined by `Product_Sprint.md` and the current runbook. The recruiter automation is documented in the [bulk CV pipeline note](implementation/2026-09-11-bulk-pipeline.md) and validated in production smoke/owner acceptance; the [CV pipeline checklist](evaluation/cv-pipeline-validation.md) remains the repeatable regression protocol. Earlier scope decisions are archived; frozen evaluation inputs remain available for controlled comparisons.

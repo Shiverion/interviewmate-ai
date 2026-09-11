@@ -1,6 +1,8 @@
 # CV pipeline and scheduled-invite validation
 
-Status: **Ready to run — live result fields are intentionally blank until a recruiter/admin performs the check.**
+Status: **Implemented and owner-accepted in production; checklist retained as the repeatable regression protocol.**
+
+The production release smoke verified the hosted pipeline dependencies, Firestore ledger and scoped access. The owner also accepted the recruiter flow from role brief through batch CV parsing, ATS ranking, invitation creation and candidate-only interview access. This file does not fabricate row-by-row benchmark measurements; a future recruiter study can fill the result sheet with a fresh commit/browser/account record.
 
 This checklist validates the automation described in the [bulk pipeline implementation note](../implementation/2026-09-11-bulk-pipeline.md). It tests workflow correctness, schedule snapshots and access isolation. It does not measure ATS hiring accuracy, recruiter time savings or candidate quality.
 

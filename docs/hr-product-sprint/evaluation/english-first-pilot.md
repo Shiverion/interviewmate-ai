@@ -2,7 +2,7 @@
 
 [Evaluation home](README.md) · [Phase 4](../phases/04-evaluation-and-iteration.md) · [Governance](data-governance.md)
 
-Updated: 2026-09-08. **Implemented in local development; live comparison and human review pending.**
+Updated: 2026-09-11. **Optional follow-up study; the production prototype is already released.** Live model comparison and independent human review are not release claims and should be run only with fixed inputs and documented reviewers.
 
 ## Open the workspace
 

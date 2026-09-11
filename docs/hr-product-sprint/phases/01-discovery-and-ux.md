@@ -2,7 +2,7 @@
 
 # Phase 1: discovery and UX workflow
 
-Status: **Desk-research package complete; human timing baseline pending.**
+Status: **Complete for desk research; manual timing baseline intentionally unmeasured.**
 
 Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
@@ -13,6 +13,10 @@ Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 Reuse InterviewMate to explore **a recruiter-reviewed first-screen brief** for one fictional frontend-engineer role. The draft should connect claims to candidate turns, expose missing evidence and support correction before handoff. [D01](../../archive/pre-evidence-v2/hr-product-sprint/decisions/001-sprint-scope.md) owns the scope and unresolved design decisions.
 
 The user chose desk research because recruiter/hiring-manager access is unavailable. This is enough to start a small design experiment, but demand, time savings, hiring accuracy and reduced bias remain unvalidated. Human timing is carried into Phase 4.
+
+### Release note — 2026-09-11
+
+The discovery decision remains valid in the production prototype: the target user is a recruiter managing a first-screen queue, and the chosen workflow is role brief → batch CV/ATS screening → recruiter-controlled interview invitations → evidence-based review. No recruiter access became available, so this report does not claim a measured manual baseline. The limitation is documented in the case study rather than treated as a product blocker.
 
 ## Deliverables and reading order
 

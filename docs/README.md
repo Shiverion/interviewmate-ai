@@ -1,31 +1,42 @@
 # Five-day sprint progress
 
-Updated: 2026-09-11. This is the authoritative progress tracker. [Product specification](../Product_Sprint.md) · [Product overview](../README.md) · [Current runbook](hr-product-sprint/implementation/current-runbook.md)
+Updated: 2026-09-11. This is the authoritative progress tracker for the prototype release. [Product specification](../Product_Sprint.md) · [HR sprint index](hr-product-sprint/README.md) · [Current runbook](hr-product-sprint/implementation/current-runbook.md)
 
-**Current priority: freeze features and finish a small live pilot plus submission artifacts.** The [full readiness audit and lean finish plan](../Product_Sprint.md#current-readiness-audit-and-lean-finish-plan--2026-09-10) distinguishes the original company challenge from our 16 added improvements. We have not passed everything: live voice/evaluation, a measured pilot baseline and the final video are still open. Independent recruiter calibration and enterprise infrastructure are future work, not mandatory quest deliverables. A sole-reviewer pilot is acceptable when its limits are explicit.
+**Current state: prototype release accepted for portfolio demonstration and engineering handoff.** The production app is live at [interviewmate-ai.shiverion.com](https://interviewmate-ai.shiverion.com/). The final five-minute recording is the only required submission artifact still to create; it must show the already-running workflow rather than introduce new features.
 
-| Phase | Progress | Remaining evidence |
+| Phase | Progress | Evidence and limit |
 |---|---|---|
-| [1 · Discovery](hr-product-sprint/phases/01-discovery-and-ux.md) | Desk research and inherited-product inspection complete; target user and workflow hypothesis defined. | No recruiter interview or measured manual-review baseline. |
-| [2 · Design](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) | Shared configuration, evidence rubric, access boundaries and recovery behavior specified and implemented. | Validate adaptive relevance and usability with a human. |
-| [3 · Prototype](hr-product-sprint/phases/03-prototype-build.md) | Shared realtime service; bulk CV pipeline; ATS ranking; candidate dashboard; three evaluation providers; invitations; configuration snapshots; CV validation; relevant GitHub context; human records. | Live provider, bulk scheduling and authenticated Firebase acceptance. |
-| [4 · Evaluation](hr-product-sprint/phases/04-evaluation-and-iteration.md) | Frozen baseline dataset, English-first protocol, Indonesian extension, 10-CV pipeline fixture and deterministic regression tests. | Successful model batches, transcription recordings, pipeline schedule checks, repeatability, latency/cost and human judgments. |
-| [5 · Handoff](hr-product-sprint/phases/05-case-study-and-handoff.md) | PDF case study, pipeline handoff note and demo script prepared; documentation reorganized. | Capture a successful live five-minute demo and publish an HTTPS reviewer environment. |
+| [1 · Discovery](hr-product-sprint/phases/01-discovery-and-ux.md) | Complete for desk research | Target user, recruiting bottleneck, workflow, concept and baseline plan are documented. No recruiter access was available, so the manual baseline is a proposed measurement, not a measured claim. |
+| [2 · Design](hr-product-sprint/phases/02-solution-design-and-ai-logic.md) | Complete | Shared configuration, evidence rubric, provider behavior, recovery, guardrails and data governance are implemented and documented. |
+| [3 · Prototype](hr-product-sprint/phases/03-prototype-build.md) | Complete | Production supports batch CV/ATS ranking, invitation links, voice + text interviews, editable transcripts, evidence evaluation, recovery, reviewer access, feedback and scoped dashboards. |
+| [4 · Evaluation](hr-product-sprint/phases/04-evaluation-and-iteration.md) | Complete for prototype validation | Synthetic cases, deterministic checks, regression tests, owner acceptance and production smoke passed. This is not an independent recruiter benchmark or a statistical fairness study. |
+| [5 · Handoff](hr-product-sprint/phases/05-case-study-and-handoff.md) | Handoff ready; video pending | Case study sources, phase reports, runbook, validation record and demo script are organized. Record and attach the final video before submission. |
 
 ## Current validation
 
-See the [revision validation record](hr-product-sprint/evaluation/results/2026-09-10-evidence-revision.md) for final command outcomes. Previous baseline: commit `29e40ba`, 122 unit tests and 10 browser checks. New software checks do not measure AI accuracy, fairness or recruiting outcomes.
+- **191 tests / 25 suites** pass locally.
+- `npx tsc --noEmit` and `npm run build` pass.
+- GitHub Node 24 CI passed in [run 34555169845](https://github.com/Shiverion/interviewmate-ai/actions/runs/34555169845).
+- Production smoke verified demo availability, AI configuration, hosted start and Firestore-backed usage ledger.
+- Firebase rules, indexes, storage and Admin SDK access are deployed for `interviewmate-9bdd4`.
+- The dated [production release record](hr-product-sprint/evaluation/results/2026-09-11-production-release.md) is the authoritative snapshot. Older result reports remain as historical evidence and keep their original test counts.
 
-The [model and access revision](hr-product-sprint/implementation/2026-09-10-models-and-access.md) records the current defaults, deployed ownership rules, 44 access checks, 168 application tests and a successful live synthetic GPT-5.6 Luna evaluation. OpenAI access now returns HTTP 200; Gemini and DeepSeek host keys are absent. Human voice and comparative model-quality testing remain open. Credentials are never included in tracked documentation.
+## Product spine
 
-## Reading order and ownership
+`role brief → batch CV parsing → deterministic ATS ranking → recruiter selection → invitation links → voice + text interview → evidence-based evaluation → human review`
 
-1. Read the [PDF](../deliverables/InterviewMate-Case-Study-and-Handoff.pdf) for the case study and handoff.
-2. Use [Product_Sprint.md](../Product_Sprint.md) to change requirements or product decisions.
-3. Update the relevant [phase report](hr-product-sprint/README.md) and this tracker when evidence changes.
-4. Use [current setup](hr-product-sprint/implementation/current-runbook.md), [model study](hr-product-sprint/evaluation/model-comparison-v2.md) and [revision matrix](hr-product-sprint/implementation/revision-tracker.md) for implementation/validation.
-5. Research, frozen datasets and dated results preserve their original evidence scope. [Archived design](archive/pre-evidence-v2/) and [legacy product documents](archive/README.md) are historical, not current instructions.
+The English workflow is the baseline. Bahasa Indonesia is reported separately as a multilingual extension. ATS and interview scores are review signals with source-linked evidence; the product does not make automated hiring decisions.
 
-## Open limitations
+## Reading order
 
-Adaptive relevance is prompt-directed, not a validated autonomous planner. Browser visibility/focus signals cannot prove cheating or see other devices. Hosted Unlimited pauses the interview clock but has a separate funding deadline. Budget units are bounded usage reservations, not an exact currency spending cap. Human records and recovery data remain in private local storage until exported or deleted by the host. The CV pipeline automates screening and link preparation, but recruiter selection remains required; no candidate-data training pipeline is enabled.
+1. [Product_Sprint.md](../Product_Sprint.md) for the requirement and current readiness audit.
+2. [Production release record](hr-product-sprint/evaluation/results/2026-09-11-production-release.md) for the latest evidence.
+3. [Phase reports](hr-product-sprint/README.md) for discovery, design, build, evaluation and handoff.
+4. [Current runbook](hr-product-sprint/implementation/current-runbook.md) for setup, deployment and acceptance.
+5. [Demo script](../deliverables/demo-script.md) for the five-minute recording.
+
+## Deliberate limits
+
+No recruiter time study or independent model calibration has been completed. Browser focus signals cannot prove cheating or inspect another device. Local model hosting, training on candidate data, OCR, eye tracking, exhaustive provider tournaments and enterprise compliance remain future work. These limits do not block the five-day prototype submission and are stated in the case study.
+
+Archived files under `docs/archive/` preserve earlier design and pre-production evidence; they are not current instructions.

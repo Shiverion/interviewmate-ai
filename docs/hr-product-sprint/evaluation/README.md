@@ -2,11 +2,11 @@
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Phase 4 plan](../phases/04-evaluation-and-iteration.md)
 
-Updated: 2026-09-11. **The human practice packet, Phase 4 dataset/runner and bulk CV pipeline fixture are ready. One real Phase 4 API attempt failed with AI_UNAVAILABLE; no model draft or human session is available for quality/timing evaluation.** The completed source inventory is a separate engineering baseline. The [Phase 3 implementation record](../phases/03-prototype-build.md#verification-record) includes software checks and one failed real provider attempt; it is not an AI-quality evaluation.
+Updated: 2026-09-11. **The prototype release is accepted for software validation and owner demonstration.** The [production release record](results/2026-09-11-production-release.md) captures the passing suite, CI, production smoke and acceptance notes. The human practice packet, frozen Phase 4 dataset/runner and bulk CV fixture remain available for a later controlled study; their historical failures and blank measurement sheets are preserved rather than overwritten.
 
 ## Choose the right path
 
-**New: [English-first three-provider pilot](english-first-pilot.md)** — API setup, benchmark review, Indonesian adaptations, and the exact human tasks. [Data governance](data-governance.md) records implemented boundaries and deferred training work. This is a separate experiment from frozen v1; live comparison remains pending.
+**Optional follow-up: [English-first three-provider pilot](english-first-pilot.md)** — API setup, benchmark review, Indonesian adaptations, and the exact human tasks. [Data governance](data-governance.md) records implemented boundaries and deferred training work. This is a separate experiment from the shipped prototype; model ranking remains intentionally deferred.
 
 | Purpose | Materials | Current status |
 |---|---|---|
@@ -17,7 +17,7 @@ Updated: 2026-09-11. **The human practice packet, Phase 4 dataset/runner and bul
 | Review a completed practice brief | [Facilitator reference notes](practice/reference-notes.md) | Assistant-authored expectations; keep separate from participant materials |
 | Record actual human measurements | [Human review log](baselines/human-review-log.csv) | Header only; no rows or measurements |
 | Run and inspect model evaluation | [Phase 4 guide](phase-4-guide.md), [frozen dataset](dataset/README.md), [Phase 4 results](../phases/04-evaluation-and-iteration.md) | Eight base cases and two variants frozen; first batch stopped after one failed attempt with 29 unattempted slots |
-| Validate automated CV pipeline | [CV pipeline checklist](cv-pipeline-validation.md), [10-CV fixture](dataset/cv-pipeline-v1/README.md), [implementation note](../implementation/2026-09-11-bulk-pipeline.md) | Software path is implemented; live Firebase rule, batch ranking, scheduling and candidate-admission checks are pending |
+| Validate automated CV pipeline | [CV pipeline checklist](cv-pipeline-validation.md), [10-CV fixture](dataset/cv-pipeline-v1/README.md), [implementation note](../implementation/2026-09-11-bulk-pipeline.md) | Production path and owner walkthrough accepted; checklist remains the repeatable regression protocol |
 
 ## Reading and participation order
 
@@ -35,4 +35,4 @@ node docs/hr-product-sprint/scripts/audit-current-product.cjs
 
 Reruns write `evaluation/runs/source-audit-latest.json`, which is ignored scratch output. Follow the [baseline report](current-product-baseline.md) to capture a new dated snapshot when needed. Human results belong in the CSV only after a real session, with an original brief and method record. Later AI outputs, failures and reviewed results must retain their case/prompt/model versions; the [contributor guide](../../CONTRIBUTING.md#files-links-and-recorded-evidence) explains where to store them.
 
-No time-saving, accuracy or fairness percentage has been measured for the proposed workflow. The [Phase 4 report](../phases/04-evaluation-and-iteration.md) owns the future result summary and comparison.
+No recruiter time-saving, independent accuracy or fairness percentage has been measured for the proposed workflow. The [Phase 4 report](../phases/04-evaluation-and-iteration.md) owns future controlled results; the current release record owns shipped validation.
