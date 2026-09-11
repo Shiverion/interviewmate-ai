@@ -206,18 +206,34 @@ export default function CandidateReportPage() {
         <h1 className="text-3xl">{candidate_name} · Interview evidence</h1>
         <AtsScoreSummary score={sessionData.ats_score} />
         <EvidenceAssessment assessment={evaluation} />
-        <HumanReviewPanel
-          key={sessionId}
-          assessment={evaluation}
-          transcript={final_transcript || []}
-          source={{
-            sessionId,
-            transcriptVersion: "session-transcript-v1",
-            model: sessionData.evaluation_model || "unknown",
-            provider: sessionData.evaluation_provider || "unknown",
-            synthetic: sessionData.synthetic === true,
-          }}
-        />
+        {sessionData.human_review ? (
+          <section className="wm-panel mt-6 space-y-3" aria-label="Human review status">
+            <p className="wm-eyebrow">Human review · completed</p>
+            <h2 className="text-xl">Evidence review submitted</h2>
+            <p className="text-sm text-[var(--muted)]">
+              Reviewer: {sessionData.human_review.reviewerId || "—"}
+            </p>
+            {sessionData.human_review.notes && (
+              <p className="whitespace-pre-wrap text-sm">{sessionData.human_review.notes}</p>
+            )}
+            <p className="text-xs text-[var(--muted)]">
+              The recruiter reviewed the cited evidence. This review is separate from the AI evidence score.
+            </p>
+          </section>
+        ) : (
+          <HumanReviewPanel
+            key={sessionId}
+            assessment={evaluation}
+            transcript={final_transcript || []}
+            source={{
+              sessionId,
+              transcriptVersion: "session-transcript-v1",
+              model: sessionData.evaluation_model || "unknown",
+              provider: sessionData.evaluation_provider || "unknown",
+              synthetic: sessionData.synthetic === true,
+            }}
+          />
+        )}
         <InterviewFeedbackSummary value={sessionData.candidate_feedback} />
         <section className="wm-panel">
           <h2 className="text-xl mb-4">Transcript</h2>

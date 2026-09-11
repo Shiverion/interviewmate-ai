@@ -63,6 +63,11 @@ type Session = {
       competencyCoverage?: { assessed?: number; total?: number };
     };
   };
+  human_review?: {
+    reviewerId?: string;
+    notes?: string;
+    submittedAt?: unknown;
+  };
 };
 
 function millis(value: unknown) {
@@ -114,12 +119,18 @@ function assessmentScore(session: Session): number | null {
 function evaluationLabel(session: Session) {
   const evaluation = session.evaluation;
   if (!evaluation) return null;
+  const reviewLabel = session.human_review
+    ? " · Human reviewed"
+    : " · Human review pending";
   if (evaluation.schemaVersion === "competency-evidence-v2") {
     const score = assessmentScore(session);
-    if (typeof score === "number") return `Evidence ${Math.round(score)}/100`;
-    return /evaluat|pending/i.test(evaluation.status || "")
-      ? "Evaluation pending"
-      : evaluation.status || "Evidence ready";
+    if (typeof score === "number")
+      return `Evidence ${Math.round(score)}/100${reviewLabel}`;
+    return (
+      /evaluat|pending/i.test(evaluation.status || "")
+        ? "Evaluation pending"
+        : evaluation.status || "Evidence ready"
+    ) + reviewLabel;
   }
   if (typeof evaluation.overallScore === "number")
     return `${Math.round(evaluation.overallScore)}%`;
