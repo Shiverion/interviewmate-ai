@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 
 type Theme = "light" | "dark";
 
@@ -20,8 +19,6 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isStandaloneCaseStudy = pathname === "/case-study" || pathname.startsWith("/case-study/");
   const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
@@ -51,9 +48,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // the wrapper with a provider remounts children and can reset early input.
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div style={{ visibility: mounted || isStandaloneCaseStudy ? "visible" : "hidden" }}>
-        {children}
-      </div>
+      <div style={{ visibility: "visible" }}>{children}</div>
     </ThemeContext.Provider>
   );
 }
