@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { collection, getDocs, query, type DocumentData } from "firebase/firestore";
+import { collection, onSnapshot, query, type DocumentData } from "firebase/firestore";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { interviewScope, isWorkspaceAdmin } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
@@ -55,32 +55,49 @@ export default function ReviewerTestsPage() {
   const [records, setRecords] = useState<ReviewerTestRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadRecords = useCallback(async () => {
-    if (!user || !admin || !isFirebaseReady()) {
-      setRecords([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const snapshot = await getDocs(
-        query(collection(db, "interview_sessions"), ...interviewScope(user))
-      );
-      const next = snapshot.docs
-        .map((item) => ({ id: item.id, ...item.data() }) as ReviewerTestRecord)
-        .filter((record) => !record.synthetic && isReviewerTestSession(record))
-        .sort((a, b) => millis(b.created_at) - millis(a.created_at));
-      setRecords(next);
-    } catch {
-      setRecords([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [admin, user]);
-
   useEffect(() => {
-    void loadRecords();
-  }, [loadRecords]);
+    let active = true;
+    if (!user || !admin || !isFirebaseReady()) {
+      void Promise.resolve().then(() => {
+        if (active) {
+          setRecords([]);
+          setLoading(false);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }
+    void Promise.resolve().then(() => {
+      if (active) setLoading(true);
+    });
+    const reviewerQuery = query(
+      collection(db, "interview_sessions"),
+      ...interviewScope(user)
+    );
+    const unsubscribe = onSnapshot(
+      reviewerQuery,
+      (snapshot) => {
+        if (!active) return;
+        const next = snapshot.docs
+          .map((item) => ({ id: item.id, ...item.data() }) as ReviewerTestRecord)
+          .filter((record) => !record.synthetic && isReviewerTestSession(record))
+          .sort((a, b) => millis(b.created_at) - millis(a.created_at));
+        setRecords(next);
+        setLoading(false);
+      },
+      () => {
+        if (!active) return;
+        setRecords([]);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [admin, user]);
 
   if (!admin) return null;
 
