@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { User, onIdTokenChanged } from "firebase/auth";
 import { useInterviewStore } from "@/lib/store/useInterviewStore";
 import { useControlStore } from "@/lib/integrity/control-store";
@@ -18,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isStandaloneCaseStudy = pathname === "/case-study" || pathname.startsWith("/case-study/");
   const observedIdentity = useRef<string | null>(null);
   const [identityKey, setIdentityKey] = useState("guest");
   const [user, setUser] = useState<User | null>(null);
@@ -79,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider key={identityKey} value={{ user, loading }}>
-      {loading ? (
+      {loading && !isStandaloneCaseStudy ? (
         <div role="status" className="p-6">
           Loading your workspace…
         </div>
