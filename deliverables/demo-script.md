@@ -44,6 +44,32 @@ Use this same fixture in `/pipeline` so the actions and narration stay consisten
 
 Upload the ten fictional CVs, review the ATS ranking, then select one top-ranked row such as **Hendra Wijaya** for the invitation walkthrough. The exact selected name may change if the ranking is rerun.
 
+### Human-review demo fixture
+
+Use the prepared **Maya Chen** record for the human-review portion of the recording. It is intentionally an AI-evaluated record that still needs recruiter review:
+
+| Field | Demo value |
+| --- | --- |
+| Role | Frontend Engineer |
+| ATS score | 94/100 (resume-to-role screening signal) |
+| AI evidence score | 50/100 |
+| Coverage | 3/4 competencies assessed |
+| Human review state | Pending |
+| Reviewer ID | `demo-recruiter` |
+
+Fill the evidence judgments as follows:
+
+- **Personal ownership:** Supported by evidence
+- **Technical reasoning:** Supported by evidence
+- **Validation and outcomes:** Relevant evidence missed
+- **Collaboration:** Cannot assess from this transcript
+
+Use this note in the `Notes` field:
+
+> The candidate clearly described owning React queue filters and a request-number guard against stale responses. The evidence is relevant, but this short transcript does not establish production impact, accessibility testing with a screen reader, or collaboration scope. Keep the AI evidence score as a review aid; do not infer a hiring decision.
+
+`Reviewer ID` identifies the person making the review, not the candidate. For the recording, `demo-recruiter` is a safe fictional alias. In a real workspace, use a stable recruiter handle or internal reviewer ID. Notes should explain what the evidence supports, what the model missed or overstated, and what should be verified next; they should not be used to paste a hiring verdict.
+
 ## Core five-minute take
 
 ### 1. Public landing page — 0:00–0:20
@@ -118,6 +144,12 @@ End the invitation from the visible session control. Do not claim that this inte
 
 > “For the result view I open a completed record. ATS describes resume-to-role fit; the interview assessment describes supported evidence from submitted answers. The report uses a percentage out of one hundred, competency coverage and source-linked quotations. Missing or technical-failure answers do not become an automatic hiring penalty, and the product does not make a hiring decision. The recruiter can inspect the full history, while the candidate can leave feedback on clarity, transcription, relevance and technical reliability.”
 
+**Continue with the Maya record:** open the evidence detail, show `AI evidence 50/100` and `Human review pending`, then enter the demo judgments, `demo-recruiter` and the note above. Submit the review and show the completed reviewer state. If the seeded record is already reviewed, use the existing completed reviewer summary instead of submitting twice.
+
+**Say:**
+
+> “The human reviewer is a second evidence check. They can mark a competency as supported, overstated, understated when relevant evidence was missed, or not assessable, then explain the reason. A human review can correct a model miss, but it does not silently overwrite the AI result. The dashboard keeps the AI evidence score, ATS score and human-review state visible as separate signals.”
+
 ### 7. AI logic, testing and engineering handoff — 4:10–5:00
 
 **Show:** the approved AI-boundaries diagram, the evaluation table, then the case-study handoff page and production URL.
@@ -135,6 +167,8 @@ Add **one** of these only if the edited core take is comfortably below five minu
 - **Bahasa Indonesia extension, 10–15 seconds:** show the language setting and one transcript line. Say: “English is the baseline; Bahasa Indonesia is tested as a multilingual extension.”
 - **GitHub context, 10–15 seconds:** show the optional field only with a prepared public profile. Say: “GitHub context is bounded and non-blocking; the interview still works when the field is empty or retrieval is unavailable.”
 - **Feedback learning, 10–15 seconds:** show the feedback form. Say: “Feedback is for product improvement. Future transcript learning would require consent, PII masking and a held-out quality check.”
+
+If asked about a combined score, describe it as a future review aid rather than a hiring score: the AI evidence score remains immutable, the reviewer can record a corrected per-competency interpretation with an explanation, and a later “reviewed evidence score” may be calculated only from those explicit judgments. Do not average ATS, AI evidence and human judgment into an unexplained hiring percentage.
 
 Do not add all three. The required story is the recruiting workflow, candidate controls, evidence result and engineering handoff.
 

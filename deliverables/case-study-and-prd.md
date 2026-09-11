@@ -139,6 +139,8 @@ The server validates the structure and candidate quote references, then computes
 
 The legacy `overallScore` hiring field stays null in the current evidence result. `dimensions.evidenceScore` is the displayed percentage. Engineers should not use the older `evaluation-schema.ts` hiring-recommendation schema as the current evidence contract.
 
+Human review is a separate evidence-quality layer. The current MVP records the reviewer ID, per-competency judgment (`supported`, `overstated`, `understated` or `not assessable`) and notes while preserving the AI evidence score. A reviewer may identify a missed or overstated claim, but the UI does not silently replace the model score or convert the review into a hiring recommendation. The recruiter dashboard should therefore show **ATS score**, **AI evidence score** and **human-review state** as separate signals. A future reviewed-evidence score can be calculated only from explicit per-competency corrections, with the original AI score, reviewer identity and rationale retained alongside it; an unexplained average of ATS, AI and human judgment is out of scope.
+
 The optional additional rubric defaults empty. Inspect the implementation when changing its semantics: the current evidence prompt restricts output to supplied competencies when a rubric is provided. It should not be documented as always adding those items to a separately generated base rubric.
 
 ## 5. Evaluation: inputs, results and iterations
