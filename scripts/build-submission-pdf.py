@@ -21,6 +21,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     Image as ReportImage,
+    AnchorFlowable,
     LongTable,
     PageBreak,
     Paragraph,
@@ -126,8 +127,13 @@ def build_diagram(path: Path, title: str, nodes: list[tuple[str, str]], edges: l
         tx, ty = positions[target]
         if ty > sy:
             arrow(draw, (sx + box_w // 2, sy + box_h), (tx + box_w // 2, ty))
-        else:
+        elif tx > sx:
             arrow(draw, (sx + box_w, sy + box_h // 2), (tx, ty + box_h // 2))
+        else:
+            # The middle row runs right-to-left. Start at the source's left
+            # edge and finish at the target's right edge so the connector
+            # stays between cards instead of cutting through them.
+            arrow(draw, (sx, sy + box_h // 2), (tx + box_w, ty + box_h // 2))
     path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path, format="PNG", optimize=True)
 
@@ -227,7 +233,12 @@ def table_from_rows(rows: list[list[str]], styles: dict[str, ParagraphStyle]):
     return table
 
 
-def parse_markdown(text: str, styles: dict[str, ParagraphStyle], diagram_paths: list[Path] | None = None, skip_front_matter: bool = False, skip_leading_title: bool = False):
+def anchor_id(prefix: str, title: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return f"{prefix}-{slug[:70]}"
+
+
+def parse_markdown(text: str, styles: dict[str, ParagraphStyle], diagram_paths: list[Path] | None = None, skip_front_matter: bool = False, skip_leading_title: bool = False, anchor_prefix: str | None = None):
     lines = text.replace("\r\n", "\n").split("\n")
     if skip_front_matter:
         first_section = next((i for i, line in enumerate(lines) if re.match(r"^##\s+", line.strip())), len(lines))
@@ -275,6 +286,8 @@ def parse_markdown(text: str, styles: dict[str, ParagraphStyle], diagram_paths: 
                 first_nonblank = False
                 index += 1
                 continue
+            if anchor_prefix:
+                story.append(AnchorFlowable(anchor_id(anchor_prefix, title)))
             if level == 1:
                 story.append(Paragraph(plain(title), styles["title"]))
             elif level == 2:
@@ -373,18 +386,28 @@ def main() -> None:
         Paragraph("The MVP is deployed and documented. The five-minute recording and final portal upload are still the remaining human submission steps. Manual-versus-assisted timing is disclosed as unmeasured rather than presented as a fabricated result.", styles["body"]),
         PageBreak(),
         Paragraph("Contents", styles["title"]),
-        Paragraph("The first section is the concise case study and handoff. The appendices preserve the important current Markdown reports so a reviewer can trace the decisions and evidence without opening the repository.", styles["body"]),
+        Paragraph("Click a section below to jump directly to it. The first section is the concise case study and handoff; the appendices preserve the important current reports so a reviewer can trace decisions and evidence without opening the repository.", styles["body"]),
+        Paragraph("Quick access", styles["h2"]),
+        Paragraph('<link href="https://interviewmate-ai.shiverion.com/">Open the production prototype</link>', styles["toc"]),
+        Paragraph('<link href="https://interviewmate-ai.shiverion.com/case-study">Open the interactive hands-on brief</link>', styles["toc"]),
         Paragraph("Main submission", styles["h2"]),
-        Paragraph("1. Case study, MVP requirements, UX, AI logic, evaluation and engineering handoff", styles["toc"]),
+        Paragraph('<link href="#main-case-study">1. Case study overview</link>', styles["toc"]),
+        Paragraph('<link href="#main-1-problem-and-user">2. Problem and user</link>', styles["toc"]),
+        Paragraph('<link href="#main-2-product-decision-and-sprint-contribution">3. Product decision and sprint contribution</link>', styles["toc"]),
+        Paragraph('<link href="#main-3-ux-and-workflow">4. UX and workflow</link>', styles["toc"]),
+        Paragraph('<link href="#main-4-ai-logic-and-scoring">5. AI logic and scoring</link>', styles["toc"]),
+        Paragraph('<link href="#main-6-engineering-handoff">6. Engineering handoff</link>', styles["toc"]),
         Paragraph("Appendices", styles["h2"]),
     ]
-    for label, _ in APPENDICES:
-        story.append(Paragraph(label, styles["toc"]))
+    for index, (label, _) in enumerate(APPENDICES, start=1):
+        story.append(Paragraph(f'<link href="#appendix-{index}">{escape(label)}</link>', styles["toc"]))
     story.append(PageBreak())
-    story.extend(parse_markdown(SOURCE.read_text(encoding="utf-8"), styles, [workflow, ai_logic], skip_front_matter=True))
+    story.append(AnchorFlowable("main-case-study"))
+    story.extend(parse_markdown(SOURCE.read_text(encoding="utf-8"), styles, [workflow, ai_logic], skip_front_matter=True, anchor_prefix="main"))
 
-    for label, path in APPENDICES:
+    for index, (label, path) in enumerate(APPENDICES, start=1):
         story.append(PageBreak())
+        story.append(AnchorFlowable(f"appendix-{index}"))
         story.append(Paragraph(plain(label), styles["appendix_title"]))
         story.append(Paragraph("Supporting report included from the current repository documentation.", styles["status"]))
         story.extend(parse_markdown(path.read_text(encoding="utf-8"), styles, [], skip_leading_title=True))
