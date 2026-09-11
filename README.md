@@ -6,7 +6,7 @@ The inherited Next.js application is the baseline. This revision replaces unexpl
 
 - [Product_Sprint.md](Product_Sprint.md): authoritative challenge, accepted requirements and decisions.
 - [Five-phase progress](docs/README.md): current work, release checks and the remaining video artifact.
-- [Case study, PRD and engineering handoff](deliverables/case-study-and-prd.md): current Markdown submission with UX/AI diagrams. The earlier PDF is a superseded draft.
+- [Case study, PRD and engineering handoff](deliverables/case-study-and-prd.md): editable source with UX/AI diagrams; use the [PDF export](deliverables/InterviewMate-Case-Study-and-Handoff.pdf) for a polished reviewer attachment.
 - [MVP expected-output audit](deliverables/mvp-readiness-audit.md): D1–D5 evidence, prototype format and remaining baseline/video work.
 - [Submission package](deliverables/README.md): current artifacts and superseded exports.
 - [Setup and validation](docs/hr-product-sprint/implementation/current-runbook.md).
