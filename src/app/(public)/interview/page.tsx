@@ -122,7 +122,7 @@ function TranscriptPanel({
       </div>
       <div
         ref={scrollRef}
-        className={`${isTextMode ? "text-left" : "text-center"} h-[16rem] overflow-y-auto overscroll-contain p-4 sm:h-[20rem] space-y-4 scroll-smooth`}
+        className={`${isTextMode ? "text-left" : "text-center"} h-[10rem] overflow-y-auto overscroll-contain p-4 sm:h-[12rem] space-y-4 scroll-smooth`}
       >
         {transcript.map((item, i) =>
           isTextMode ? (
