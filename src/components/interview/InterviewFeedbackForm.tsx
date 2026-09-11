@@ -108,39 +108,67 @@ export default function InterviewFeedbackForm({
       const isBrowserOnly = !sessionId || sessionId.startsWith("demo-");
       const reviewerId = reviewerSessionId;
       let remoteSaveFailed = false;
+      let syncFailureReason = "";
+
+      const saveCandidateFeedbackToFirestore = async () => {
+        if (isBrowserOnly || !sessionId || !isFirebaseReady()) return false;
+        await updateDoc(doc(db, "interview_sessions", sessionId), {
+          candidate_feedback: {
+            ...feedback,
+            submitted_at: serverTimestamp(),
+          },
+        });
+        return true;
+      };
 
       // Reviewer sessions are backed by the hosted reviewer ledger. Save there
       // first and avoid a Firestore write that the candidate's Firebase rules
       // may correctly reject when the session belongs to a different identity.
       if (sponsored && reviewerId) {
+        let saved = false;
         try {
           const response = await fetch("/api/reviewer/sessions", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id: reviewerId, feedback }),
           });
-          if (!response.ok) remoteSaveFailed = true;
-        } catch {
-          remoteSaveFailed = true;
+          if (response.ok) saved = true;
+          else {
+            const body = await response.json().catch(() => null);
+            syncFailureReason =
+              body?.error || `Reviewer sync returned ${response.status}.`;
+          }
+        } catch (caught) {
+          syncFailureReason =
+            caught instanceof Error ? caught.message : "Reviewer sync failed.";
         }
+        // Invitation interviews also have a real Firestore session. This
+        // fallback keeps feedback attached to that record if the reviewer
+        // cookie/ledger is unavailable after a refresh or server restart.
+        if (!saved) {
+          try {
+            saved = await saveCandidateFeedbackToFirestore();
+          } catch (caught) {
+            syncFailureReason =
+              caught instanceof Error ? caught.message : "Workspace sync failed.";
+          }
+        }
+        remoteSaveFailed = !saved;
       } else if (!isBrowserOnly && isFirebaseReady()) {
         try {
-          await updateDoc(doc(db, "interview_sessions", sessionId), {
-            candidate_feedback: {
-              ...feedback,
-              submitted_at: serverTimestamp(),
-            },
-          });
-        } catch {
+          await saveCandidateFeedbackToFirestore();
+        } catch (caught) {
           remoteSaveFailed = true;
+          syncFailureReason =
+            caught instanceof Error ? caught.message : "Workspace sync failed.";
         }
       }
       localStorage.setItem(storageKey, JSON.stringify({ submitted: true, feedback }));
       if (remoteSaveFailed) {
         setSyncWarning(
           indonesian
-            ? "Feedback tersimpan di browser ini, tetapi sinkronisasi ke workspace gagal."
-            : "Feedback was saved in this browser, but workspace sync was unavailable."
+            ? `Feedback tersimpan di browser ini, tetapi sinkronisasi ke workspace gagal.${syncFailureReason ? ` Alasan: ${syncFailureReason}` : ""}`
+            : `Feedback was saved in this browser, but workspace sync was unavailable.${syncFailureReason ? ` Reason: ${syncFailureReason}` : ""}`
         );
       }
       setSubmitted(true);
