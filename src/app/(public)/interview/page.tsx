@@ -293,37 +293,52 @@ function InterviewRoomContent() {
     ) {
       evaluationRequested.current = sessionId;
       queueMicrotask(() => setIsEvaluating(true));
-      // Sponsored (hosted-voice) sessions — the public demo and every
-      // reviewer-invitation session — never have a personal provider key, so
-      // their preview evaluation must use the ledger-scoped, host-keyed
-      // evaluator. Whether it can later *persist* to interview_sessions is a
-      // separate concern, gated below by isDemoSession (a real Firestore doc
-      // vs. a ledger-only id), not by which endpoint produced this preview.
+      // Hosted sessions use server-side credentials. Production invitation
+      // records use a Firebase-authenticated endpoint so their evaluation can
+      // be persisted without asking the candidate for an API key.
       const sponsored = _sessionContext?.sponsored === true;
-      fetch(sponsored ? "/api/demo/evaluate" : "/api/evaluate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(!sponsored ? evaluationHeaders() : {}),
-        },
-        body: JSON.stringify({
-          sessionId: sponsored
-            ? _sessionContext?.voiceLeaseId || sessionId
-            : sessionId,
-          provider: getEvaluationProvider(),
-          configuration: _sessionContext
-            ? configurationFromContext(_sessionContext)
-            : defaultConfiguration(),
-          allowFallback:
-            localStorage.getItem("interviewmate_allow_fallback") === "true",
-          transcript,
-          candidateName,
-          jobTitle,
-          role: [jobTitle, jobDescription].filter(Boolean).join("\n"),
-          jobDescription: jobDescription || "",
-          cv: _sessionContext?.resumeText || "",
-        }),
-      })
+      const scheduled = _sessionContext?.accessMode === "scheduled";
+      const evaluationEndpoint = scheduled
+        ? "/api/evaluate/scheduled"
+        : sponsored
+          ? "/api/demo/evaluate"
+          : "/api/evaluate";
+      const evaluationToken = scheduled
+        ? auth.currentUser
+          ? auth.currentUser.getIdToken()
+          : Promise.resolve(undefined)
+        : Promise.resolve(undefined);
+      evaluationToken
+        .then((token) =>
+          fetch(evaluationEndpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(!sponsored ? evaluationHeaders() : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({
+              sessionId: scheduled
+                ? sessionId
+                : sponsored
+                  ? _sessionContext?.voiceLeaseId || sessionId
+                  : sessionId,
+              provider: getEvaluationProvider(),
+              configuration: _sessionContext
+                ? configurationFromContext(_sessionContext)
+                : defaultConfiguration(),
+              allowFallback:
+                scheduled ||
+                localStorage.getItem("interviewmate_allow_fallback") === "true",
+              transcript,
+              candidateName,
+              jobTitle,
+              role: [jobTitle, jobDescription].filter(Boolean).join("\n"),
+              jobDescription: jobDescription || "",
+              cv: _sessionContext?.resumeText || "",
+            }),
+          })
+        )
         .then(async (res) => {
           const data = await res.json();
           if (!res.ok) {
@@ -362,7 +377,7 @@ function InterviewRoomContent() {
                   source: sessionId,
                 })
               );
-              if (!isDemoSession && isFirebaseReady())
+              if (!isDemoSession && !scheduled && isFirebaseReady())
                 void getDoc(doc(db, "interview_sessions", sessionId))
                   .then((snapshot) => {
                     const record = snapshot.data() || {};
@@ -413,6 +428,7 @@ function InterviewRoomContent() {
     isEvaluating,
     evaluationDone,
     _sessionContext?.sponsored,
+    _sessionContext?.accessMode,
     _sessionContext,
   ]);
 

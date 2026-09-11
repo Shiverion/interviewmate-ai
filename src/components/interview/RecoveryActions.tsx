@@ -27,7 +27,9 @@ export default function RecoveryActions({ retry = true }: { retry?: boolean }) {
     useInterviewStore.getState().disconnect();
     useControlStore.getState().complete();
     router.push(
-      context?.accessMode === "reviewer"
+      context?.accessMode === "scheduled"
+        ? `/apply/${context.sessionId}`
+        : context?.accessMode === "reviewer"
         ? "/reviewer"
         : context?.sponsored
           ? "/demo"

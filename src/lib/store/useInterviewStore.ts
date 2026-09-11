@@ -7,7 +7,7 @@ import {
 } from "@/lib/audio/WebRTCAudioManager";
 import { GeminiAudioManager } from "@/lib/audio/GeminiAudioManager";
 import { getOpenAIKey, getProviderKey } from "@/lib/keys/store";
-import { db } from "@/lib/firebase/config";
+import { auth, db } from "@/lib/firebase/config";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import {
   configurationFromContext,
@@ -46,7 +46,7 @@ export interface InterviewContext {
    * interview's own `sessionId` is a real Firestore document id instead. */
   voiceLeaseId?: string;
   sponsored?: boolean;
-  accessMode?: "byok" | "demo" | "reviewer";
+  accessMode?: "byok" | "demo" | "reviewer" | "scheduled";
   demoExpiresAt?: number;
   configuration?: InterviewConfiguration;
   returnTo?: string;
@@ -323,7 +323,8 @@ export const useInterviewStore = create<InterviewState>()(
             throw Error(
               "Interview configuration is missing. Return to Setup to create or restore it."
             );
-          const sponsored = context.sponsored === true,
+          const scheduled = context.accessMode === "scheduled",
+            sponsored = context.sponsored === true,
             key = sponsored ? null : getOpenAIKey();
           if (!sponsored && !key)
             throw Error(
@@ -408,15 +409,28 @@ export const useInterviewStore = create<InterviewState>()(
             setCandidateCapture(true);
             set({ avatarState: "listening", turnNotice: "" });
           };
+          const scheduledToken = scheduled
+            ? await auth.currentUser?.getIdToken()
+            : undefined;
+          if (scheduled && !scheduledToken)
+            throw Error(
+              "Your invited account could not be verified. Sign in again, then retry the interview."
+            );
+          const realtimeEndpoint = scheduled
+            ? "/api/realtime/scheduled"
+            : "/api/realtime";
           const managerConfig: WebRTCManagerConfig = {
             languagePolicy: spokenLanguagePolicy(configuration.language),
             ephemeralToken: "",
             exchangeSdp: async (sdp) => {
-              const response = await fetch("/api/realtime", {
+              const response = await fetch(realtimeEndpoint, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                   ...(!sponsored ? { "x-openai-key": key! } : {}),
+                  ...(scheduledToken
+                    ? { Authorization: `Bearer ${scheduledToken}` }
+                    : {}),
                 },
                 body: JSON.stringify({
                   sdp,
@@ -447,15 +461,22 @@ export const useInterviewStore = create<InterviewState>()(
               const closeId = sponsored ? voiceId + ":" + callId : callId;
               if (!closeId || closedCall === closeId) return;
               closedCall = closeId;
-              void fetch("/api/realtime", {
+              void fetch(realtimeEndpoint, {
                 method: "DELETE",
                 keepalive: true,
                 headers: {
                   "Content-Type": "application/json",
                   ...(!sponsored ? { "x-openai-key": key! } : {}),
+                  ...(scheduledToken
+                    ? { Authorization: `Bearer ${scheduledToken}` }
+                    : {}),
                 },
                 body: JSON.stringify(
-                  sponsored ? { sessionId: voiceId } : { callId }
+                  scheduled
+                    ? { sessionId: context.sessionId, callId }
+                    : sponsored
+                      ? { sessionId: voiceId }
+                      : { callId }
                 ),
               }).catch(() => {});
             },
@@ -655,6 +676,7 @@ export const useInterviewStore = create<InterviewState>()(
               ? new GeminiAudioManager({
                   ...managerConfig,
                   geminiKey: geminiKey || undefined,
+                  authToken: scheduledToken,
                   body: {
                     sessionId: context.voiceLeaseId || context.sessionId,
                     configuration,

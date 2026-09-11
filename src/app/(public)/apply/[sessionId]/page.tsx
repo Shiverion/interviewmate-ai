@@ -53,7 +53,6 @@ function ScheduledCandidateEntry() {
   const [error, setError] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<DocumentData | null>(null);
   const [templateData, setTemplateData] = useState<DocumentData | null>(null);
-  const [interviewMode, setInterviewMode] = useState<"voice" | "text">("voice");
 
   useEffect(() => {
     if (!sessionId) return;
@@ -261,7 +260,10 @@ function ScheduledCandidateEntry() {
         sessionId: sessionData.id,
         configuration: sessionData.configuration,
         cvParsing: sessionData.cv_parsing,
-        accessMode: "byok",
+        // Production invitation links are hosted by the recruiter workspace.
+        // Candidates must not be asked for a personal provider key.
+        sponsored: true,
+        accessMode: "scheduled",
         returnTo: `/apply/${sessionData.id}`,
         candidateName: sessionData.candidate_name,
         jobTitle: templateData.job_title,
@@ -277,8 +279,7 @@ function ScheduledCandidateEntry() {
         resumeText: sessionData._resumeText || "",
         githubEnrichment: sessionData._githubEnrichment || undefined,
         startedAt: sessionData.started_at?.toMillis() || Date.now(),
-        interviewMode:
-          sessionData.allowed_modes === "audio_only" ? "voice" : interviewMode,
+        interviewMode: "voice",
         allowedModes: sessionData.allowed_modes || "audio_and_text",
         visualPanel: templateData.visual_panel || "none",
         codeDiff: templateData.code_diff || "",
@@ -367,7 +368,14 @@ function ScheduledCandidateEntry() {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span>Estimated Duration: ~15 to 20 minutes</span>
+              <span>
+                Estimated duration: {sessionData?.configuration?.durationMinutes === "unlimited"
+                  ? "flexible"
+                  : `${sessionData?.configuration?.durationMinutes || 10} minutes`}
+                {sessionData?.configuration?.maxTurns
+                  ? ` · ${sessionData.configuration.maxTurns} turns`
+                  : ""}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <svg
@@ -388,86 +396,18 @@ function ScheduledCandidateEntry() {
           </div>
         </div>
 
-        {/* Mode Selection */}
-        <div className="mb-8 space-y-3">
-          <h3 className="font-semibold text-sm text-[var(--muted)]">
-            Select Interview Mode
-          </h3>
-          <div
-            className={
-              sessionData?.allowed_modes === "audio_only"
-                ? "grid grid-cols-1 gap-4"
-                : "grid grid-cols-2 gap-4"
-            }
-          >
-            <button
-              onClick={() => setInterviewMode("voice")}
-              className={`p-4 rounded-xl border text-left transition-all ${
-                interviewMode === "voice"
-                  ? "border-primary-500 bg-primary-500/10 ring-2 ring-primary-500/20"
-                  : "border-[var(--border)] bg-[var(--surface-elevated)] hover:border-primary-500/50"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span
-                  className={`font-semibold ${interviewMode === "voice" ? "text-primary-400" : ""}`}
-                >
-                  Voice
-                </span>
-                <svg
-                  className={`w-5 h-5 ${interviewMode === "voice" ? "text-primary-400" : "text-[var(--muted)]"}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11a7.5 7.5 0 01-14.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632zM8 11V7a4 4 0 118 0v4M8 11h8"
-                  />
-                </svg>
-              </div>
-              <p className="text-xs text-[var(--muted)]">
-                Interactive speaking & listening.
-              </p>
-            </button>
-
-            {sessionData?.allowed_modes !== "audio_only" && (
-              <button
-                onClick={() => setInterviewMode("text")}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  interviewMode === "text"
-                    ? "border-primary-500 bg-primary-500/10 ring-2 ring-primary-500/20"
-                    : "border-[var(--border)] bg-[var(--surface-elevated)] hover:border-primary-500/50"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span
-                    className={`font-semibold ${interviewMode === "text" ? "text-primary-400" : ""}`}
-                  >
-                    Text
-                  </span>
-                  <svg
-                    className={`w-5 h-5 ${interviewMode === "text" ? "text-primary-400" : "text-[var(--muted)]"}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-xs text-[var(--muted)]">
-                  Quiet typing environment.
-                </p>
-              </button>
-            )}
+        <div className="mb-8 rounded-xl border border-primary-500/30 bg-primary-500/10 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-semibold text-sm text-primary-300">
+              Voice + text · Required
+            </h3>
+            <span className="wm-tag">Recruiter configured</span>
           </div>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">
+            Speak first, review the transcript, edit it when needed, then send
+            the answer. The recruiter&apos;s settings are locked for this link;
+            no personal AI key is required.
+          </p>
         </div>
 
         <button

@@ -3,6 +3,8 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { limitedJson, sameOrigin, visitor } from "@/lib/demo/http";
 import { requestReviewer } from "@/lib/access/reviewer";
+import { verifiedIdentity } from "@/lib/firebase/server-auth";
+import { requireScheduledSession } from "@/lib/firebase/scheduled-session";
 import { attachCall, ownedLease, startDemoReaper } from "@/lib/demo/ledger";
 import { configurationSchema } from "@/lib/interview/config";
 import {
@@ -42,17 +44,23 @@ export async function POST(req: NextRequest) {
   try {
     const suppliedKey = req.headers.get("x-gemini-key")?.trim();
     const grant = suppliedKey ? null : await requestReviewer(req);
-    if (!suppliedKey && !grant && !req.cookies.get("reviewer-demo"))
+    const body = schema.parse(await limitedJson(req, 75000));
+    const scheduledIdentity =
+      !suppliedKey && !grant && !req.cookies.get("reviewer-demo")
+        ? await verifiedIdentity(req)
+        : null;
+    if (!suppliedKey && !grant && !req.cookies.get("reviewer-demo") && !scheduledIdentity)
       return Response.json(
-        { error: "Open the demo or provide your Gemini key." },
+        { error: "Open the demo, sign in to the invitation, or provide your Gemini key." },
         { status: 401 }
       );
     const owner = suppliedKey
       ? `byok:${createHash("sha256").update(suppliedKey).digest("hex")}`
       : grant
         ? `reviewer:${grant.id}`
-        : visitor(req).id;
-    const body = schema.parse(await limitedJson(req, 75000));
+        : scheduledIdentity
+          ? `scheduled:${scheduledIdentity.uid}`
+          : visitor(req).id;
     if (body.action === "send") {
       sendGeminiTurn(body.id, owner, body.text, body.instructions);
       return Response.json({ sent: true });
@@ -74,7 +82,22 @@ export async function POST(req: NextRequest) {
         ? 30
         : configuration.durationMinutes) *
         60000;
-    if (!suppliedKey) {
+    let scheduledSession:
+      | Awaited<ReturnType<typeof requireScheduledSession>>
+      | undefined;
+    if (scheduledIdentity && body.action === "connect") {
+      scheduledSession = await requireScheduledSession(req, body.sessionId);
+      configuration = configurationSchema.parse(
+        scheduledSession.data.configuration || body.configuration
+      );
+      const durationMs =
+        configuration.durationMinutes === "unlimited"
+          ? 30 * 60000
+          : configuration.durationMinutes * 60000;
+      expiresAt =
+        scheduledSession.data.expires_at?.toMillis?.() ||
+        Date.now() + durationMs;
+    } else if (!suppliedKey) {
       const lease = await ownedLease(owner, body.sessionId);
       if (
         lease.expiresAt <= Date.now() ||
@@ -100,12 +123,12 @@ export async function POST(req: NextRequest) {
       configuration,
       expiresAt,
       leaseId: suppliedKey ? undefined : body.sessionId,
-      role: suppliedKey || grant ? body.role : "Frontend Engineer",
-      cv: suppliedKey || grant ? body.cv : undefined,
-      projects: suppliedKey || grant ? body.projects : undefined,
+      role: suppliedKey || grant || scheduledIdentity ? body.role : "Frontend Engineer",
+      cv: suppliedKey || grant || scheduledIdentity ? body.cv : undefined,
+      projects: suppliedKey || grant || scheduledIdentity ? body.projects : undefined,
     });
     createdId = result.id;
-    if (!suppliedKey) await attachCall(body.sessionId, result.id);
+    if (!suppliedKey && !scheduledIdentity) await attachCall(body.sessionId, result.id);
     req.signal.addEventListener("abort", () => closeGeminiSession(result.id), {
       once: true,
     });

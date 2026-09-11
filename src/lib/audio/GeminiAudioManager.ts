@@ -25,6 +25,7 @@ export class GeminiAudioManager {
   constructor(
     private config: WebRTCManagerConfig & {
       geminiKey?: string;
+      authToken?: string;
       body: Record<string, unknown>;
     }
   ) {
@@ -41,6 +42,9 @@ export class GeminiAudioManager {
   private headers() {
     return {
       "Content-Type": "application/json",
+      ...(this.config.authToken
+        ? { Authorization: `Bearer ${this.config.authToken}` }
+        : {}),
       ...(this.config.geminiKey
         ? { "x-gemini-key": this.config.geminiKey }
         : {}),
