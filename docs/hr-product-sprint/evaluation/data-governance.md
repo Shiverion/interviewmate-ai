@@ -2,7 +2,9 @@
 
 [Pilot guide](english-first-pilot.md) · [Phase 5](../phases/05-case-study-and-handoff.md)
 
-Updated: 2026-09-10. Prototype policy and future requirements; no regulatory compliance claim. [Current access and storage](../implementation/current-runbook.md).
+Updated: 2026-09-11. Prototype policy and future requirements; no regulatory compliance claim. [Current access and storage](../implementation/current-runbook.md).
+
+The candidate feedback form is implemented separately from the benchmark below. It collects five experience ratings and an optional comment; this does not automatically provide training authorization or ground-truth evaluation labels. The [future feedback and learning plan](../implementation/future-feedback-and-learning.md) proposes local PII masking/normalization, human review and optional fine-tuning. None of that learning pipeline is currently implemented or authorized to consume existing records.
 
 ## Implemented
 

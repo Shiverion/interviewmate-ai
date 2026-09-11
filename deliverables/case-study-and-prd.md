@@ -226,6 +226,14 @@ For code changes, use `npm test -- --runInBand`, `npx tsc --noEmit` and `npm run
 4. Keep raw CV/transcript use purpose-limited. Cloud processing still transfers data to configured services; no candidate-data training pipeline is enabled.
 5. Split the ledger or add infrastructure only when measured scale requires it. Additional providers, OCR and HRIS/email integrations are future work, not MVP submission tasks.
 
+### Future improvement: feedback-driven learning with local data preparation
+
+The existing feedback form can support a reviewed learning loop: categorize recurring problems, select eligible examples, mask identifiers and normalize text in a private local worker, review the sanitized output, and create versioned regression datasets. Start with prompt/UX improvements; fine-tuning is an optional later experiment against a held-out baseline.
+
+Candidate ratings indicate experience, not correct competency labels. Training targets require reviewed evidence. Local rules plus a small entity-recognition model are a practical first option; a locally hosted LLM can assist but does not guarantee anonymization. Names, contact information, rare career/project details and feedback comments all need inspection. Failed or uncertain sanitization blocks export.
+
+This is a proposed pipeline, not a feature currently collecting training data. It requires a separate reuse decision, access/retention/deletion controls and human review. The current hosted interview already uses cloud processing; later local masking protects subsequent dataset preparation, not earlier transfers. See the [future feedback and learning plan](../docs/hr-product-sprint/implementation/future-feedback-and-learning.md) for the architecture, EN/ID validation, fine-tuning gates and withdrawal/model-retirement limits.
+
 ## 7. Submission package
 
 Submit the production app as the **lightweight web-app** option, this Markdown as the **case study and engineering handoff**, and the finished **five-minute video**. A diagram supports explanation; no separate Figma or no-code workflow is required. The [demo script](demo-script.md) covers intake, recruiter selection, candidate experience, evidence, testing and handoff in five minutes.

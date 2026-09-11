@@ -36,6 +36,8 @@ The [current case study and PRD](deliverables/case-study-and-prd.md) now consoli
 
 ### Scope decisions for the submission
 
+Future improvement: [feedback-driven learning with local PII preparation](docs/hr-product-sprint/implementation/future-feedback-and-learning.md). The existing form can inform issue triage; transcript reuse, local masking/normalization, curated datasets and optional fine-tuning remain proposed work with permission, privacy and held-out quality gates. No training on candidate history is enabled for the MVP.
+
 - The primary baseline is English. Bahasa Indonesia is a separate multilingual extension result, not a replacement baseline.
 - The automated CV pipeline is the product spine: one role brief → batch CV parsing → deterministic ATS ranking → recruiter selection → invitation links → interview → evidence-based evaluation.
 - The product does not make automated hiring decisions. ATS and interview scores are review signals, with source-linked evidence and explicit human review language.

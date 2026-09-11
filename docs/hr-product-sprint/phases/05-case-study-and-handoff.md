@@ -7,6 +7,8 @@ Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours no
 
 ## Outcome
 
+Future roadmap addition: [feedback and privacy-aware learning](../implementation/future-feedback-and-learning.md), linked from the PRD. The form is implemented; local sanitization, dataset curation and fine-tuning are explicitly future work, with no automatic use of existing transcripts.
+
 Consolidated the shipped product into a [case study and PRD](../../../deliverables/case-study-and-prd.md), with workflow/AI diagrams, user requirements, acceptance criteria, scoring formulas, API example, persistence/access boundaries, source map and future work. This Markdown is the current submission artifact. The older PDF/JSON are superseded drafts.
 
 The [expected-output audit](../../../deliverables/mvp-readiness-audit.md) corrects the earlier broad “everything except video is passed” claim. The web-app MVP is demonstrable; literal D1/D4 manual baseline comparison remains unmeasured. The existing synthetic material and builder self-tests are valid prototype evidence but not independent calibration.
