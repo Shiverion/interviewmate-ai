@@ -159,6 +159,13 @@ export async function redeemReviewer(
 }
 
 async function ensureCookieSecret() {
+  if (firestoreLedgerEnabled()) {
+    if (secret().length < 32)
+      throw Error(
+        "Reviewer access needs a stable server cookie secret of at least 32 characters."
+      );
+    return;
+  }
   const dir = accessDirectory();
   await mkdir(dir, { recursive: true });
   if (secret().length < 32) {
