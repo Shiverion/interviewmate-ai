@@ -364,9 +364,15 @@ function InterviewRoomContent() {
               if (!isDemoSession && isFirebaseReady())
                 void getDoc(doc(db, "interview_sessions", sessionId))
                   .then((snapshot) => {
+                    const record = snapshot.data() || {};
+                    const reviewerTestCandidate =
+                      record?.record_kind === "reviewer_test" &&
+                      record?.source === "reviewer_invitation" &&
+                      record?.candidate_id === auth.currentUser?.uid;
                     if (
                       !snapshot.exists() ||
-                      !canManageInterview(auth.currentUser, snapshot.data())
+                      (!canManageInterview(auth.currentUser, record) &&
+                        !reviewerTestCandidate)
                     )
                       return;
                     return updateDoc(snapshot.ref, {

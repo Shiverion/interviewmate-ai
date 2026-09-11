@@ -54,6 +54,7 @@ export default function ReviewerTestsPage() {
   const admin = isWorkspaceAdmin(user);
   const [records, setRecords] = useState<ReviewerTestRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -97,7 +98,7 @@ export default function ReviewerTestsPage() {
       active = false;
       unsubscribe();
     };
-  }, [admin, user]);
+  }, [admin, reloadKey, user]);
 
   if (!admin) return null;
 
@@ -112,9 +113,19 @@ export default function ReviewerTestsPage() {
             candidate history, rankings or recruiter reports.
           </p>
         </div>
-        <Link href="/interviews" className="wm-button secondary">
-          Production interview history →
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="wm-button secondary"
+            onClick={() => setReloadKey((value) => value + 1)}
+            disabled={loading}
+          >
+            {loading ? "Reloading…" : "Reload records"}
+          </button>
+          <Link href="/interviews" className="wm-button secondary">
+            Production interview history →
+          </Link>
+        </div>
       </div>
 
       <div className="wm-note mb-6">
