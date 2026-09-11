@@ -10,6 +10,7 @@ import {
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { adminFirestore, adminFirestoreConfigured } from "@/lib/firebase/admin";
+import type { Transaction } from "firebase-admin/firestore";
 
 export const DEMO_LIMITS = {
   starts: 5,
@@ -107,7 +108,7 @@ export async function withLedger<T>(fn: (data: Ledger) => T): Promise<T> {
   if (firestoreLedgerEnabled()) {
     const db = adminFirestore();
     const ref = db.collection("demo_runtime").doc("ledger");
-    return db.runTransaction(async (transaction) => {
+    return db.runTransaction(async (transaction: Transaction) => {
       const snapshot = await transaction.get(ref);
       const stored = snapshot.data()?.payload;
       const data: Ledger =
