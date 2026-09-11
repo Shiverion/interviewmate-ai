@@ -13,7 +13,9 @@ import { reportText } from "@/lib/integrity/policy";
 import SessionControlReport from "@/components/interview/SessionControlReport";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
 import AtsScoreSummary from "@/components/interview/AtsScoreSummary";
-import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
+import HumanReviewPanel, {
+  type HumanReviewRecord,
+} from "@/components/interview/HumanReviewPanel";
 import InterviewFeedbackSummary from "@/components/interview/InterviewFeedbackSummary";
 import { evaluationHeaders } from "@/lib/keys/store";
 import { useToast } from "@/components/providers/ToastProvider";
@@ -96,6 +98,27 @@ export default function CandidateReportPage() {
     } finally {
       setEvaluating(false);
     }
+  }
+
+  async function saveHumanReview(record: HumanReviewRecord) {
+    if (!user || !sessionData || !canManageInterview(user, sessionData)) {
+      throw new Error("You do not have permission to save this review.");
+    }
+    const humanReview = {
+      version: record.version,
+      sourceHash: record.sourceHash,
+      rubricVersion: record.rubricVersion,
+      reviewerId: record.reviewerId,
+      criteriaJudgments: record.criteriaJudgments,
+      notes: record.notes,
+      submittedAt: record.submittedAt,
+    };
+    await updateDoc(doc(db, "interview_sessions", sessionId), {
+      human_review: humanReview,
+    });
+    setSessionData((previous) =>
+      previous ? { ...previous, human_review: humanReview } : previous,
+    );
   }
 
   useEffect(() => {
@@ -228,6 +251,7 @@ export default function CandidateReportPage() {
             key={sessionId}
             assessment={evaluation}
             transcript={final_transcript || []}
+            persistReview={saveHumanReview}
             source={{
               sessionId,
               transcriptVersion: "session-transcript-v1",

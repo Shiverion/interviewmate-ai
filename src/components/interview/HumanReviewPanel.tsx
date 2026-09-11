@@ -9,14 +9,28 @@ type Source = {
   provider: string;
   synthetic: boolean;
 };
+export type HumanReviewRecord = {
+  version: string;
+  source: Source;
+  sourceHash: string;
+  rubricVersion: string;
+  evaluation: EvidenceAssessment;
+  transcript: unknown;
+  reviewerId: string;
+  criteriaJudgments: Record<string, string>;
+  notes: string;
+  submittedAt: string;
+};
 export default function HumanReviewPanel({
   assessment,
   transcript,
   source,
+  persistReview,
 }: {
   assessment: EvidenceAssessment;
   transcript: unknown;
   source: Source;
+  persistReview?: (record: HumanReviewRecord) => Promise<void>;
 }) {
   const [checks, setChecks] = useState<Record<string, string>>({}),
     [reviewer, setReviewer] = useState(""),
@@ -68,7 +82,7 @@ export default function HumanReviewPanel({
       const hash = Array.from(new Uint8Array(digest), (v) =>
         v.toString(16).padStart(2, "0")
       ).join("");
-      const result = {
+      const result: HumanReviewRecord = {
         version: "human-ground-truth-v2",
         source,
         sourceHash: hash,
@@ -80,32 +94,45 @@ export default function HumanReviewPanel({
         notes,
         submittedAt: new Date().toISOString(),
       };
-      localStorage.setItem(
-        `interviewmate-ground-truth-${hash}-${Date.now()}`,
-        JSON.stringify(result)
-      );
-      setRecord(result);
-      setMessage(
-        "Completed review saved in this browser. Export it for your evaluation dataset."
-      );
-      const access = await fetch("/api/access/reviewer")
-        .then((r) => r.json())
-        .catch(() => ({ mode: "offline" }));
-      if (access.mode === "reviewer") {
+      if (persistReview) {
+        await persistReview(result);
+        localStorage.setItem(
+          `interviewmate-ground-truth-${hash}-${Date.now()}`,
+          JSON.stringify(result)
+        );
+        setRecord(result);
+        setMessage(
+          "Completed review saved to the workspace and this browser."
+        );
+      } else {
+        localStorage.setItem(
+          `interviewmate-ground-truth-${hash}-${Date.now()}`,
+          JSON.stringify(result)
+        );
+        setRecord(result);
+        setMessage(
+          "Completed review saved in this browser. Export it for your evaluation dataset."
+        );
+        const access = await fetch("/api/access/reviewer")
+          .then((r) => r.json())
+          .catch(() => ({ mode: "offline" }));
+        if (access.mode !== "reviewer") return;
         const response = await fetch("/api/reviewer/reviews", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(result),
         });
-        setMessage(
-          response.ok
-            ? "Completed review saved to reviewer storage and this browser."
-            : "Saved in this browser. Server saving failed; export the record."
-        );
+        if (response.ok) {
+          setMessage("Completed review saved to reviewer storage and this browser.");
+        } else {
+          setMessage("Saved in this browser. Server saving failed; export the record.");
+        }
       }
     } catch {
       setMessage(
-        "Could not save this review. Check browser storage and retry."
+        persistReview
+          ? "Workspace sync failed; your review draft remains in this browser. Check your access and retry."
+          : "Could not save this review. Check browser storage and retry."
       );
     }
   }
