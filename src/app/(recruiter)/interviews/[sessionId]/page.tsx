@@ -204,6 +204,9 @@ export default function CandidateReportPage() {
       <div className="max-w-5xl mx-auto space-y-6 pb-12">
         <Link href="/interviews">← Interview records</Link>
         <h1 className="text-3xl">{candidate_name} · Interview evidence</h1>
+        <p className="text-sm text-[var(--muted)]">
+          Role: {templateData?.job_title || sessionData.role_snapshot?.job_title || "Role not recorded"}
+        </p>
         <AtsScoreSummary score={sessionData.ats_score} />
         <EvidenceAssessment assessment={evaluation} />
         {sessionData.human_review ? (
@@ -258,7 +261,7 @@ export default function CandidateReportPage() {
 
     txt += `CANDIDATE: ${candidate_name}\n`;
     txt += `ID: ${sessionData.candidate_id || "N/A"}\n`;
-    txt += `ROLE: ${templateData?.job_title || "Unknown"}\n`;
+    txt += `ROLE: ${templateData?.job_title || sessionData.role_snapshot?.job_title || "Unknown"}\n`;
     txt += `DATE: ${completed_at ? new Date(completed_at.toMillis()).toLocaleString() : new Date(created_at.toMillis()).toLocaleString()}\n`;
     txt += `STATUS: ${status.toUpperCase()}\n`;
     if (isEvaluated && evaluation.is_passing !== undefined) {
@@ -393,7 +396,7 @@ export default function CandidateReportPage() {
                 d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
               />
             </svg>
-            {templateData?.job_title || "Unknown Role"}
+            {templateData?.job_title || sessionData.role_snapshot?.job_title || "Unknown Role"}
           </p>
         </div>
 

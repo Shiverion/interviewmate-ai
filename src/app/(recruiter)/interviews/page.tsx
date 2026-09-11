@@ -548,6 +548,9 @@ export default function InterviewsPage() {
                             {session.candidate_email}
                           </div>
                         )}
+                        <div className="truncate text-xs text-[var(--muted)]" title={session.role_snapshot?.job_title || "Role not recorded"}>
+                          {session.role_snapshot?.job_title || "Role not recorded"}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-xs font-mono bg-[var(--surface-elevated)] px-2 py-1 rounded border border-[var(--border)]">
