@@ -19,13 +19,11 @@ export default function Header() {
     ? [
         ["Overview", "/"],
         ["Demo", "/demo"],
-        ["Case study", "/case-study"],
         ["Resume check", "/ats-check"],
       ]
     : admin
       ? [
           ["Workspace", "/dashboard"],
-          ["Case study", "/case-study"],
           ["Pipeline", "/pipeline"],
           ["Candidates", "/candidates"],
           ["Interview history", "/interviews"],
@@ -36,7 +34,6 @@ export default function Header() {
       : [
           ["Overview", "/"],
           ["Demo", "/demo"],
-          ["Case study", "/case-study"],
           ["Resume check", "/ats-check"],
         ];
   return (
