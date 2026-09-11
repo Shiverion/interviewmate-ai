@@ -15,6 +15,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/case-study`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.9,
         }
     ]
 }

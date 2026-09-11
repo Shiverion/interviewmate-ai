@@ -9,6 +9,7 @@ documents, credentials and raw test fixtures.
 from __future__ import annotations
 
 import re
+import shutil
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -34,6 +35,7 @@ from reportlab.platypus import (
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "deliverables" / "case-study-and-prd.md"
 OUTPUT = ROOT / "deliverables" / "InterviewMate-Submission-Package.pdf"
+PUBLIC_OUTPUT = ROOT / "public" / "InterviewMate-Submission-Package.pdf"
 ASSET_DIR = ROOT / "deliverables" / "assets"
 PREVIEW_DIR = ROOT / "tmp" / "pdf-review"
 
@@ -396,6 +398,8 @@ def main() -> None:
         subject="Current MVP submission package",
     )
     document.build(story, onFirstPage=draw_chrome, onLaterPages=draw_chrome)
+    PUBLIC_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(OUTPUT, PUBLIC_OUTPUT)
 
     import pypdfium2 as pdfium
 

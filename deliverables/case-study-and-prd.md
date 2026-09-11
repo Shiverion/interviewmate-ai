@@ -236,6 +236,6 @@ This is a proposed pipeline, not a feature currently collecting training data. I
 
 ## 7. Submission package
 
-Submit the production app as the **lightweight web-app** option, this Markdown as the **case study and engineering handoff**, and the finished **five-minute video**. A diagram supports explanation; no separate Figma or no-code workflow is required. The [demo script](demo-script.md) covers intake, recruiter selection, candidate experience, evidence, testing and handoff in five minutes.
+Submit the production app as the **lightweight web-app** option, this Markdown as the **case study and engineering handoff**, and the finished **five-minute video**. The deployed app also includes a public interactive case-study reader at `/case-study`; it provides the quick narrative, phase tabs, workflow explorer, AI boundaries and links to the full PDF. A diagram supports explanation; no separate Figma or no-code workflow is required. The [demo script](demo-script.md) covers intake, recruiter selection, candidate experience, evidence, testing and handoff in five minutes.
 
 **Video URL:** not recorded yet. **Baseline values:** not measured. **Portal attachment/access check:** outstanding. The MVP works; these submission/evidence statuses must remain explicit.
