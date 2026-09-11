@@ -52,6 +52,15 @@ type Ledger = {
       createdAt: number;
       transcript?: unknown;
       evaluation?: unknown;
+      feedback?: {
+        overall_experience: number;
+        interviewer_clarity: number;
+        transcription_accuracy: number;
+        question_relevance: number;
+        technical_reliability: number;
+        comments: string;
+        submitted_at?: unknown;
+      };
       model?: string;
       provider?: string;
     }

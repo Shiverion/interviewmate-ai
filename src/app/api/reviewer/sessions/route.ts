@@ -41,13 +41,14 @@ export async function GET(req: NextRequest) {
           completed: true,
         })),
       ...Object.values(d.reviewerSessions || {})
-        .filter((session) => session.evaluation)
+        .filter((session) => session.evaluation || session.feedback)
         .map((session) => ({
           id: session.id,
           invitationId: session.owner,
           candidateName: session.candidateName,
           jobTitle: session.jobTitle,
           evaluation: session.evaluation,
+          feedback: session.feedback,
           transcript: session.transcript,
           model: session.model,
           provider: session.provider,
