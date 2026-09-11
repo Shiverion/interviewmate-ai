@@ -64,6 +64,14 @@ service cloud.firestore {
           'session_control', 'session_integrity', 'code_workspace', 'whiteboard_workspace',
           'candidate_feedback'
         ]);
+      // Feedback is submitted after the interview has ended, so it must not
+      // depend on the invitation's answering window or allow a status change.
+      // Keep this update limited to the invited candidate's own feedback.
+      allow update: if ownRecord(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'candidate_feedback'
+        ])
+        && request.resource.data.recruiter_id == resource.data.recruiter_id;
     }
     match /interview_templates/{templateId} {
       allow read, delete: if manages(resource.data);

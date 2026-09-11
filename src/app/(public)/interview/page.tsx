@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type RefObject,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -87,6 +88,94 @@ export default function InterviewRoomPage() {
         onResume={() => resumeControlled(true, language)}
       />
     </div>
+  );
+}
+
+function TranscriptPanel({
+  isTextMode,
+  transcript,
+  candidateDeltaMessage,
+  activeDeltaMessage,
+  scrollRef,
+}: {
+  isTextMode: boolean;
+  transcript: Array<{ role: "user" | "assistant"; text: string }>;
+  candidateDeltaMessage: string;
+  activeDeltaMessage: string;
+  scrollRef: RefObject<HTMLDivElement | null>;
+}) {
+  return (
+    <section
+      aria-label="AI transcription"
+      className="w-full min-w-0 rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-primary-400">
+            AI transcription
+          </p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Conversation transcript
+          </p>
+        </div>
+        <span className="wm-tag">Live</span>
+      </div>
+      <div
+        ref={scrollRef}
+        className={`${isTextMode ? "text-left" : "text-center"} h-[16rem] overflow-y-auto overscroll-contain p-4 sm:h-[20rem] space-y-4 scroll-smooth`}
+      >
+        {transcript.map((item, i) =>
+          isTextMode ? (
+            <div
+              key={i}
+              className={`flex flex-col ${item.role === "user" ? "items-end" : "items-start"}`}
+            >
+              <span className="mb-1 px-1 text-xs uppercase tracking-wider text-[var(--muted)] opacity-70">
+                {item.role === "user" ? "You" : "AI"}
+              </span>
+              <div
+                className={`max-w-[90%] rounded-2xl px-4 py-2.5 ${item.role === "user" ? "rounded-br-sm bg-primary-500 text-white" : "rounded-bl-sm border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)]"}`}
+              >
+                {item.text}
+              </div>
+            </div>
+          ) : (
+            <p key={i} className="text-base text-[var(--foreground)] sm:text-lg">
+              <span className="mb-1 block text-xs uppercase tracking-wider opacity-50">
+                {item.role === "assistant" ? "AI Interviewer" : "You"}
+              </span>
+              {item.text}
+            </p>
+          )
+        )}
+        {candidateDeltaMessage && (
+          <p
+            className="text-left text-sm text-[var(--muted)]"
+            aria-label="Draft candidate transcript"
+          >
+            Draft — edit and send: {candidateDeltaMessage}
+          </p>
+        )}
+        {activeDeltaMessage && (
+          <div className={isTextMode ? "flex flex-col items-start" : "text-base sm:text-lg"}>
+            <span className="mb-1 block text-xs uppercase tracking-wider text-primary-400 opacity-70">
+              AI Interviewer
+            </span>
+            <span className="text-[var(--foreground)]">
+              {activeDeltaMessage}
+              <span className="ml-1 inline-block h-3 w-1 animate-pulse bg-primary-400" />
+            </span>
+          </div>
+        )}
+        {transcript.length === 0 && !activeDeltaMessage && (
+          <p className="p-8 text-[var(--muted)] opacity-50 italic">
+            {isTextMode
+              ? "Conversation started. Introduce yourself to begin!"
+              : "Listening for conversation…"}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -339,6 +428,7 @@ function InterviewRoomContent() {
     e.preventDefault();
     if (!chatInput.trim()) return;
     sendTextMessage(chatInput.trim());
+    editCandidateDraft("");
     setChatInput("");
     lastDraftRef.current = "";
   };
@@ -750,7 +840,7 @@ function InterviewRoomContent() {
 
       {/* Main Stage — split layout when visual panel is active */}
       <div
-        className={`${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(320px,0.9fr)_minmax(360px,1.35fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] gap-6"} flex-none p-4 pb-24 overflow-visible`}
+        className={`${hasVisualPanel ? "grid grid-cols-1 xl:grid-cols-[minmax(220px,0.72fr)_minmax(360px,1.35fr)_minmax(320px,0.9fr)] gap-4" : "grid grid-cols-1 lg:grid-cols-[minmax(260px,0.72fr)_minmax(360px,1.28fr)] gap-6"} flex-none p-4 pb-24 overflow-visible`}
       >
         {/* AI Interviewer Column */}
         <div
@@ -799,103 +889,20 @@ function InterviewRoomContent() {
             </div>
           )}
 
-          {/* Conditional View: Voice Subtitles vs Text Chat — inside AI column */}
-          {isTextMode ? (
-            <div
-              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} h-[20rem] sm:h-[24rem] shrink-0 flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
-            >
-              <div
-                ref={scrollRef}
-                className="h-full overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth"
-              >
-                {transcript.map((item, i) => (
-                  <div
-                    key={i}
-                    className={`flex flex-col ${item.role === "user" ? "items-end" : "items-start"}`}
-                  >
-                    <span className="text-xs text-[var(--muted)] mb-1 px-1 uppercase tracking-wider opacity-70">
-                      {item.role === "user" ? "You" : "AI"}
-                    </span>
-                    <div
-                      className={`px-4 py-2.5 rounded-2xl max-w-[85%] ${item.role === "user" ? "bg-primary-500 text-white rounded-br-sm" : "bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-bl-sm"}`}
-                    >
-                      {item.text}
-                    </div>
-                  </div>
-                ))}
-                {candidateDeltaMessage && (
-                  <p
-                    className="text-sm text-[var(--text-muted)]"
-                    aria-label="Draft candidate transcript"
-                  >
-                    Draft — edit and send: {candidateDeltaMessage}
-                  </p>
-                )}
-                {activeDeltaMessage && (
-                  <div className="flex flex-col items-start">
-                    <span className="text-xs text-[var(--muted)] mb-1 px-1 uppercase tracking-wider opacity-70">
-                      AI
-                    </span>
-                    <div className="px-4 py-2.5 rounded-2xl max-w-[85%] bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] rounded-bl-sm">
-                      {activeDeltaMessage}
-                      <span className="inline-block w-1 h-3 ml-1 bg-primary-400 animate-pulse" />
-                    </div>
-                  </div>
-                )}
-                {transcript.length === 0 && !activeDeltaMessage && (
-                  <div className="text-center p-8 opacity-50 italic text-[var(--muted)]">
-                    Conversation started. Introduce yourself to begin!
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div
-              className={`${hasVisualPanel ? "w-full" : "w-full max-w-2xl"} h-[20rem] sm:h-[24rem] shrink-0 flex flex-col bg-[var(--surface-elevated)] border border-[var(--border)] rounded-2xl overflow-hidden mt-4 shadow-xl z-10 relative`}
-            >
-              <div
-                ref={scrollRef}
-                className="h-full overflow-y-auto overscroll-contain p-4 space-y-4 scroll-smooth text-center"
-              >
-                {transcript.map((item, i) => (
-                  <p key={i} className="text-lg text-[var(--foreground)]">
-                    <span className="opacity-50 text-xs uppercase tracking-wider block mb-1">
-                      {item.role === "assistant" ? "AI Interviewer" : "You"}
-                    </span>
-                    {item.text}
-                  </p>
-                ))}
-                {candidateDeltaMessage && (
-                  <p
-                    className="text-sm text-[var(--text-muted)]"
-                    aria-label="Draft candidate transcript"
-                  >
-                    Draft — edit and send: {candidateDeltaMessage}
-                  </p>
-                )}
-                {activeDeltaMessage && (
-                  <p className="text-lg text-[var(--foreground)] font-medium">
-                    <span className="opacity-50 text-xs uppercase tracking-wider block mb-1 text-primary-400">
-                      AI Interviewer
-                    </span>
-                    {activeDeltaMessage}
-                    <span className="inline-block w-1.5 h-4 ml-1 bg-primary-400 animate-pulse" />
-                  </p>
-                )}
-                {transcript.length === 0 && !activeDeltaMessage && (
-                  <p className="text-[var(--muted)] opacity-50 italic">
-                    Listening for conversation...
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
-        <section
-          aria-label="Answer composer"
-          className="w-full max-w-xl justify-self-center self-start rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-        >
+        <div className="flex w-full min-w-0 flex-col gap-4">
+          <TranscriptPanel
+            isTextMode={isTextMode}
+            transcript={transcript}
+            candidateDeltaMessage={candidateDeltaMessage}
+            activeDeltaMessage={activeDeltaMessage}
+            scrollRef={scrollRef}
+          />
+          <section
+            aria-label="Answer composer"
+            className="w-full rounded-3xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+          >
           <div className="flex items-start justify-between gap-3 mb-3">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-primary-400">
@@ -912,7 +919,7 @@ function InterviewRoomContent() {
               ? "The interviewer is finishing this question. Your microphone is paused until it ends."
               : "Speak naturally. Your transcript stays here as a draft so you can correct names, terms or language before the interviewer continues."}
           </p>
-          <textarea
+            <textarea
             aria-label="Editable answer transcript"
             rows={7}
             value={chatInput}
@@ -924,7 +931,7 @@ function InterviewRoomContent() {
             placeholder="Your spoken answer will appear here. You can also type directly."
             className="w-full resize-y rounded-2xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-500/20"
           />
-          <div className="mt-3 flex items-center justify-between gap-3">
+            <div className="mt-3 flex items-center justify-between gap-3">
             <p className="text-xs text-[var(--muted)]">
               {chatInput.trim()
                 ? speechKind(chatInput) === "meaningful"
@@ -946,8 +953,9 @@ function InterviewRoomContent() {
             >
               Send answer
             </button>
-          </div>
-        </section>
+            </div>
+          </section>
+        </div>
 
         {/* Visual Panel Column (code editor / whiteboard / code review) */}
         {hasVisualPanel && sessionId && (

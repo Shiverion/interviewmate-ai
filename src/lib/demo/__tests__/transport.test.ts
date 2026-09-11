@@ -356,6 +356,55 @@ test("the final configured answer requests closing instead of an extra question"
   useInterviewStore.getState().reset();
 });
 
+test("provider completion events release the next-answer lock", async () => {
+  let events: WebRTCManagerConfig["onMessage"];
+  const sendTextMessage = jest.fn();
+  jest.mocked(WebRTCAudioManager).mockImplementation((config) => {
+    events = config.onMessage;
+    return {
+      connect: async () => {},
+      sendEvent: jest.fn(),
+      sendTextMessage,
+      disconnect: jest.fn(),
+    } as unknown as WebRTCAudioManager;
+  });
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: jest.fn().mockResolvedValue({
+        getTracks: () => [],
+        getAudioTracks: () => [{ readyState: "live", enabled: true }],
+      }),
+    },
+  });
+  useInterviewStore.setState({
+    status: "setup",
+    transcript: [{ role: "assistant", text: "Tell me about your work." }],
+    avatarState: "listening",
+    _sessionContext: {
+      sessionId: "demo-completion-lock",
+      sponsored: true,
+      interviewMode: "voice",
+      allowedModes: "audio_and_text",
+      candidateName: "Synthetic",
+      jobTitle: "Engineer",
+      startedAt: Date.now(),
+    },
+  });
+  await useInterviewStore.getState().connect();
+  useInterviewStore.getState().sendTextMessage("I built a queue.");
+  expect(sendTextMessage).toHaveBeenCalledTimes(1);
+
+  // Providers may emit only ai_done or audio_playback_done for a response.
+  // Either event must allow the next explicit candidate send.
+  events?.("ai_done", null);
+  useInterviewStore.getState().sendTextMessage("I measured retries.");
+  expect(sendTextMessage).toHaveBeenCalledTimes(2);
+
+  events?.("audio_playback_done", null);
+  useInterviewStore.getState().reset();
+});
+
 test("end of interview waits for closing audio playback", async () => {
   let events: WebRTCManagerConfig["onMessage"];
   const disconnect = jest.fn();

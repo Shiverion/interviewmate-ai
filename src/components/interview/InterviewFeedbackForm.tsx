@@ -75,6 +75,7 @@ export default function InterviewFeedbackForm({
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [syncWarning, setSyncWarning] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -91,6 +92,7 @@ export default function InterviewFeedbackForm({
 
   async function submit() {
     setError("");
+    setSyncWarning("");
     if (metrics.some(({ key }) => values[key] < 1 || values[key] > 5)) {
       setError(
         indonesian
@@ -104,25 +106,43 @@ export default function InterviewFeedbackForm({
       const feedback = { ...values, comments: values.comments.trim() };
 
       const isBrowserOnly = !sessionId || sessionId.startsWith("demo-");
-      if (!isBrowserOnly && isFirebaseReady()) {
-        await updateDoc(doc(db, "interview_sessions", sessionId), {
-          candidate_feedback: {
-            ...feedback,
-            submitted_at: serverTimestamp(),
-          },
-        });
-      }
-
       const reviewerId = reviewerSessionId;
+      let remoteSaveFailed = false;
+
+      // Reviewer sessions are backed by the hosted reviewer ledger. Save there
+      // first and avoid a Firestore write that the candidate's Firebase rules
+      // may correctly reject when the session belongs to a different identity.
       if (sponsored && reviewerId) {
-        const response = await fetch("/api/reviewer/sessions", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: reviewerId, feedback }),
-        });
-        if (!response.ok) throw Error("Reviewer feedback could not be saved.");
+        try {
+          const response = await fetch("/api/reviewer/sessions", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: reviewerId, feedback }),
+          });
+          if (!response.ok) remoteSaveFailed = true;
+        } catch {
+          remoteSaveFailed = true;
+        }
+      } else if (!isBrowserOnly && isFirebaseReady()) {
+        try {
+          await updateDoc(doc(db, "interview_sessions", sessionId), {
+            candidate_feedback: {
+              ...feedback,
+              submitted_at: serverTimestamp(),
+            },
+          });
+        } catch {
+          remoteSaveFailed = true;
+        }
       }
       localStorage.setItem(storageKey, JSON.stringify({ submitted: true, feedback }));
+      if (remoteSaveFailed) {
+        setSyncWarning(
+          indonesian
+            ? "Feedback tersimpan di browser ini, tetapi sinkronisasi ke workspace gagal."
+            : "Feedback was saved in this browser, but workspace sync was unavailable."
+        );
+      }
       setSubmitted(true);
     } catch (caught) {
       setError(
@@ -149,6 +169,11 @@ export default function InterviewFeedbackForm({
             ? "Rating ini membantu kami memperbaiki interviewer, transkrip, dan keandalan sesi."
             : "These ratings help us improve the interviewer, transcript and session reliability."}
         </p>
+        {syncWarning && (
+          <p role="status" className="wm-note mt-4 text-left">
+            {syncWarning}
+          </p>
+        )}
       </section>
     );
   }

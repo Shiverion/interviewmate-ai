@@ -603,10 +603,19 @@ export const useInterviewStore = create<InterviewState>()(
                   get().beginCompletionCountdown();
                   return;
                 }
+                // Some transports finish the response without emitting a
+                // transcript_done event (for example when the provider only
+                // returns audio). Release the turn lock here as well so the
+                // candidate can submit the next answer.
+                responsePending = false;
                 setCandidateCapture(true);
                 waitForCandidate();
-              } else if (type === "ai_done" && !playbackActive)
+              } else if (type === "ai_done" && !playbackActive) {
+                // Keep the send guard in sync with providers that signal
+                // response completion through ai_done only.
+                responsePending = false;
                 waitForCandidate();
+              }
               else if (type === "end_interview") {
                 // Providers can emit the function call while the closing audio
                 // is still buffered. Keep the transport alive until playback
