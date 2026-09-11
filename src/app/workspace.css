@@ -823,6 +823,53 @@ textarea {
   color: var(--muted);
   font-size: 12px;
 }
+.cs-access-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin: 0 0 12px;
+  padding: 24px 26px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-elevated);
+}
+.cs-access-note h2 {
+  max-width: 680px;
+  margin: 8px 0 7px;
+  color: var(--foreground);
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 560;
+}
+.cs-access-note p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cs-access-link {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--foreground) !important;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cs-access-link:hover {
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500) !important;
+}
+.cs-access-link svg {
+  width: 14px;
+}
 .cs-section {
   padding: 96px 0;
   border-top: 1px solid var(--border);
@@ -1380,6 +1427,12 @@ textarea {
   }
   .cs-footer {
     flex-direction: column;
+  }
+  .cs-access-note {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px;
   }
   .cs-hands-on-preview {
     padding: 22px;

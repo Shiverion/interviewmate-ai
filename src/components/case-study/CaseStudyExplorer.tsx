@@ -167,6 +167,15 @@ export default function CaseStudyExplorer() {
         </div>
       </section>
 
+      <section className="cs-access-note" aria-label="Reviewer access note">
+        <div>
+          <span className="cs-panel-kicker">Reviewer access</span>
+          <h2>Temporary admin credentials are included in the private submission PDF.</h2>
+          <p>Use the reviewer account from that PDF to explore the full workspace. The account is temporary and expires on 18 September 2026 at 00:00 UTC.</p>
+        </div>
+        <Link className="cs-access-link" href="/login">Open reviewer login <ArrowRightIcon /></Link>
+      </section>
+
       <section className="cs-section cs-phase-section" id="sprint">
         <div className="cs-section-intro">
           <p className="wm-eyebrow">The five-day arc</p>
