@@ -23,6 +23,7 @@ import { canManageInterview } from "@/lib/firebase/access";
 import { auth } from "@/lib/firebase/config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
+import AtsScoreSummary from "@/components/interview/AtsScoreSummary";
 import InterviewFeedbackForm from "@/components/interview/InterviewFeedbackForm";
 import RecoveryActions from "@/components/interview/RecoveryActions";
 import { type EvidenceAssessment as EvidenceResult } from "@/lib/ai/evidence";
@@ -503,6 +504,7 @@ function InterviewRoomContent() {
     return (
       <div className="wm-page max-w-4xl">
         <h1 className="wm-heading">Interview evidence</h1>
+        <AtsScoreSummary score={_sessionContext?.atsScore} />
         <EvidenceAssessment assessment={evidenceResult} />
         {evaluationError && <p role="alert">{evaluationError}</p>}
         <InterviewFeedbackForm
@@ -664,6 +666,7 @@ function InterviewRoomContent() {
 
               {evaluationResult ? (
                 <div className="space-y-5 text-left">
+                  <AtsScoreSummary score={_sessionContext?.atsScore} />
                   <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-[var(--muted)]">

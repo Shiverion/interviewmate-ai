@@ -13,9 +13,13 @@ import {
   parsingFailure,
   type ParsingResult,
 } from "@/lib/pdf/result";
-import { createScheduledInterview } from "@/lib/firebase/interviews";
+import {
+  createScheduledInterview,
+  createReviewerSourcedInterview,
+  type AtsScore,
+} from "@/lib/firebase/interviews";
 import ConfigurationFields from "./ConfigurationFields";
-type Mode = "byok" | "reviewer" | "scheduled" | "reviewer-scheduled";
+type Mode = "byok" | "reviewer" | "scheduled";
 function localDateTime(ms: number) {
   const date = new Date(ms);
   return new Date(ms - date.getTimezoneOffset() * 60000)
@@ -26,24 +30,23 @@ export default function InterviewSetupForm({
   mode,
   onClose,
   onSuccess,
+  invitationId,
 }: {
   mode: Mode;
   onClose?: () => void;
   onSuccess?: (id: string) => void;
+  invitationId?: string;
 }) {
   const router = useRouter(),
     { user } = useAuthContext();
-  const scheduled = mode === "scheduled" || mode === "reviewer-scheduled";
+  const scheduled = mode === "scheduled";
   const existing = useInterviewStore.getState()._sessionContext;
   const [configuration, setConfiguration] = useState(
     existing?.configuration || defaultConfiguration()
   );
-  const [jobTitle, setJobTitle] = useState(
-      existing?.jobTitle || "Frontend Engineer"
-    ),
+  const [jobTitle, setJobTitle] = useState(existing?.jobTitle || ""),
     [jobDescription, setJobDescription] = useState(
-      existing?.jobDescription ||
-        "Build accessible React interfaces, make technical tradeoffs, validate changes and collaborate with designers."
+      existing?.jobDescription || ""
     ),
     [name, setName] = useState(existing?.candidateName || ""),
     [email, setEmail] = useState("");
@@ -51,6 +54,11 @@ export default function InterviewSetupForm({
     [parsing, setParsing] = useState<ParsingResult | undefined>(
       existing?.cvParsing
     ),
+    [atsScore, setAtsScore] = useState<AtsScore | undefined>(
+      existing?.atsScore
+    ),
+    [atsBusy, setAtsBusy] = useState(false),
+    [atsError, setAtsError] = useState(""),
     [parsingBusy, setParsingBusy] = useState(false),
     [cvConfirmed, setCvConfirmed] = useState(false),
     [withoutCv, setWithoutCv] = useState(false);
@@ -59,9 +67,48 @@ export default function InterviewSetupForm({
     [error, setError] = useState("");
   const [starts, setStarts] = useState(localDateTime(Date.now() - 60000)),
     [ends, setEnds] = useState(localDateTime(Date.now() + 3 * 86400000));
+
+  async function scoreResume(resumeText: string, token?: number) {
+    if (
+      mode !== "reviewer" ||
+      !resumeText.trim() ||
+      jobDescription.trim().length < 50
+    )
+      return;
+    setAtsBusy(true);
+    setAtsError("");
+    try {
+      const response = await fetch("/api/ats-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText,
+          jobTitle: jobTitle.trim(),
+          jobDescription: jobDescription.trim(),
+        }),
+      });
+      const data = (await response.json()) as {
+        ats_score?: AtsScore;
+        error?: string;
+      };
+      if (!response.ok || !data.ats_score)
+        throw Error(data.error || "ATS scoring failed.");
+      if (token === undefined || token === parseAttempt.current)
+        setAtsScore(data.ats_score);
+    } catch (caught) {
+      if (token === undefined || token === parseAttempt.current)
+        setAtsError(caught instanceof Error ? caught.message : "ATS scoring failed.");
+    } finally {
+      if (token === undefined || token === parseAttempt.current) setAtsBusy(false);
+    }
+  }
+
   async function upload(next: File | undefined) {
     const token = ++parseAttempt.current;
     setFile(next || null);
+    setAtsScore(undefined);
+    setAtsError("");
+    setAtsBusy(false);
     setCvConfirmed(false);
     setWithoutCv(false);
     if (!next) {
@@ -77,12 +124,14 @@ export default function InterviewSetupForm({
         body: form,
       });
       const result = await r.json();
-      if (token === parseAttempt.current)
-        setParsing(
-          result.status
-            ? result
-            : parsingFailure("failed", "Could not parse this PDF.")
-        );
+      if (token === parseAttempt.current) {
+        const parsed = result.status
+          ? (result as ParsingResult)
+          : parsingFailure("failed", "Could not parse this PDF.");
+        setParsing(parsed);
+        const resumeText = validatedCvText(parsed);
+        if (resumeText) void scoreResume(resumeText, token);
+      }
     } catch {
       if (token === parseAttempt.current)
         setParsing(
@@ -119,30 +168,7 @@ export default function InterviewSetupForm({
       });
       const resumeText = withoutCv ? "" : validatedCvText(parsing);
       if (scheduled) {
-        if (mode === "reviewer-scheduled" || !user) {
-          const r = await fetch("/api/reviewer/sessions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              candidateName: name,
-              jobTitle,
-              jobDescription,
-              configuration: config,
-              resumeText,
-              startsAt: new Date(starts).getTime(),
-              endsAt: new Date(ends).getTime(),
-            }),
-          });
-          const data = await r.json();
-          if (!r.ok)
-            throw Error(
-              data.error ||
-                "Sign in or redeem a reviewer invitation before scheduling."
-            );
-          onSuccess?.(data.id);
-          onClose?.();
-          return;
-        }
+        if (!user) throw Error("Sign in before scheduling an interview.");
         if (new Date(ends) <= new Date(starts))
           throw Error("End date must be after start date.");
         const id = await createScheduledInterview(
@@ -184,8 +210,10 @@ export default function InterviewSetupForm({
           "Add a Gemini key in Settings for Gemini voice. Your OpenAI key handles transcription."
         );
       let sessionId = "demo-" + crypto.randomUUID(),
-        expiresAt: number | undefined;
+        expiresAt: number | undefined,
+        voiceLeaseId: string | undefined;
       if (mode === "reviewer") {
+        if (!user) throw Error("Sign in before starting an invited interview.");
         const r = await fetch("/api/demo/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -199,8 +227,19 @@ export default function InterviewSetupForm({
         });
         const data = await r.json();
         if (!r.ok) throw Error(data.error);
-        sessionId = data.sessionId;
+        voiceLeaseId = data.sessionId;
         expiresAt = data.expiresAt;
+        sessionId = await createReviewerSourcedInterview(
+          { uid: user.uid, email: user.email || "" },
+          jobTitle,
+          jobDescription,
+          name || user.displayName || "Reviewer",
+          file,
+          config,
+          withoutCv ? undefined : parsing,
+          invitationId,
+          withoutCv ? undefined : atsScore
+        );
       }
       let enrichment;
       if (config.githubUsername) {
@@ -228,6 +267,7 @@ export default function InterviewSetupForm({
       useInterviewStore.setState({
         _sessionContext: {
           sessionId,
+          voiceLeaseId,
           candidateName: name || "Reviewer",
           jobTitle,
           jobDescription,
@@ -241,6 +281,7 @@ export default function InterviewSetupForm({
           codeDiff: config.codeDiff,
           resumeText,
           cvParsing: withoutCv ? undefined : parsing,
+          atsScore: withoutCv ? undefined : atsScore,
           githubEnrichment: enrichment,
           startedAt: Date.now(),
           sponsored: mode === "reviewer",
@@ -266,6 +307,7 @@ export default function InterviewSetupForm({
             required
             value={name}
             maxLength={100}
+            placeholder="e.g. Jane Doe"
             onChange={(e) => setName(e.target.value)}
           />
         </label>
@@ -275,6 +317,7 @@ export default function InterviewSetupForm({
             required
             value={jobTitle}
             maxLength={200}
+            placeholder="e.g. Frontend Engineer"
             onChange={(e) => setJobTitle(e.target.value)}
           />
         </label>
@@ -285,7 +328,14 @@ export default function InterviewSetupForm({
             rows={3}
             maxLength={6000}
             value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="e.g. Build accessible React interfaces, make technical tradeoffs, validate changes and collaborate with designers."
+            onChange={(e) => {
+              setJobDescription(e.target.value);
+              if (mode === "reviewer") {
+                setAtsScore(undefined);
+                setAtsError("");
+              }
+            }}
           />
         </label>
       </div>
@@ -320,6 +370,38 @@ export default function InterviewSetupForm({
                   />
                   I confirm this text was read from the intended CV.
                 </label>
+                {mode === "reviewer" && (
+                  <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold">ATS screening score</p>
+                        <p className="mt-1 text-xs text-[var(--muted)]">
+                          Uses this role brief and the validated CV text. It is a screening signal, not a hiring decision.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="wm-button secondary"
+                        disabled={atsBusy || jobDescription.trim().length < 50}
+                        onClick={() => void scoreResume(validatedCvText(parsing))}
+                      >
+                        {atsBusy ? "Scoring…" : atsScore ? "Re-run ATS score" : "Run ATS score"}
+                      </button>
+                    </div>
+                    {jobDescription.trim().length < 50 && (
+                      <p className="mt-3 text-xs text-amber-300">Add at least 50 characters to the job description to score this CV.</p>
+                    )}
+                    {atsError && <p role="alert" className="mt-3 text-xs text-red-400">{atsError}</p>}
+                    {atsScore && (
+                      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                        <div className="rounded-lg border border-[var(--border)] p-3"><p className="text-xs text-[var(--muted)]">Overall match</p><p className="mt-1 text-2xl font-semibold text-primary-300">{atsScore.overall_match}%</p></div>
+                        <div className="rounded-lg border border-[var(--border)] p-3"><p className="text-xs text-[var(--muted)]">Keywords</p><p className="mt-1 text-lg font-semibold">{atsScore.keyword_match}%</p></div>
+                        <div className="rounded-lg border border-[var(--border)] p-3"><p className="text-xs text-[var(--muted)]">Skills</p><p className="mt-1 text-lg font-semibold">{atsScore.skills_coverage}%</p></div>
+                        <div className="rounded-lg border border-[var(--border)] p-3"><p className="text-xs text-[var(--muted)]">Experience</p><p className="mt-1 text-lg font-semibold">{atsScore.experience_alignment}%</p></div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -351,7 +433,7 @@ export default function InterviewSetupForm({
             Candidate sign-in email
             <input
               type="email"
-              required={scheduled && !!user && mode !== "reviewer-scheduled"}
+              required={scheduled && !!user}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

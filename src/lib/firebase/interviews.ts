@@ -81,6 +81,8 @@ export interface InterviewSession {
   };
 }
 
+export type AtsScore = NonNullable<InterviewSession["ats_score"]>;
+
 /** Reviewer invitations are QA data and must stay out of production reports. */
 export function isReviewerTestSession(data: unknown) {
   // The source check keeps older reviewer sessions separate after the kind
@@ -227,7 +229,8 @@ export async function createReviewerSourcedInterview(
   resumeFile: File | null,
   configuration: InterviewConfiguration,
   cvParsing: ParsingResult | undefined,
-  invitationId: string | undefined
+  invitationId: string | undefined,
+  atsScore?: InterviewSession["ats_score"]
 ): Promise<string> {
   const recruiterId = await adminUid();
   const sessionsCol = collection(db, "interview_sessions");
@@ -252,6 +255,7 @@ export async function createReviewerSourcedInterview(
     role_snapshot: { job_title: jobTitle, job_description: jobDescription },
     configuration: configurationSchema.parse(configuration),
     ...(cvParsing ? { cv_parsing: cvParsing } : {}),
+    ...(atsScore ? { ats_score: atsScore } : {}),
     template_id: "",
     recruiter_id: recruiterId,
     candidate_name: candidateName,

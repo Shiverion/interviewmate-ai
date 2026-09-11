@@ -18,6 +18,7 @@ import { speechKind, silenceAction } from "@/lib/interview/turn-policy";
 import type { ParsingResult } from "@/lib/pdf/result";
 import type { ProviderDiagnostic } from "@/lib/ai/health";
 import { spokenLanguagePolicy } from "@/lib/interview/language";
+import type { AtsScore } from "@/lib/firebase/interviews";
 export interface GitHubEnrichment {
   profile: {
     name: string | null;
@@ -50,6 +51,7 @@ export interface InterviewContext {
   configuration?: InterviewConfiguration;
   returnTo?: string;
   cvParsing?: ParsingResult;
+  atsScore?: AtsScore;
   sessionId: string;
   candidateName: string;
   jobTitle: string;

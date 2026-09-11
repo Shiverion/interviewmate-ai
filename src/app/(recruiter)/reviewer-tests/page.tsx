@@ -17,6 +17,13 @@ type ReviewerTestRecord = DocumentData & {
   created_at?: unknown;
   completed_at?: unknown;
   updated_at?: unknown;
+  ats_score?: {
+    overall_match?: number;
+    keyword_match?: number;
+    skills_coverage?: number;
+    experience_alignment?: number;
+    summary?: string;
+  };
   evaluation?: {
     schemaVersion?: string;
     status?: string;
@@ -144,7 +151,7 @@ export default function ReviewerTestsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-left text-sm">
+            <table className="w-full min-w-[1080px] text-left text-sm">
               <thead className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-xs uppercase tracking-wider text-[var(--muted)]">
                 <tr>
                   <th className="px-6 py-4">Candidate</th>
@@ -152,6 +159,7 @@ export default function ReviewerTestsPage() {
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Created On</th>
                   <th className="px-6 py-4">Completed On</th>
+                  <th className="px-6 py-4">ATS</th>
                   <th className="px-6 py-4">Assessment</th>
                   <th className="px-6 py-4 text-right">Record</th>
                 </tr>
@@ -172,6 +180,11 @@ export default function ReviewerTestsPage() {
                     <td className="px-6 py-4 text-[var(--muted)]">{formatDate(record.created_at)}</td>
                     <td className="px-6 py-4 text-[var(--muted)]">
                       {formatDate(record.completed_at || record.updated_at)}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-primary-300">
+                      {typeof record.ats_score?.overall_match === "number"
+                        ? `${Math.round(record.ats_score.overall_match)}/100`
+                        : "—"}
                     </td>
                     <td className="px-6 py-4 font-medium text-accent-400">{scoreLabel(record)}</td>
                     <td className="px-6 py-4 text-right">

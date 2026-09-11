@@ -12,6 +12,7 @@ import { IntegrityReportPanel } from "@/components/interview/SessionIntegrity";
 import { reportText } from "@/lib/integrity/policy";
 import SessionControlReport from "@/components/interview/SessionControlReport";
 import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
+import AtsScoreSummary from "@/components/interview/AtsScoreSummary";
 import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
 import InterviewFeedbackSummary from "@/components/interview/InterviewFeedbackSummary";
 
@@ -132,6 +133,7 @@ export default function CandidateReportPage() {
       <div className="max-w-5xl mx-auto space-y-6 pb-12">
         <Link href="/interviews">← Interview records</Link>
         <h1 className="text-3xl">{candidate_name} · Interview evidence</h1>
+        <AtsScoreSummary score={sessionData.ats_score} />
         <EvidenceAssessment assessment={evaluation} />
         <HumanReviewPanel
           key={sessionId}
