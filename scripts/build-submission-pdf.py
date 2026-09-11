@@ -157,22 +157,26 @@ def build_diagrams() -> tuple[Path, Path]:
         ],
         [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8)],
     )
-    build_diagram(
-        ai_logic,
-        "AI boundaries and deterministic checks",
-        [
-            ("CV + job brief", "Bounded context only"),
-            ("Voice input", "Candidate microphone"),
-            ("Transcribe", "Language-aware draft"),
-            ("Editable draft", "Candidate corrects text"),
-            ("Explicit Send", "Only committed answers proceed"),
-            ("Eligible answer", "Skip filler and technical failures"),
-            ("Evidence model", "Structured levels with exact quotes"),
-            ("Validate", "Schema and quote checks"),
-            ("Score + human", "Percentage plus recruiter review"),
-        ],
-        [(0, 6), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8)],
-    )
+    # Keep a handoff-approved asset when one has been supplied manually.
+    # This lets the PDF generator refresh the workflow diagram without
+    # overwriting the clearer AI-logic diagram selected for the submission.
+    if not ai_logic.exists():
+        build_diagram(
+            ai_logic,
+            "AI boundaries and deterministic checks",
+            [
+                ("CV + job brief", "Bounded context only"),
+                ("Voice input", "Candidate microphone"),
+                ("Transcribe", "Language-aware draft"),
+                ("Editable draft", "Candidate corrects text"),
+                ("Explicit Send", "Only committed answers proceed"),
+                ("Eligible answer", "Skip filler and technical failures"),
+                ("Evidence model", "Structured levels with exact quotes"),
+                ("Validate", "Schema and quote checks"),
+                ("Score + human", "Percentage plus recruiter review"),
+            ],
+            [(0, 6), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8)],
+        )
     return workflow, ai_logic
 
 
