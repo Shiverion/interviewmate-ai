@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { canManageInterview } from "@/lib/firebase/access";
 import { db, isFirebaseReady } from "@/lib/firebase/config";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { IntegrityReportPanel } from "@/components/interview/SessionIntegrity";
@@ -15,17 +15,88 @@ import EvidenceAssessment from "@/components/interview/EvidenceAssessment";
 import AtsScoreSummary from "@/components/interview/AtsScoreSummary";
 import HumanReviewPanel from "@/components/interview/HumanReviewPanel";
 import InterviewFeedbackSummary from "@/components/interview/InterviewFeedbackSummary";
+import { evaluationHeaders } from "@/lib/keys/store";
+import { useToast } from "@/components/providers/ToastProvider";
 
 export default function CandidateReportPage() {
   const params = useParams();
 
   const sessionId = params.sessionId as string;
   const { user } = useAuthContext();
+  const { showToast } = useToast();
 
   const [sessionData, setSessionData] = useState<DocumentData | null>(null);
   const [templateData, setTemplateData] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [evaluating, setEvaluating] = useState(false);
+
+  async function runEvaluation() {
+    if (!sessionData || !user || evaluating) return;
+    const transcript = Array.isArray(sessionData.final_transcript)
+      ? sessionData.final_transcript
+      : [];
+    if (transcript.length === 0) {
+      showToast("Evaluation unavailable", "This interview has no saved answers to evaluate.", "error");
+      return;
+    }
+    setEvaluating(true);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/evaluate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...evaluationHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sessionId,
+          transcript,
+          configuration: sessionData.configuration,
+          role: [
+            sessionData.role_snapshot?.job_title,
+            sessionData.role_snapshot?.job_description,
+          ]
+            .filter(Boolean)
+            .join("\n"),
+          cv: sessionData.cv_parsing?.text || "",
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.evaluation) {
+        throw new Error(result.error || "Evaluation could not be generated.");
+      }
+      await updateDoc(doc(db, "interview_sessions", sessionId), {
+        evaluation: result.evaluation,
+        evaluation_provider: result.provider,
+        evaluation_model: result.model,
+        status: "evaluated",
+      });
+      setSessionData((previous) =>
+        previous
+          ? {
+              ...previous,
+              evaluation: result.evaluation,
+              evaluation_provider: result.provider,
+              evaluation_model: result.model,
+              status: "evaluated",
+            }
+          : previous,
+      );
+      showToast("Evaluation complete", "The AI evaluation is now attached to this record.", "success");
+    } catch (evaluationError) {
+      showToast(
+        "Evaluation failed",
+        evaluationError instanceof Error
+          ? evaluationError.message
+          : "The evaluation could not be generated.",
+        "error",
+      );
+    } finally {
+      setEvaluating(false);
+    }
+  }
 
   useEffect(() => {
     if (!user || !sessionId) return;
@@ -340,6 +411,26 @@ export default function CandidateReportPage() {
           </div>
         )}
       </div>
+
+      {!isEvaluated &&
+        (status === "completed" || status === "evaluated") && (
+          <section className="mb-8 flex flex-col gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-semibold">Evaluation pending</h2>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                The saved transcript is ready for a recruiter-triggered AI evaluation.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void runEvaluation()}
+              disabled={evaluating || !final_transcript?.length}
+              className="rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {evaluating ? "Evaluating…" : "Run AI evaluation"}
+            </button>
+          </section>
+        )}
 
       {/* ATS Pre-Screen Score */}
       <IntegrityReportPanel value={sessionData.session_integrity} />
