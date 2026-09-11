@@ -63,6 +63,24 @@ test("offline recovery freezes time without treating downtime as misconduct", ()
   expect(s.interruptions).toBe(0);
   expect(s.recoveries).toBe(1);
 });
+test("the AI is warned to wrap up before the hard time cutoff, not cut off mid-sentence", () => {
+  let s = running();
+  // 20s (CONTROL.wrapUpMs) before the 30-minute (CONTROL.durationMs) limit.
+  s = advance(s, 100000 + 1780000, false, true);
+  expect(s.phase).toBe("running");
+  expect(s.wrapUpIssued).toBe(true);
+  expect(s.remainingMs).toBe(20000);
+  expect(s.events.map((e) => e.type)).toContain("wrap_up_warning");
+  // A later tick within the same warning window must not re-issue it.
+  const again = advance(s, s.lastTick + 5000, false, true);
+  expect(
+    again.events.filter((e) => e.type === "wrap_up_warning")
+  ).toHaveLength(1);
+  // The hard cutoff still fires once time actually runs out.
+  const ended = advance(s, s.lastTick + 20000, false, true);
+  expect(ended.phase).toBe("completed");
+  expect(ended.reason).toBe("time_limit");
+});
 test("question replacement preserves earlier answers and archives the interrupted exchange", () => {
   const s = {
     ...running(),

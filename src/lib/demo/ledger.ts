@@ -302,7 +302,7 @@ export async function hangupCalls(id?: string) {
   const { invitations } = await import("@/lib/access/reviewer");
   const activeInvites = new Set(
     (await invitations())
-      .filter((i) => !i.revoked && i.expiresAt > Date.now())
+      .filter((i) => !i.revoked && (i.expiresAt === null || i.expiresAt > Date.now()))
       .map((i) => i.id)
   );
   const pending = await withLedger((data) =>

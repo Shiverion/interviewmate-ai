@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         ? {
             reviewerId: grant.id,
             dailyStarts: grant.dailyStarts,
-            expiresAt: grant.expiresAt,
+            expiresAt: grant.expiresAt ?? Infinity,
             durationMs: duration * 60000,
             configuration: config,
             candidateName:

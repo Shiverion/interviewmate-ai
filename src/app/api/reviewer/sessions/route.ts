@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
         owner: grant.id,
         status: "scheduled",
         createdAt: Date.now(),
-        endsAt: Math.min(body.endsAt, grant.expiresAt),
+        endsAt: Math.min(body.endsAt, grant.expiresAt ?? Infinity),
       };
     });
     return Response.json({ id });
@@ -171,6 +171,40 @@ export async function PUT(req: NextRequest) {
   } catch {
     return Response.json(
       { error: "Could not save reviewer session." },
+      { status: 422 }
+    );
+  }
+}
+export async function DELETE(req: NextRequest) {
+  if (!sameOrigin(req) || !(await isVerifiedAdminRequest(req)))
+    return Response.json(
+      { error: "Administrator access required." },
+      { status: 403 }
+    );
+  try {
+    const { id } = z
+      .object({ id: z.string().min(1).max(100) })
+      .parse(await limitedJson(req, 500));
+    const removed = await withLedger((d) => {
+      let found = false;
+      if (d.leases[id]) {
+        delete d.leases[id];
+        found = true;
+      }
+      if (d.reviewerSessions?.[id]) {
+        delete d.reviewerSessions[id];
+        found = true;
+      }
+      return found;
+    });
+    if (!removed)
+      return Response.json({ error: "Record not found." }, { status: 404 });
+    return Response.json({ ok: true });
+  } catch (e) {
+    return Response.json(
+      {
+        error: e instanceof Error ? e.message : "Could not delete record.",
+      },
       { status: 422 }
     );
   }

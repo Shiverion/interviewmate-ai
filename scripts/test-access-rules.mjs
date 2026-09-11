@@ -9,6 +9,7 @@ import {
   setDoc,
   getDoc,
   getDocs,
+  deleteDoc,
   collection,
   query,
   where,
@@ -40,6 +41,8 @@ const account = (uid, email = `${uid}@example.test`, verified = true) =>
 const a = account("recruiter-a"),
   b = account("recruiter-b"),
   candidate = account("candidate"),
+  otherCandidate = account("other-candidate", "other-candidate@example.test"),
+  reviewer = account("reviewer-invitee", "reviewer-invitee@example.test"),
   admin = account("admin", "miqbal.izzulhaq@gmail.com"),
   impostor = account("impostor", "miqbal.izzulhaq@gmail.com", false),
   anonymous = env.unauthenticatedContext();
@@ -67,6 +70,9 @@ try {
     await setDoc(doc(ctx.firestore(), "candidate_reports", "report"), {
       recruiter_id: "recruiter-a",
       private: "synthetic",
+    });
+    await setDoc(doc(ctx.firestore(), "app_config", "admin"), {
+      uid: "admin",
     });
   });
   await pass("owner reads own interview", getDoc(item(a)));
@@ -153,8 +159,32 @@ try {
     false
   );
   await pass(
-    "expired candidate denied",
-    getDoc(item(candidate, "expired")),
+    "candidate can still view their own result after the access window closes",
+    getDoc(item(candidate, "expired"))
+  );
+  // ownRecord() also checks status, so a safe list() query must declare
+  // that constraint too — Firestore proves list-rule safety symbolically
+  // from the query's own where clauses, not by scanning real documents.
+  const ownScopedStatuses = ["active", "completed", "evaluated"];
+  await pass(
+    "candidate can list only their own sessions",
+    getDocs(
+      query(
+        collection(candidate.firestore(), "interview_sessions"),
+        where("candidate_email", "==", "candidate@example.test"),
+        where("status", "in", ownScopedStatuses)
+      )
+    )
+  );
+  await pass(
+    "candidate cannot query another candidate's sessions",
+    getDocs(
+      query(
+        collection(candidate.firestore(), "interview_sessions"),
+        where("candidate_email", "==", "other-candidate@example.test"),
+        where("status", "in", ownScopedStatuses)
+      )
+    ),
     false
   );
   await pass(
@@ -193,6 +223,69 @@ try {
     "candidate cannot rewrite evaluated answers",
     updateDoc(item(candidate), { final_transcript: ["forged"] }),
     false
+  );
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(item(ctx, "delete-me"), { ...session, status: "completed" });
+  });
+  await pass(
+    "candidate cannot delete another candidate's record",
+    deleteDoc(item(otherCandidate, "delete-me")),
+    false
+  );
+  await pass(
+    "candidate can delete their own record",
+    deleteDoc(item(candidate, "delete-me"))
+  );
+  await pass(
+    "candidate cannot delete a revoked record",
+    deleteDoc(item(candidate, "revoked")),
+    false
+  );
+  await pass(
+    "reviewer-invitation session creation: mismatched candidate_email denied",
+    setDoc(item(reviewer, "invite-forged-email"), {
+      recruiter_id: "admin",
+      candidate_email: "someone-else@example.test",
+      status: "active",
+      source: "reviewer_invitation",
+    }),
+    false
+  );
+  await pass(
+    "reviewer-invitation session creation: wrong recruiter_id denied",
+    setDoc(item(reviewer, "invite-forged-owner"), {
+      recruiter_id: "recruiter-a",
+      candidate_email: "reviewer-invitee@example.test",
+      status: "active",
+      source: "reviewer_invitation",
+    }),
+    false
+  );
+  await pass(
+    "reviewer-invitation session creation: missing source tag denied",
+    setDoc(item(reviewer, "invite-no-source"), {
+      recruiter_id: "admin",
+      candidate_email: "reviewer-invitee@example.test",
+      status: "active",
+    }),
+    false
+  );
+  await pass(
+    "reviewer-invitation session creation: correctly attributed allowed",
+    setDoc(item(reviewer, "invite-ok"), {
+      recruiter_id: "admin",
+      candidate_email: "reviewer-invitee@example.test",
+      status: "active",
+      source: "reviewer_invitation",
+    })
+  );
+  await pass(
+    "the invited reviewer can read the session they just created",
+    getDoc(item(reviewer, "invite-ok"))
+  );
+  await pass(
+    "the administrator can see the reviewer-invitation session too",
+    getDoc(item(admin, "invite-ok"))
   );
   for (const path of [
     "interview_templates/template",
@@ -247,6 +340,52 @@ try {
     false
   );
   await pass("owner PDF delete allowed", deleteObject(file(a)));
+  const expiredFile = ref(a.storage(), "resumes/recruiter-a/expired/cv.pdf");
+  const revokedFile = ref(a.storage(), "resumes/recruiter-a/revoked/cv.pdf");
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await uploadBytes(
+      ref(ctx.storage(), "resumes/recruiter-a/expired/cv.pdf"),
+      new Uint8Array([37, 80, 68, 70])
+    );
+    await uploadBytes(
+      ref(ctx.storage(), "resumes/recruiter-a/revoked/cv.pdf"),
+      new Uint8Array([37, 80, 68, 70])
+    );
+  });
+  await pass(
+    "candidate can delete their own CV after the access window closes",
+    deleteObject(ref(candidate.storage(), expiredFile.fullPath))
+  );
+  await pass(
+    "candidate cannot delete the CV of a revoked session",
+    deleteObject(ref(candidate.storage(), revokedFile.fullPath)),
+    false
+  );
+  // storage.rules hardcodes the real production admin uid for this check
+  // (a genuine cross-service firestore.get() from Storage rules proved
+  // unreliable in production, unlike same-service get() calls within
+  // Firestore's own rules) — so this path must use that literal, not the
+  // "admin" test uid used elsewhere in this suite.
+  await pass(
+    "an invited reviewer can upload their CV before the session doc exists",
+    uploadBytes(
+      ref(
+        reviewer.storage(),
+        "resumes/wN6yreVnvOMVwshVZO5l3dCYkNc2/invite-ok/cv.pdf"
+      ),
+      new Uint8Array([37, 80, 68, 70]),
+      { contentType: "application/pdf" }
+    )
+  );
+  await pass(
+    "a signed-in stranger still cannot upload into a real recruiter's path",
+    uploadBytes(
+      ref(reviewer.storage(), "resumes/recruiter-a/some-session/cv.pdf"),
+      new Uint8Array([37, 80, 68, 70]),
+      { contentType: "application/pdf" }
+    ),
+    false
+  );
   console.log(`Access rules: ${checks} checks passed.`);
 } finally {
   await env.cleanup();

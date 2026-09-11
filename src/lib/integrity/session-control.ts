@@ -9,6 +9,9 @@ export const CONTROL = {
   finalCount: 2,
   endCount: 3,
   durationMs: 1800000,
+  // How long before the hard time limit to tell the AI to wrap up, so the
+  // session doesn't cut the candidate/AI off mid-sentence.
+  wrapUpMs: 20000,
 } as const;
 const line = z.object({
   role: z.enum(["user", "assistant"]),
@@ -39,6 +42,7 @@ export const checkpointSchema = z.object({
   interruptions: z.number().int().nonnegative(),
   recoveries: z.number().int().nonnegative(),
   finalWarningIssued: z.boolean(),
+  wrapUpIssued: z.boolean().default(false),
   replacementIndex: z.number().int().min(0).max(8),
   replacementQuestion: z.string().max(5000).nullable(),
   transcript: z.array(line).max(1000),
@@ -66,6 +70,7 @@ export function newCheckpoint(key: string): Checkpoint {
     interruptions: 0,
     recoveries: 0,
     finalWarningIssued: false,
+    wrapUpIssued: false,
     replacementIndex: 0,
     replacementQuestion: null,
     transcript: [],
@@ -100,6 +105,14 @@ export function advance(
     ),
   };
   if (!online) return recover(n, now, "connection_lost");
+  if (
+    n.phase === "running" &&
+    !n.unlimited &&
+    !n.wrapUpIssued &&
+    n.remainingMs > 0 &&
+    n.remainingMs <= CONTROL.wrapUpMs
+  )
+    n = log({ ...n, wrapUpIssued: true }, "wrap_up_warning", now);
   if (!n.remainingMs && !n.unlimited)
     return log(
       { ...n, phase: "completed", reason: "time_limit" },

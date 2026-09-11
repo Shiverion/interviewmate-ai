@@ -124,6 +124,10 @@ export function useInterviewControl(
     const unsubscribe = useControlStore.subscribe((n, p) => {
       if (n.record?.phase !== p.record?.phase) apply();
     });
+    // Once the checkpoint flags time as almost up, keep retrying every tick
+    // until the instruction actually sends (it can't interrupt a response
+    // already in flight) — a single edge-triggered attempt could be missed.
+    let wrappedUp = false;
     const tick = () => {
       const demoDeadline =
         useInterviewStore.getState()._sessionContext?.demoExpiresAt;
@@ -139,6 +143,13 @@ export function useInterviewControl(
           navigator.onLine,
           document.hidden ? "page_hidden" : "window_unfocused"
         );
+      if (
+        live &&
+        !wrappedUp &&
+        useControlStore.getState().record?.wrapUpIssued &&
+        useInterviewStore.getState().status === "active"
+      )
+        wrappedUp = useInterviewStore.getState().wrapUpNow();
       apply();
     };
     const timer = window.setInterval(tick, 250);

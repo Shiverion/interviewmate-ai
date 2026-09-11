@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "interview_sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "candidate_email", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

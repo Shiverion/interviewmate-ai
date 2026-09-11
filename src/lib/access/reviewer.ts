@@ -14,10 +14,16 @@ const invitation = z.object({
   id: z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/),
   label: z.string().max(100),
   codeHash: z.string().regex(/^[a-f0-9]{64}$/),
-  expiresAt: z.number(),
+  // Kept alongside codeHash (which alone verifies redemption) so the admin
+  // can re-copy a link later — invitations predating this field have none.
+  code: z.string().optional(),
+  expiresAt: z.number().nullable(),
   revoked: z.boolean().default(false),
   dailyStarts: z.number().int().min(1).max(100).default(30),
   budgetUnits: z.number().min(1).max(10000).default(500),
+  maxRedemptions: z.number().int().min(1).max(1000).nullable().default(null),
+  redeemedBy: z.array(z.string()).max(1000).default([]),
+  createdAt: z.number().default(() => Date.now()),
 });
 export type ReviewerGrant = z.infer<typeof invitation>;
 export const accessDirectory = () =>
@@ -51,6 +57,9 @@ const secret = () => {
 };
 const sign = (id: string) =>
   createHmac("sha256", secret()).update(id).digest("hex");
+function notExpired(i: ReviewerGrant) {
+  return i.expiresAt === null || i.expiresAt > Date.now();
+}
 export async function reviewerGrant(cookie: string | undefined) {
   if (secret().length < 32 || !cookie) return null;
   const [id, sig] = cookie.split(".");
@@ -63,7 +72,7 @@ export async function reviewerGrant(cookie: string | undefined) {
     return null;
   return (
     (await invitations()).find(
-      (i) => i.id === id && !i.revoked && i.expiresAt > Date.now()
+      (i) => i.id === id && !i.revoked && notExpired(i)
     ) || null
   );
 }
@@ -95,7 +104,11 @@ export async function consumeReviewer(grant: ReviewerGrant, units: number) {
     return { used: item.units, limit: grant.budgetUnits };
   });
 }
-export async function redeemReviewer(code: string, visitorId: string) {
+export async function redeemReviewer(
+  code: string,
+  visitorId: string,
+  email: string
+) {
   if (secret().length < 32)
     throw Error(
       "Reviewer access needs a stable server cookie secret of at least 32 characters."
@@ -111,25 +124,37 @@ export async function redeemReviewer(code: string, visitorId: string) {
       counts[k] = (counts[k] || 0) + 1;
     }
   });
+  const normalizedEmail = email.trim().toLowerCase();
   const hash = createHash("sha256").update(code.trim()).digest("hex");
-  const grant = (await invitations()).find(
+  const list = await invitations();
+  const grant = list.find(
     (i) =>
       timingSafeEqual(Buffer.from(i.codeHash), Buffer.from(hash)) &&
       !i.revoked &&
-      i.expiresAt > Date.now()
+      notExpired(i)
   );
   if (!grant) throw Error("Invitation invalid, expired or revoked.");
+  if (
+    grant.maxRedemptions !== null &&
+    !grant.redeemedBy.includes(normalizedEmail) &&
+    grant.redeemedBy.length >= grant.maxRedemptions
+  )
+    throw Error(
+      "This invitation has reached its maximum number of participants."
+    );
+  if (!grant.redeemedBy.includes(normalizedEmail)) {
+    await writeInvitations((current) =>
+      current.map((i) =>
+        i.id === grant.id
+          ? { ...i, redeemedBy: [...i.redeemedBy, normalizedEmail] }
+          : i
+      )
+    );
+  }
   return { grant, cookie: grant.id + "." + sign(grant.id) };
 }
 
-export async function createReviewerInvitation(input: {
-  label: string;
-  expiresInDays: number;
-}) {
-  if (process.env.REVIEWER_INVITES_JSON)
-    throw Error(
-      "Invitation creation is managed by the configured invite store."
-    );
+async function ensureCookieSecret() {
   const dir = accessDirectory();
   await mkdir(dir, { recursive: true });
   if (secret().length < 32) {
@@ -141,6 +166,17 @@ export async function createReviewerInvitation(input: {
       if (e.code !== "EEXIST") throw e;
     });
   }
+}
+
+async function writeInvitations(
+  mutate: (current: ReviewerGrant[]) => ReviewerGrant[]
+) {
+  if (process.env.REVIEWER_INVITES_JSON)
+    throw Error(
+      "Invitation management is handled by the configured invite store."
+    );
+  const dir = accessDirectory();
+  await mkdir(dir, { recursive: true });
   const file = path.join(dir, "reviewer-invites.json");
   let current: ReviewerGrant[] = [];
   try {
@@ -151,20 +187,35 @@ export async function createReviewerInvitation(input: {
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
   }
+  const next = mutate(current);
+  await writeFile(file, JSON.stringify(next, null, 2), { mode: 0o600 });
+  return next;
+}
+
+export async function createReviewerInvitation(input: {
+  label: string;
+  expiresInDays: number | null;
+  maxRedemptions: number | null;
+}) {
+  await ensureCookieSecret();
   const code = randomBytes(24).toString("base64url");
   const grant: ReviewerGrant = {
     id: randomUUID(),
     label: input.label,
     codeHash: createHash("sha256").update(code).digest("hex"),
-    expiresAt: Date.now() + input.expiresInDays * 86400000,
+    code,
+    expiresAt:
+      input.expiresInDays == null
+        ? null
+        : Date.now() + input.expiresInDays * 86400000,
     revoked: false,
     dailyStarts: 30,
     budgetUnits: 500,
+    maxRedemptions: input.maxRedemptions,
+    redeemedBy: [],
+    createdAt: Date.now(),
   };
-  current.push(grant);
-  await writeFile(file, JSON.stringify(current, null, 2), {
-    mode: 0o600,
-  });
+  await writeInvitations((current) => [...current, grant]);
   return {
     id: grant.id,
     label: grant.label,
@@ -172,7 +223,47 @@ export async function createReviewerInvitation(input: {
     expiresAt: grant.expiresAt,
     dailyStarts: grant.dailyStarts,
     budgetUnits: grant.budgetUnits,
+    maxRedemptions: grant.maxRedemptions,
   };
+}
+
+export async function listReviewerInvitations() {
+  const list = await invitations();
+  return list
+    .slice()
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map((i) => ({
+      id: i.id,
+      label: i.label,
+      code: i.code ?? null,
+      expiresAt: i.expiresAt,
+      revoked: i.revoked,
+      maxRedemptions: i.maxRedemptions,
+      redeemedCount: i.redeemedBy.length,
+      createdAt: i.createdAt,
+    }));
+}
+
+export async function setInvitationRevoked(id: string, revoked: boolean) {
+  let found = false;
+  await writeInvitations((current) =>
+    current.map((i) => {
+      if (i.id !== id) return i;
+      found = true;
+      return { ...i, revoked };
+    })
+  );
+  if (!found) throw Error("Invitation not found.");
+}
+
+export async function deleteReviewerInvitation(id: string) {
+  let found = false;
+  await writeInvitations((current) => {
+    const next = current.filter((i) => i.id !== id);
+    found = next.length !== current.length;
+    return next;
+  });
+  if (!found) throw Error("Invitation not found.");
 }
 export async function saveHumanRecord(grant: ReviewerGrant, record: unknown) {
   await consumeReviewer(grant, 0);

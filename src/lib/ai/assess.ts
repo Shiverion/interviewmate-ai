@@ -69,6 +69,15 @@ export async function assessEvidence(
           : e instanceof Error && /\b(401|403|429)\b/.test(e.message)
             ? Number(e.message.match(/\b(401|403|429)\b/)?.[1])
             : 502;
+      // The user-facing failure text intentionally hides provider details;
+      // this server-only log is the only way to see the real cause.
+      console.error(
+        `[assessEvidence] ${choice}/${model} failed (mapped status ${status}):`,
+        e instanceof Error ? e.stack || e.message : e,
+        (e as { cause?: unknown } | undefined)?.cause !== undefined
+          ? { cause: (e as { cause?: unknown }).cause }
+          : ""
+      );
       recordProvider(
         providerDiagnostic(choice, model, status, provider, index > 0),
         !!options.host
