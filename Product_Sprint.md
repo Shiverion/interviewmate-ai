@@ -2,6 +2,14 @@
 
 ## Current release status — 2026-09-11
 
+### Submission audit correction — 2026-09-11
+
+The web-app MVP is demonstrable, but the literal D1/D4 manual-versus-assisted baseline comparison is still **not measured**. Synthetic fixtures, regression checks and builder self-tests are prototype evidence, not a completed independent model study. See the [expected-output audit](deliverables/mvp-readiness-audit.md) for each D1–D5 requirement.
+
+The [current case study and PRD](deliverables/case-study-and-prd.md) now consolidates the engineering handoff, UX/AI diagrams, contracts, scoring and evidence limits. It supersedes the earlier PDF/JSON draft. The [five-minute speech draft](deliverables/demo-script.md) is ready; video recording, reviewer access verification and portal attachment remain outstanding.
+
+**Prototype format clarification:** the challenge says **submit one** of its prototype options. We select the runnable lightweight web app. No separate Figma, no-code workflow or prompt-chaining app is required. Diagrams support the Markdown handoff.
+
 **Verdict: the prototype is ready for the portfolio demonstration and engineering handoff.** Production is running at [interviewmate-ai.shiverion.com](https://interviewmate-ai.shiverion.com/) with server-side OpenAI access, Firestore-backed reviewer/demo state, scoped recruiter records, and the completed voice + text interview workflow. The five-minute demo video is still a submission artifact to record; it is not represented as completed here.
 
 ### Release evidence
@@ -23,8 +31,8 @@
 | 1 — Discovery and workflow | Complete for desk research | Target user, bottleneck, workflow, concept, and baseline plan are documented. No recruiter time study was available, so the baseline remains a proposed measurement rather than a measured claim. |
 | 2 — Solution design and AI logic | Complete | UX flow, prompt/rubric behavior, provider configuration, recovery, guardrails, and data-governance decisions are implemented and documented. |
 | 3 — Working prototype | Complete | Production prototype supports batch CV/ATS ranking, invitations, voice + text interviews, editable transcripts, evidence evaluation, recovery, reviewer access, feedback, and scoped dashboards. |
-| 4 — Evaluation and iteration | Complete for prototype validation | Synthetic cases, deterministic checks, regression tests, owner acceptance, and production smoke passed. This is not an independent recruiter benchmark or a statistical fairness study. |
-| 5 — Handoff and submission | Handoff ready; video pending | The editable case study, phase reports, runbook, validation records, and demo script are organized. Record and attach the final five-minute video before submission. |
+| 4 — Evaluation and iteration | Prototype validation available; baseline comparison incomplete | Synthetic inputs, regression results and owner acceptance exist. The original frozen live batch did not complete; manual/assisted timing and independent calibration remain unmeasured. |
+| 5 — Handoff and submission | Current Markdown handoff ready; video pending | Consolidated case study/PRD, diagrams and narration are available. Record the video and verify all three submission links/access. |
 
 ### Scope decisions for the submission
 
@@ -35,6 +43,9 @@
 - Local model hosting, model training on candidate data, eye tracking, OCR, exhaustive provider tournaments, and enterprise compliance are deliberately deferred to avoid overengineering the five-day prototype.
 
 The dated [production release record](docs/hr-product-sprint/evaluation/results/2026-09-11-production-release.md) is the authoritative validation snapshot. Earlier reports remain below for traceability and are labelled historical where their pre-production results differ from the release.
+
+<details>
+<summary>Historical pre-release audit and planning — superseded by the current MVP audit</summary>
 
 ## Historical pre-release audit and lean finish plan — 2026-09-10
 
@@ -135,6 +146,8 @@ Pipeline records are creator-owned. The `pipeline_candidates` Firestore rule, in
 - [ ] All three deliverables are attached/shared and their access is verified.
 
 No overall completion percentage is assigned: more feature code does not compensate for missing evaluation evidence or a missing required video.
+
+</details>
 
 ## Original company challenge
 

@@ -6,7 +6,9 @@ The inherited Next.js application is the baseline. This revision replaces unexpl
 
 - [Product_Sprint.md](Product_Sprint.md): authoritative challenge, accepted requirements and decisions.
 - [Five-phase progress](docs/README.md): current work, release checks and the remaining video artifact.
-- [Case study and engineering handoff](deliverables/InterviewMate-Case-Study-and-Handoff.pdf): reviewer-facing PDF.
+- [Case study, PRD and engineering handoff](deliverables/case-study-and-prd.md): current Markdown submission with UX/AI diagrams. The earlier PDF is a superseded draft.
+- [MVP expected-output audit](deliverables/mvp-readiness-audit.md): D1–D5 evidence, prototype format and remaining baseline/video work.
+- [Submission package](deliverables/README.md): current artifacts and superseded exports.
 - [Setup and validation](docs/hr-product-sprint/implementation/current-runbook.md).
 - [Bulk CV pipeline and candidate dashboard](docs/hr-product-sprint/implementation/2026-09-11-bulk-pipeline.md).
 - [CV pipeline validation checklist](docs/hr-product-sprint/evaluation/cv-pipeline-validation.md).
@@ -22,4 +24,4 @@ Reviewers enter a private invitation at `/reviewer`. Signed-in visitors use `/de
 
 The owner creates a separate seven-day email/password account for portfolio reviewers in Firebase Console: `reviewer@interviewmate.demo`. Keep account creation private, then share its password privately with reviewers. This demo account expires on 18 September 2026 at 00:00 UTC; update the cutoff in `src/lib/firebase/access.ts`, `firestore.rules` and `storage.rules` before issuing a new review window. It opens the full workspace without using the owner's Google account. The owner's UID pointer in `app_config/admin` remains controlled by the primary administrator.
 
-Prototype status: **191 tests across 25 suites pass**, with TypeScript, production build and Node 24 CI green. Production smoke and owner acceptance are recorded in the release record. No hiring-validity, recruiter time-saving or independent model-quality claim is established; the remaining submission action is the five-minute video.
+Prototype status: the recorded release passed **191 tests across 25 suites**, TypeScript, production build and Node 24 CI. Production smoke and owner acceptance are documented. The MVP is demonstrable; the [submission audit](deliverables/mvp-readiness-audit.md) retains unmeasured baseline timing, the missing five-minute video and final access/portal checks. No hiring-validity, recruiter time-saving or independent model-quality claim is established.

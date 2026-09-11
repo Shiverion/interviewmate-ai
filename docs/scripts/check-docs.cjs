@@ -24,6 +24,7 @@ const files = [
     .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
     .map((entry) => path.join(root, entry.name)),
   ...markdownFiles(path.join(root, "docs")),
+  ...markdownFiles(path.join(root, "deliverables")),
 ].sort();
 
 function withoutFences(body) {

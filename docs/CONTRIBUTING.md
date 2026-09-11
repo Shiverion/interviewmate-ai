@@ -66,7 +66,7 @@ git diff --check
 git status --short
 ```
 
-The checker validates inline local links, local reference-link definitions and Markdown heading anchors in root Markdown files and `docs/`. It also checks that every document has a reading path from the root README. It skips fenced code and external URLs; it is not a network or content-fact checker. After moving a file, update incoming links and any relative paths used by scripts.
+The checker validates inline local links, local reference-link definitions and Markdown heading anchors in root Markdown files, `docs/` and `deliverables/`. It also checks that every document has a reading path from the root README. It skips fenced code and external URLs; it is not a network or content-fact checker. After moving a file, update incoming links and any relative paths used by scripts.
 
 If the source audit or its location changes, also run:
 

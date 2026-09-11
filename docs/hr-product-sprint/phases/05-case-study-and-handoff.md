@@ -1,87 +1,69 @@
-> September 10 revision: see [current progress](../../README.md) and [implementation matrix](../implementation/revision-tracker.md). Earlier entries below are a dated phase history, not a claim that the expanded scope has passed live acceptance.
-
 # Phase 5: case study and engineering handoff
 
-2026-09-11 release note: the production reviewer path, hosted voice architecture, server-side secrets, Firestore ledger, scoped workspaces and batch pipeline are live. The [production release record](../evaluation/results/2026-09-11-production-release.md) is the current evidence snapshot; the archived access runbook remains historical.
-
-Status: **Handoff ready — editable case study and production validation complete; five-minute video pending.**
-
-September 10–11 deliverables: [seven-page case study PDF](../../../deliverables/InterviewMate-Case-Study-and-Handoff.pdf), [editable content](../../../deliverables/case-study-content.json), [five-minute demo script](../../../deliverables/demo-script.md), [current setup/handoff](../implementation/current-runbook.md), [bulk pipeline handoff](../implementation/2026-09-11-bulk-pipeline.md), [CV pipeline validation](../evaluation/cv-pipeline-validation.md), and [production validation record](../evaluation/results/2026-09-11-production-release.md). The case-study sources separate verified software behavior from unmeasured model quality and record release limitations. The only remaining submission action is to record and attach the five-minute video; regenerate the PDF only if the submission portal requires a fresh export.
-
-Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
+Status: **Handoff document complete; video and final submission pending.**
+Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not logged.
 
 [Documentation home](../../README.md) · [Previous phase](04-evaluation-and-iteration.md) · [Sprint index](../README.md)
 
-## Objective
+## Outcome
 
-> **Current handoff note:** the tables and planning notes below include earlier local-only states. The shipped production behavior, release evidence and remaining video action are defined in the release note above.
+Consolidated the shipped product into a [case study and PRD](../../../deliverables/case-study-and-prd.md), with workflow/AI diagrams, user requirements, acceptance criteria, scoring formulas, API example, persistence/access boundaries, source map and future work. This Markdown is the current submission artifact. The older PDF/JSON are superseded drafts.
 
-Package a runnable demonstration, a case study with honest evidence, and engineering/design guidance sufficient to continue the product. Record a five-minute demo after there is a verified workflow and actual results to show.
-
-## Case study outline
-
-1. **Problem and user:** the selected recruiting task, target segment, desk-research evidence, assumptions, and how the scope was selected.
-2. **Prior product and sprint contribution:** exact inherited functionality and what changed during these five phases, including the recruiter bulk CV-to-interview pipeline.
-3. **Workflow and UX:** current task, proposed task, key screens, source inspection, correction, unknowns, and error states.
-4. **AI behavior:** model/prompt versions, data flow, evidence extraction, validation and reviewer responsibility.
-5. **Evaluation:** synthetic dataset, reference-label method, raw results, repeated runs, failure examples and fixes. Include human baseline results only if measured.
-6. **Limits and next steps:** uncertainty from desk research, author-written fixtures, limited reviewers, language sensitivity, unsupported claims, and unverified production behavior.
-
-Use [Phase 1](01-discovery-and-ux.md) through [Phase 4](04-evaluation-and-iteration.md) as the evidence trail. The old [PRD](../../archive/legacy-prd.md) and [project report](../../archive/legacy-project-report.md) are historical references; their metrics must not be republished as measured sprint outcomes.
+The [expected-output audit](../../../deliverables/mvp-readiness-audit.md) corrects the earlier broad “everything except video is passed” claim. The web-app MVP is demonstrable; literal D1/D4 manual baseline comparison remains unmeasured. The existing synthetic material and builder self-tests are valid prototype evidence but not independent calibration.
 
 ## Engineering handoff checklist
 
-- [ ] Verified local run command, runtime requirements and configuration-variable names with no secrets.
-- [ ] Architecture diagram showing browser, server/model calls, persistence and trust boundaries.
-- [ ] Implemented API inputs/outputs and example payloads, with validation and error semantics.
-- [ ] Role/rubric, prompt/model and transcript versions; quote/turn-reference rules.
-- [ ] Data model for draft, reviewer edits, review status and exports.
-- [ ] UX states, navigation, empty/loading/error paths and source-review interactions.
-- [ ] Acceptance criteria tied to tests and evidence artifacts.
-- [ ] Known defects and demo limitations, prioritized by their effect on the core workflow.
-- [ ] Bulk pipeline handoff: parse contract, ATS-screening boundary, recruiter checkbox decision, scheduled-session snapshot, candidate email admission and `/candidates` state.
-- [ ] Access control, data retention/deletion, candidate consent and secret handling requirements for any later real-data use; no unsupported compliance claim.
-- [ ] Timeouts/retries, request limits, observability, measured latency and available cost data.
-- [ ] Deferred scope, practitioner calibration, user research and future integration decisions.
-
-## Five-minute recording outline
-
-| Time | Segment | Evidence to show |
-|---|---|---|
-| 0:00-0:40 | Recruiting problem and target user | Workflow and research limitation; show the role brief and bulk CV intake |
-| 0:40-1:15 | Ranked candidates and synthetic input | ATS screening signal, manual checkbox decision, scheduled snapshot, criteria and transcript |
-| 1:15-2:40 | Core product flow | Generate draft, inspect a source, correct an interpretation, mark reviewed |
-| 2:40-3:25 | AI behavior | Actual input/output, citation checking and unknown handling |
-| 3:25-4:20 | Evaluation | Recorded case results, failure and improvement, timing only if measured |
-| 4:20-5:00 | Handoff | Run instructions, architecture, limitations and next engineering steps |
-
-Never describe saved output as a live model response. If using a replay for recording reliability, label it and include the recorded run provenance. Do not imply a functioning voice interview unless it was verified.
+- [x] Runtime/setup and secret variable names, linked to the existing release record/runbook.
+- [x] Product and AI architecture diagrams.
+- [x] Current API input example, output envelope and validation/error semantics.
+- [x] Evidence rubric, percentage formula, quote/turn-reference rules and distinction from the legacy hiring schema.
+- [x] Session snapshots, transcript/evaluation/feedback records and local/hosted boundaries.
+- [x] UX routes, empty/loading/error and recovery/completion behavior.
+- [x] MVP acceptance criteria and evidence limitations.
+- [x] Bulk CV, ATS, manual selection and invitation handoff.
+- [x] Access and privacy boundaries with no blanket security/compliance claim.
+- [x] Operational limits and explicitly unmeasured latency/cost.
+- [x] Future research and infrastructure work separated from MVP scope.
 
 ## Final submission register
 
 | Required deliverable | Location | Status |
 |---|---|---|
-| Runnable prototype / interactive workflow | [Production release record](../evaluation/results/2026-09-11-production-release.md), [current runbook](../implementation/current-runbook.md) | Deployed and owner-accepted; no hiring-validity claim |
-| Case study and engineering handoff Markdown | Phase reports, release record, runbook and pipeline note | Organized and ready for engineering review |
-| Five-minute Loom or screen-recorded video | [Demo script](../../../deliverables/demo-script.md) | No recording yet; this is the remaining submission artifact |
+| Runnable prototype | [Production app](https://interviewmate-ai.shiverion.com/), [runbook](../implementation/current-runbook.md), [recorded release checks](../evaluation/results/2026-09-11-production-release.md) | Available; confirm reviewer access window at submission |
+| Case study / PRD / handoff | [Current Markdown](../../../deliverables/case-study-and-prd.md) | Created and source-checked in this revision |
+| Five-minute Loom/video | [Seven-part English narration](../../../deliverables/demo-script.md) | Recording and final link not yet available |
 
-## Exit criteria
+One prototype format is enough. The web app satisfies that choice; Figma, no-code tooling and a separate prompt-chaining app are not additional mandatory deliverables.
 
-- [ ] Prototype can be run by following the handoff.
-- [ ] Case study accurately distinguishes assumptions, measurements and limitations.
-- [ ] All reported metrics trace to raw records and correct denominators.
-- [ ] Inherited work and sprint changes are disclosed.
-- [ ] Required recording exists, plays correctly, and matches the demonstrated behavior.
-- [ ] File links, diagrams and deliverable access checked.
+## Recording plan
 
-## Open items and next action
+| Time | Segment |
+|---|---|
+| 0:00–0:30 | Problem and target user |
+| 0:30–1:20 | CV intake, ATS ranking and recruiter checkboxes |
+| 1:20–1:50 | Interview setup and invitation link |
+| 1:50–2:55 | Candidate voice, editable transcript and explicit Send |
+| 2:55–3:40 | Evidence, ATS, history and feedback |
+| 3:40–4:25 | AI stages, synthetic inputs, self-test results and limits |
+| 4:25–5:00 | Handoff and next steps |
 
-The [session-control handoff](../implementation/session-integrity.md) documents the latest candidate guardrails, recovery checkpoints, replacement-question bank and test procedure. Before production use, engineers must implement server-owned timing, terminal/restart authorization, question selection, authenticated checkpoint reconciliation, retention/deletion and access isolation. Live WebRTC recovery and equivalence of replacement questions still need human validation. Describe this as a browser prototype in the case study; do not claim tamper-proof enforcement or guaranteed cheating prevention.
+Record separate parts if useful, then combine them into one video. Use a short actual English session excerpt and clearly label any prerecorded session or seeded result. Test accounts must use accessible emails rather than fictional example.com fixture addresses.
 
-The local review prototype and English-first benchmark workspace remain available as reproducible inputs. The shipped production behavior and owner acceptance are recorded above; independent model comparison and recruiter judgments remain future research. Use the [setup/reviewer guide](../evaluation/english-first-pilot.md) and [governance record](../evaluation/data-governance.md) as handoff inputs, then record the verified workflow with the demo script.
+## Exit criteria and next action
+
+- [x] Runnable prototype and existing release validation linked.
+- [x] Case study distinguishes inherited work, authored data, self-review, automated checks and unmeasured outcomes.
+- [x] Current source/contract and engineering handoff documented.
+- [ ] Capture a measured builder baseline or retain its explicit absence; never substitute assumed time savings.
+- [ ] Record, export and verify the approximately five-minute video.
+- [ ] Check reviewer login expiry, link permissions and all three portal attachments.
+
+**Video URL:** not recorded. Completing documentation does not mark the portal submission complete.
 
 ## Progress log
 
-| Date | Work completed | Evidence / consequence |
+| Date | Work | Evidence / consequence |
 |---|---|---|
-| 2026-09-07 | Created case-study, handoff and recording tracker | Outline only; no submission completion or video claimed |
+| 2026-09-07 | Created handoff tracker | Outline only |
+| 2026-09-10–11 | Prepared earlier PDF/script and documented deployment | Historical PDF retained; production release evidence linked |
+| 2026-09-11 | Audited literal D1–D5 outputs; consolidated current PRD/case study and segmented narration | Markdown becomes canonical; baseline gap, single-builder evidence and missing video remain explicit |

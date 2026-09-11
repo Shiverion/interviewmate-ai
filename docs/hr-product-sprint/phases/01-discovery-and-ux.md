@@ -4,6 +4,8 @@
 
 Status: **Complete for desk research; manual timing baseline intentionally unmeasured.**
 
+Submission clarification: the baseline metric is defined but its value has not been measured. This is a gap against the literal D1/D4 expected outputs, retained in the [MVP audit](../../../deliverables/mvp-readiness-audit.md). The current solution and broader CV-to-interview workflow are consolidated in the [case study/PRD](../../../deliverables/case-study-and-prd.md).
+
 Updated: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Sprint index](../README.md) · [Next phase](02-solution-design-and-ai-logic.md)

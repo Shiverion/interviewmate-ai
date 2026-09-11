@@ -1,7 +1,17 @@
 # Submission artifacts
 
-- [Case study and engineering handoff](InterviewMate-Case-Study-and-Handoff.pdf): seven-page self-contained PDF. The editable Markdown reports and [production release record](../docs/hr-product-sprint/evaluation/results/2026-09-11-production-release.md) contain the latest release evidence; regenerate this PDF if the submission portal needs the refreshed text.
-- [Editable case-study content](case-study-content.json): edit the copy here, then rebuild with `python scripts/build-case-study.py` from the project root. The builder requires `reportlab` and `pypdfium2` and renders preview images to ignored `tmp/pdf-review/` for visual checking.
-- [Five-minute video script](demo-script.md): shot list and narration; the final video has not been recorded.
+The quest requires three deliverables. The prototype formats are alternatives; this project selects the **lightweight web app**.
 
-The running Next.js app is the working prototype. [Setup and acceptance](../docs/hr-product-sprint/implementation/current-runbook.md) explains the production path. [Progress](../docs/README.md) is authoritative for test status. The remaining submission action is the five-minute recording; keep any PDF refresh honest about the absence of independent recruiter/model benchmarks.
+| Submit | Artifact | Status |
+|---|---|---|
+| Working prototype | [InterviewMate production](https://interviewmate-ai.shiverion.com/) and [runbook](../docs/hr-product-sprint/implementation/current-runbook.md) | Deployed; share valid reviewer access privately |
+| Case study and handoff | [Case study and PRD](case-study-and-prd.md) | Current Markdown submission, with UX/AI diagrams and source map |
+| Five-minute video | [Segmented speech draft and shot list](demo-script.md) | Script ready; recording/link outstanding |
+
+Read the [MVP readiness audit](mvp-readiness-audit.md) for every D1–D5 expectation. Manual-versus-assisted baseline timing remains unmeasured; either collect the small builder pilot or disclose that gap. No separate Figma, no-code flow or prompt-chaining app is needed.
+
+## Historical export
+
+The earlier [PDF](InterviewMate-Case-Study-and-Handoff.pdf) and [JSON source](case-study-content.json) contain pre-release model/settings and outdated blockers. They are **superseded drafts, not the current submission**. Submit the current Markdown above; do not regenerate the old JSON unchanged and present it as current. PDF is optional for this quest.
+
+[Progress](../docs/README.md) · [Release evidence](../docs/hr-product-sprint/evaluation/results/2026-09-11-production-release.md)

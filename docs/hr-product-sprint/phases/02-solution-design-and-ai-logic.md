@@ -4,6 +4,8 @@
 
 Status: **Complete — design package implemented in the production prototype.**
 
+Current design handoff: the [case study and PRD](../../../deliverables/case-study-and-prd.md) contains the shipped workflow/AI diagrams, percentage-score semantics and source-linked contracts. Earlier v1 design statements below, including no percentage display, are historical. The existing coded web app satisfies the selected prototype format; a separate Figma prototype is not required.
+
 Started: 2026-09-07. Updated/completed: 2026-09-08 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
 [Documentation home](../../README.md) · [Previous phase](01-discovery-and-ux.md) · [Sprint index](../README.md) · [Next phase](03-prototype-build.md)

@@ -2,6 +2,8 @@
 
 Updated: 2026-09-11. **Release status: prototype accepted for portfolio demonstration and engineering handoff; final five-minute video remains to be recorded.** See the [production release record](evaluation/results/2026-09-11-production-release.md) for the current evidence snapshot. Historical reports retain their original dates and results.
 
+For submission, use the [current case study/PRD](../../deliverables/case-study-and-prd.md), [D1–D5 MVP audit](../../deliverables/mvp-readiness-audit.md) and [five-minute narration](../../deliverables/demo-script.md). Baseline timing remains unmeasured; see the audit before describing every expected output as complete.
+
 [Authoritative specification](../../Product_Sprint.md) · [Live progress](../README.md) · [Current runbook](implementation/current-runbook.md)
 
 ## Phase reports

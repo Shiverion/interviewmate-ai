@@ -4,7 +4,9 @@
 
 2026-09-11 release note: automated access/quota/provider-routing checks, the ten-CV pipeline fixture, owner acceptance and production smoke are complete. English remains the baseline and Indonesian the multilingual pilot. The [production release record](../evaluation/results/2026-09-11-production-release.md) separates verified software behavior from model-quality claims.
 
-Status: **Complete for prototype validation — controlled model comparison and independent recruiter calibration deferred.**
+Status: **Prototype validation documented; expected manual-versus-assisted baseline comparison unmeasured.**
+
+2026-09-11 submission audit: [D1–D5 audit](../../../deliverables/mvp-readiness-audit.md) and [case study/PRD](../../../deliverables/case-study-and-prd.md) consolidate the authored transcripts, ten CVs/JD, builder self-tests, software checks and observed UX fixes. Prepared benchmark cases and seeded showcase records are not completed model runs. The MVP is demonstrable; the literal baseline-comparison expectation must remain open or explicitly disclosed as unmeasured.
 
 Updated: 2026-09-11 (Asia/Jakarta). Planned allocation: 8 hours; actual hours not recorded.
 
