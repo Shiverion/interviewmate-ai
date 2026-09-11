@@ -2,99 +2,146 @@
 
 **Status:** ready to record · **Target:** 5:00 maximum · **Narration:** English baseline
 
-This script follows the challenge brief in the order a reviewer needs to understand it: the recruiting bottleneck, the recruiter workflow, the candidate experience, the AI logic, the test evidence and the engineering handoff. Record the core take first. Optional clips are listed at the end and should only be added if the final edit stays under five minutes.
+This version follows the requested viewer journey: public overview → sign-in → workspace → recruiting problem → pipeline setup → invitation session → evidence/history/feedback → AI logic and handoff. Record each section separately and edit them into one continuous story.
 
 [Case study and PRD](case-study-and-prd.md) · [MVP audit](mvp-readiness-audit.md) · [Production app](https://interviewmate-ai.shiverion.com/)
 
-## Before recording
+## Recording rules
 
-- Use the deployed app and the fictional CV batch in [the evaluation dataset](../docs/hr-product-sprint/evaluation/dataset/cv-pipeline-v1/README.md).
-- Prepare one completed, clearly labelled record for the results segment. If it is seeded, say **“illustrative seeded record”** on screen or in the narration.
-- Sign in before recording. Keep the private reviewer password, invitation tokens, real candidate data and API keys out of the video.
-- Use a separate browser profile for the candidate interview. Integrity controls can react to tab switching during a live session.
-- Record the pipeline, candidate interview and case-study diagrams as separate clips, then edit them together. This makes the demo resilient if live audio takes longer than expected.
-- Keep the browser zoom high enough for the ATS score, editable transcript, evidence score and dates to be readable.
+- Use a separate browser profile for the candidate invitation. Keep credentials, invitation tokens, API keys and real candidate data out of the recording.
+- Use the fictional CV batch in [the evaluation dataset](../docs/hr-product-sprint/evaluation/dataset/cv-pipeline-v1/README.md).
+- The invitation walkthrough below intentionally ends without submitting an answer. Use a clearly labelled completed record for the evidence result so the video does not imply that an empty session has been evaluated.
+- Record the public pages and candidate session separately. This lets you retake a voice clip without repeating the whole demo.
+- Keep the browser zoom high enough for the ATS score, editable transcript, evidence percentage and dates to be readable.
+
+## Demo fixture to prepare
+
+Use this same fixture in `/pipeline` so the actions and narration stay consistent.
+
+**Role title:** Data Scientist — Fraud Detection
+
+**Job description:**
+
+> Build and operate fraud-detection models from raw transaction data through production. Own feature engineering, imbalanced classification, metric selection, threshold calibration, monitoring and retraining. Explain false-positive and false-negative trade-offs with concrete evidence, and collaborate with risk, product and engineering. Experience with Python, SQL, scikit-learn or gradient-boosting models, experiment tracking and production monitoring is useful.
+
+**Interview settings:**
+
+| Setting | Demo value |
+| --- | --- |
+| Duration | 5 minutes |
+| Maximum turns | 3 |
+| Interview approach | Structured Interview |
+| Preferred language | English |
+| Interview voice | GPT-Realtime 2.1 Mini |
+| Transcription | GPT-Transcribe |
+| Voice reasoning | Low |
+| Interaction mode | Voice + text · Required |
+| Technical panel | None |
+| Core questions | Leave empty; derive from the role brief and CV context |
+| Additional competency rubric | Leave empty; derive from the role brief and validated CV context |
+| GitHub username | Leave empty for the core recording; optional retrieval can be shown only if a public profile is prepared |
+| Link validity | Start now; expire in 7 days |
+
+Upload the ten fictional CVs, review the ATS ranking, then select one top-ranked row such as **Hendra Wijaya** for the invitation walkthrough. The exact selected name may change if the ranking is rerun.
 
 ## Core five-minute take
 
-### 1. Recruiting problem and target user — 0:00–0:30
+### 1. Public landing page — 0:00–0:20
 
-**Show:** `/pipeline` role brief and the case-study title card.
-
-**Say:**
-
-> “InterviewMate is for a recruiter who has a batch of applicants but needs a traceable first-screen workflow. The bottleneck is the handoff between resume review, interview invitations and evidence review. Information gets copied between tools, and a score alone does not show what a candidate actually demonstrated. I started with desk research and reused the existing interview app as the baseline, then connected the workflow around evidence and human review.”
-
-### 2. CV intake, parsing and ATS ranking — 0:30–1:15
-
-**Show:** enter the job description, upload the fictional CV batch, wait for the completed ranking, expand one row and select candidates.
+**Show:** the unauthenticated landing page and its overview copy.
 
 **Say:**
 
-> “The recruiter enters the role once and uploads several CV PDFs. InterviewMate extracts the candidate name, email and bounded resume text, then applies the same deterministic ATS scoring logic to every row. The score is a screening signal, not an automatic rejection. I can inspect the extracted fields, sort the ranking, use a Top 5, 10 or 20 shortcut, and still change every checkbox before inviting anyone.”
+> “This is InterviewMate, an AI-assisted recruiting workspace. The public landing page explains the product before sign-in: recruiters can move from CV intake to interview evidence, while candidates get a focused voice-and-text interview. I will show the complete path in a few minutes.”
 
-**Action:** briefly show one strong match and one weak match. Avoid presenting processing time as a measured benchmark.
+### 2. Login and access modes — 0:20–0:45
 
-### 3. Interview link setup — 1:15–1:50
-
-**Show:** selected candidates, the separate invitation page, English language, duration/turn budget, empty optional competency rubric, and the create-link action.
+**Show:** `/login`, the Google and email options, then sign in with the prepared account. Do not reveal the password on camera.
 
 **Say:**
 
-> “The selected rows move to a separate link-creation step. The recruiter chooses the shared interview language, duration and maximum turns. Competencies default to the job description and validated CV context; an additional rubric is optional. Each link keeps a snapshot of the role, settings and ATS result, so later records remain interpretable. The recruiter decides how and when to share the link.”
+> “Authentication separates the recruiter workspace from the public demo. An administrator can manage the pipeline, candidates, interview history and feedback. A regular signed-in user can use the allowed demo and candidate features without seeing another recruiter's records. Reviewer access is a separate temporary account, so the owner's account is never shared.”
 
-### 4. Candidate voice plus text interview — 1:50–3:00
+If the account-choice screen takes time, use a short cut and keep the narration unchanged.
 
-**Show:** candidate setup, the first AI question, the voice waveform, the editable transcript draft, one small edit, and **Send answer**. Keep one real answer excerpt to about 25–35 seconds.
+### 3. Workspace dashboard — 0:45–1:05
 
-**Say before the excerpt:**
-
-> “The candidate gets a focused session rather than the recruiter workspace. Voice and typing are mandatory together: the candidate speaks, reviews the transcription, edits names or technical terms, and explicitly sends the answer. The draft is not committed automatically.”
-
-**Show/send a relevant answer. Then say:**
-
-> “Once the answer is sent, the draft clears and the committed answer becomes the interview record. The interviewer can ask a targeted follow-up based on the role and the evidence still missing. If a technical interruption occurs, completed answers and the session configuration can be recovered without replaying the same committed answer.”
-
-Do not stage an answer that does not match the visible question. If live audio is unreliable, use a labelled recording of the prototype session rather than implying it is a fresh live result.
-
-### 5. Evidence result, history and feedback — 3:00–3:40
-
-**Show:** the completed record in `/interview history` or `/interviews`, ATS score, evidence percentage, competency coverage, one exact quotation, completion date and the feedback form.
+**Show:** `/dashboard`, the workspace summary, recent conversations and navigation into Pipeline, Candidates, Interview history and Feedback.
 
 **Say:**
 
-> “The result keeps two signals separate. ATS describes resume-to-role fit; the interview assessment describes supported evidence from submitted answers. The report uses a percentage out of one hundred, competency coverage and source-linked quotations. Missing or technical-failure answers do not become an automatic hiring penalty, and the product does not make a hiring decision. A recruiter can inspect the full record and the candidate can leave structured feedback on clarity, transcription, relevance and technical reliability.”
+> “The workspace is the recruiter's control center. It summarizes scheduled, completed and evaluated work, then links to the batch pipeline, candidate records, interview history and feedback. The production workflow starts in Pipeline; the dashboard is where the recruiter checks progress and returns to evidence.”
 
-### 6. AI logic and evaluation evidence — 3:40–4:25
+### 4. Recruiting problem and target user — 1:05–1:25
 
-**Show:** the approved AI-boundaries diagram, then the evaluation table or case-study phase panel.
-
-**Say:**
-
-> “The AI path is explicit: bounded CV and job context, candidate voice input, language-aware transcription, an editable draft, explicit send, eligible-answer filtering, structured evidence, schema and quotation validation, then a percentage score with human review. I tested the workflow with ten fictional CVs, synthetic transcripts and English live self-tests, with Bahasa Indonesia as a multilingual extension. The tests exposed duplicate openings, transcript accumulation, turn-taking and persistence issues; those were fixed before the production release. The release also passed the recorded automated test suite. This is prototype evidence from one builder, not a claim of independent recruiter accuracy.”
-
-### 7. Engineering handoff and close — 4:25–5:00
-
-**Show:** the case-study handoff page, requirements/acceptance criteria, production URL and the privacy/data-governance note.
+**Show:** the role brief area in `/pipeline` and the case-study title card.
 
 **Say:**
 
-> “The handoff documents the workflow, AI inputs and outputs, scoring rules, recovery behavior, storage boundaries, access modes and known limitations. Candidate records stay scoped to the recruiter workspace; reviewer access is separate from the owner account, and public materials do not contain credentials. The next production step is independent recruiter timing and calibration, plus privacy-reviewed feedback learning. The MVP is live and demonstrates one complete path from CV intake to interview evidence.”
+> “The target user is a recruiter handling many applicants for one role. The bottleneck is the handoff between resume review, interview invitations and evidence review. Information gets copied between tools, and a score alone does not show what a candidate actually demonstrated. InterviewMate connects those steps around traceable evidence and human review.”
 
-## Optional clips if time remains
+### 5. Pipeline, ATS ranking and interview setup — 1:25–2:25
 
-Add no more than one short clip, or trim the core take before adding any of these:
+**Show:** paste the fixture role title and job description, upload the ten fictional PDFs, show the completed ranking, expand one row, select a candidate and continue to the interview-link page.
 
-- **Bahasa Indonesia extension (10–15 seconds):** show the language setting and one transcript line. Say: “English is the baseline; Bahasa Indonesia is tested as a multilingual extension.”
-- **Recovery and integrity (10–15 seconds):** show the paused warning or recovery state. Say: “The deterministic guardrail discloses a focus change, pauses the session and preserves committed answers; it is a review signal, not an automated cheating verdict.”
-- **Feedback loop (10–15 seconds):** show the feedback form. Say: “Feedback is used for product improvement. Any future transcript learning would require consent, PII masking and a held-out quality check.”
+**Say:**
 
-Do not add all three. The recruiting workflow and evidence handoff are the required story.
+> “I enter the role once and upload a batch of CV PDFs. The app extracts each candidate's name, email and bounded resume text, then applies the same deterministic ATS scoring logic to every row. The score is a screening signal, not an automatic rejection. I can inspect the extracted fields, sort the ranking, use a Top 5, 10 or 20 shortcut, and still change every checkbox before inviting anyone.”
+
+> “On the next page I set the shared interview behavior: five minutes, three turns, structured approach, English, GPT-Realtime 2.1 Mini, GPT-Transcribe, low reasoning and mandatory voice plus text. I leave core questions and additional competencies empty so the role brief and validated CV context drive the interview. I create one link for the selected top-ranked candidate.”
+
+**Action:** briefly show one strong and one weak ATS row, then show the selected candidate and the generated-link confirmation. Do not present the upload duration as a measured benchmark.
+
+### 6. Invitation, guardrail, evidence, history and feedback — 2:25–4:10
+
+#### Candidate invitation and guardrail — 2:25–3:20
+
+**Show:** open one generated invitation link in the separate browser profile, show candidate setup, start the interview, capture the first AI question, then end the session without answering.
+
+**Say:**
+
+> “The invitation opens a constrained candidate journey: setup, interview and the permitted evaluation view. The candidate speaks first, reviews the transcript draft and explicitly sends an answer when they are ready. For this walkthrough I will not submit an answer; I am showing the session controls.”
+
+**Controlled demonstration:** trigger one safe focus change or tab switch. Show the pause/warning state, then resume. If the product creates a fresh question after recovery, show that the question changes rather than replaying the interrupted one.
+
+**Say:**
+
+> “The guardrail is deterministic. A focus change pauses the session and explains what happened. When the candidate resumes, the timer remains paused during the interruption and the next question can change, so a browser interruption cannot be used to replay an answer. This is a disclosed integrity signal, not an automatic cheating verdict.”
+
+End the invitation from the visible session control. Do not claim that this intentionally empty session has an assessment.
+
+#### Completed result and human feedback — 3:20–4:10
+
+**Show:** a prepared completed record in `/interview history` or `/interviews`, then the expanded record, ATS score, evidence percentage, coverage, exact quotation, completion time and feedback form. Label seeded data as **illustrative seeded record** if applicable.
+
+**Say:**
+
+> “For the result view I open a completed record. ATS describes resume-to-role fit; the interview assessment describes supported evidence from submitted answers. The report uses a percentage out of one hundred, competency coverage and source-linked quotations. Missing or technical-failure answers do not become an automatic hiring penalty, and the product does not make a hiring decision. The recruiter can inspect the full history, while the candidate can leave feedback on clarity, transcription, relevance and technical reliability.”
+
+### 7. AI logic, testing and engineering handoff — 4:10–5:00
+
+**Show:** the approved AI-boundaries diagram, the evaluation table, then the case-study handoff page and production URL.
+
+**Say:**
+
+> “The AI path is explicit: bounded CV and job context, candidate voice input, language-aware transcription, an editable draft, explicit send, eligible-answer filtering, structured evidence, schema and quotation validation, then a percentage score with human review. I tested the workflow with ten fictional CVs, synthetic transcripts and English live self-tests, with Bahasa Indonesia as a multilingual extension. The tests exposed duplicate openings, transcript accumulation, turn-taking and persistence issues; those were fixed before the production release.”
+
+> “The handoff documents the workflow, AI inputs and outputs, scoring rules, recovery behavior, storage boundaries, access modes and known limitations. Candidate records stay scoped to the recruiter workspace, reviewer access is separate from the owner account, and public materials do not contain credentials. The next production step is independent recruiter timing and calibration, plus privacy-reviewed feedback learning. The MVP is live from CV intake to interview evidence.”
+
+## Optional additions if time remains
+
+Add **one** of these only if the edited core take is comfortably below five minutes:
+
+- **Bahasa Indonesia extension, 10–15 seconds:** show the language setting and one transcript line. Say: “English is the baseline; Bahasa Indonesia is tested as a multilingual extension.”
+- **GitHub context, 10–15 seconds:** show the optional field only with a prepared public profile. Say: “GitHub context is bounded and non-blocking; the interview still works when the field is empty or retrieval is unavailable.”
+- **Feedback learning, 10–15 seconds:** show the feedback form. Say: “Feedback is for product improvement. Future transcript learning would require consent, PII masking and a held-out quality check.”
+
+Do not add all three. The required story is the recruiting workflow, candidate controls, evidence result and engineering handoff.
 
 ## Final export checklist
 
 - Keep the final edit at or below **5:00**.
-- Confirm the problem, UX flow, AI behavior, test results and handoff are all visible or spoken.
+- Confirm the problem, UX flow, AI behavior, test results and handoff are visible or spoken.
 - Label seeded records and recorded sessions; do not present them as a live candidate result.
 - Hide credentials, invitation tokens, real candidate email addresses and API keys.
 - Check that the production URL and case-study link open from a fresh browser.
