@@ -11,6 +11,7 @@ import { db } from "@/lib/firebase/config";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import {
   configurationFromContext,
+  DIRECT_RESPONSE_INSTRUCTIONS,
   type InterviewConfiguration,
 } from "@/lib/interview/config";
 import { speechKind, silenceAction } from "@/lib/interview/turn-policy";
@@ -198,7 +199,7 @@ export const useInterviewStore = create<InterviewState>()(
           get().turnsAsked >=
             configurationFromContext(get()._sessionContext!).maxTurns - 1
             ? CLOSE_INSTRUCTIONS
-            : undefined
+            : DIRECT_RESPONSE_INSTRUCTIONS
         );
       },
       editCandidateDraft: (text) => set({ candidateDeltaMessage: text }),

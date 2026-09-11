@@ -13,7 +13,7 @@ export const VOICE_NAMES = {
 } as const;
 
 export const VOICE_DELIVERY_INSTRUCTIONS =
-  "Voice delivery: keep one calm, warm and professional interviewer persona across every turn and reconnect. Use a steady pace, moderate energy and natural pronunciation for the selected language. Do not change accent, persona or emotional intensity between turns; do not sing, whisper, laugh or use dramatic delivery. Never narrate internal reasoning, planning, tool use or hesitation. Do not say that you are thinking, formulating, checking, preparing or buying time, including phrases such as 'let me think', 'give me a moment' or 'Sebentar, saya pikirkan cara menjawab'. Pause silently when needed, then deliver one complete interviewer response.";
+  "Voice delivery: keep one calm, warm and professional interviewer persona across every turn and reconnect. Use a steady pace, moderate energy and natural pronunciation for the selected language. Do not change accent, persona or emotional intensity between turns; do not sing, whisper, laugh or use dramatic delivery. Never expose internal reasoning, planning, tool use, processing or hesitation. Do not add a preamble about preparing an answer or waiting. Pause silently when needed, then deliver one complete interviewer response.";
 export function evaluationEffort() {
   return process.env.EVALUATION_REASONING_EFFORT === "medium"
     ? ("medium" as const)

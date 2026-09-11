@@ -344,7 +344,10 @@ test("the final configured answer requests closing instead of an extra question"
   events?.("audio_playback_done", null);
   events?.("user_transcript_done", "I built a queue.");
   useInterviewStore.getState().sendTextMessage("I built a queue.");
-  expect(sendTextMessage).toHaveBeenLastCalledWith("I built a queue.", undefined);
+  expect(sendTextMessage).toHaveBeenLastCalledWith(
+    "I built a queue.",
+    expect.stringContaining("Respond directly now")
+  );
   events?.("transcript_done", "How did you validate it?");
   events?.("audio_playback_done", null);
   events?.("user_transcript_done", "I measured retries.");

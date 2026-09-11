@@ -60,8 +60,9 @@ test("legacy sessions acquire low reasoning and current models without losing th
   );
   expect(auto).toContain("first meaningful answer");
   expect(auto).toContain("Do not switch because of names");
-  expect(auto).toContain("Never narrate internal reasoning");
-  expect(auto).toContain("Sebentar, saya pikirkan cara menjawab");
+  expect(auto).toContain("Never expose internal reasoning");
+  expect(auto).not.toContain("Sebentar, saya pikirkan cara menjawab");
+  expect(auto).toContain("Do not add a preamble about preparing an answer");
   expect(
     interviewingInstructions(
       configurationSchema.parse({ language: "English" }),
