@@ -8,8 +8,9 @@ import { PROVIDERS, type AIProvider } from "./catalog";
  *   "proceed" keeps the requested provider with an undefined key, "refuse"
  *   returns ok:false.
  * `allowFallback: false` with `onUnconfigured: "substitute"` is expressible but
- * is exactly the scheduled-route bug this module was extracted to fix — routes
- * should derive `onUnconfigured` from `allowFallback`, as evaluate/scheduled do.
+ * is exactly the scheduled-route bug this module was extracted to fix. `scheduled`
+ * derives `onUnconfigured` from `allowFallback`; the other routes fix both by
+ * literal (their fallback is forced on, or they never substitute).
  */
 export type ResolutionPolicy =
   | {

@@ -2,7 +2,7 @@
 
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Repository:** InterviewMate (`Shiverion/interviewmate-ai`), branch `quest/trust-and-change`, starting revision `50fa2dc` (2026-09-11)
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3, 2026-09-20 (change log in §11)
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.1, 2026-09-21 (change log in §11)
 
 ---
 
@@ -12,7 +12,7 @@ InterviewMate's *transcript → AI evaluation* flow is served by three sibling A
 
 ## 2. Provenance
 
-| Pre-existed at `50fa2dc` | Added for this Quest (status as of v3) |
+| Pre-existed at `50fa2dc` | Added for this Quest (statuses **frozen at 2026-09-20**, when this document was approved; for actual outcomes see `decision-record.md` §5 and `directive.md` Appendix B) |
 |---|---|
 | InterviewMate application, built AI-assisted for a previous Quest at the same company | Branch `quest/trust-and-change` — **done** |
 | 25 Jest suites / 191 tests, all passing at `50fa2dc` | `quest/intent.md` (this file) — **in review, round 3**; `quest/council/` critiques — rounds 1–2 archived |
@@ -75,6 +75,8 @@ Criteria from the brief, scored 1 (low) – 5 (high); scores are my judgment.
 - **BYOK candidates** — not affected by substitution; fallback only if they opt in.
 - **Maintainers** — up to five edit sites per policy change, with no test naming these routes.
 
+*Limitation found after implementation (2026-09-21):* the only in-repo client of `scheduled` sends `allowFallback: true` for every scheduled session (`src/app/(public)/interview/page.tsx:330-332`), so fix-1's refusal is reachable by direct API callers, not through today's UI. The user-impact score of 4 for A in §6 was given before this was known and overstates today's reach; the API contract was still wrong. See `decision-record.md` §4.
+
 No production telemetry exists for how often these fire; evidence is code reading and git history. No team-wide or revenue impact is claimed.
 
 ## 8. Non-goals
@@ -101,13 +103,13 @@ No production telemetry exists for how often these fire; evidence is code readin
 
 - **Budget:** 6–8 h focused, per the brief; actual effort reported in `directive.md`'s appendix.
 - **Normal plan (3 calendar days):** Day 1 — baseline measurements, this file, `directive.md`, quality yardstick. Day 2 — agent-implemented extraction under the directive; my review; correction/rejection example; decision record. Day 3 — before/after runs, handoff exercise, review checklist, Loom.
-- **Worst case (1 calendar day):** same order; the handoff becomes written-only and is labelled as not performed by a second engineer.
 
 ## 11. Review history of this document
 
 Drafted with Claude (Opus 5) from my code reading and git history; critiqued in rounds by Codex (gpt-6-astra) and Kimi (K3), archived in `quest/council/`; ships only on unanimous approval. Ranking and scope decisions are mine.
 
 - **v1 → v2** (round 1, both CHANGE): withdrew the reviewer-credit-loss claim (path unreachable); substitution stated for all three routes; separated preserved policy from fixes (§5); corrected affected users; precise trim history and `assess.ts` description; added §12; removed the causal claim that missing tests caused drift; fixed review-history tense.
+- **v3 → v3.1** (third-reviewer cold read, fresh-context Opus, 2026-09-21): §2 statuses marked as frozen with a pointer to actual outcomes; §7 gains the post-implementation limitation on fix-1's reach; unused worst-case plan cut. No measured value changed.
 - **v2 → v3** (round 2, both CHANGE): "silently" replaced by the precise reporting distinction; hosted-admin condition narrowed to *no key supplied + verified admin*; "reported as such" removed (would be a third behaviour change → follow-up); admins no longer listed under trim drift; public-demo visitors added; `assess.ts` summary completed (credential skipping, failure logging, fallback marker); 503 attributed to the route, not `demoAvailability()`; "leading-whitespace"; cuts: hiring history, Paprika detail, §5 meta-intro, redundant §9 sentence.
 
 ## 12. Reproduction commands for measured values

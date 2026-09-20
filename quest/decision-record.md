@@ -1,6 +1,6 @@
 # Decision record — extract provider/key resolution from the evaluation routes
 
-**Status:** implemented on `quest/trust-and-change` (`50fa2dc` → `e5bd47b`) · **Date:** 2026-09-21 · **Draft:** v2 (change log §8)
+**Status:** implemented on `quest/trust-and-change` (`50fa2dc` → `e5bd47b`) · **Date:** 2026-09-21 · **Draft:** v3 (change log §8)
 **Inputs:** `quest/intent.md` v3, `quest/directive.md` v3.1, code reviews in `quest/council/code-review-{codex,kimi}.md`, `quest/agent-notes.md`
 **Author:** Muhammad Iqbal Hilmy Izzulhaq. Drafted with Claude (Opus 5) from the implementation record; under council review (§8).
 
@@ -30,13 +30,13 @@ All other *observable* behaviour in reachable states — credential source per p
 
 ## 4. Trade-offs and known differences
 
-- **Two policy axes instead of one.** `allowFallback` (populate `fallbackKeys`?) and `onUnconfigured` (`substitute` / `proceed` / `refuse`) are independent. That expressiveness lets five path-literals reproduce every current path — and also makes `allowFallback: false` + `onUnconfigured: "substitute"` expressible, which is precisely the bug fix-1 removed. Mitigation: doc comment on `ResolutionPolicy` (`provider-resolution.ts:3-13`); routes derive `onUnconfigured` from `allowFallback`.
+- **Two policy axes instead of one.** `allowFallback` (populate `fallbackKeys`?) and `onUnconfigured` (`substitute` / `proceed` / `refuse`) are independent. That expressiveness lets five path-literals reproduce every current path — and also makes `allowFallback: false` + `onUnconfigured: "substitute"` expressible, which is precisely the bug fix-1 removed. Mitigation: doc comment on `ResolutionPolicy` (`provider-resolution.ts:3-14`); `scheduled` derives `onUnconfigured` from `allowFallback` (a ternary); `evaluate` hostedAdmin and both `demo` paths fix it by literal, which is safe only because their fallback is forced on or they never substitute.
 - **`substituted` is test-only.** No route reads it; it lets the contract table assert *why* a provider was chosen. Kept deliberately; surfacing it is §7-1.
 - **`demo` passes `fallbackKeys ?? {}`.** The resolver returns `undefined` when fallback is off; `demo`'s downstream call has always received an object. Adapting at the route keeps the resolver uniform and the route byte-compatible. `assessEvidence` treats `{}` and `undefined` identically (`assess.ts:33,38`).
 - **Non-observable difference 1 — object identity.** Caller-path `fallbackKeys` is now the parsed browser-keys object by reference; the old code spread-copied it. `assess.ts` only reads it. No behaviour difference today.
 - **Non-observable difference 2 — gated dead code.** `demo` with a grant and *no* configured provider used to fall back to the literal `"openai"`; the resolver keeps the requested provider. Unreachable: `demoAvailability()` returns `503` first unless `OPENAI_API_KEY` is non-empty (`ledger.ts:92`). Commented in the route; both code reviewers flagged it independently.
 - **Harness scope.** Real handlers; `assessEvidence` mocked and its arguments recorded (real `assessEvidence` for the no-evidence and attempt cases); auth, session, ledger and reviewer modules mocked; fetch blocked. Persistence payloads asserted via `toHaveBeenCalledWith`. **Not covered:** real provider calls, Firestore, the demo ledger's storage backends, and any state the mocks make unreachable (such as difference 2).
-- **Reach of fix-1.** The only in-repo client of `/api/evaluate/scheduled` sends `allowFallback: scheduled || …`, i.e. always `true` for scheduled sessions (`src/app/(public)/interview/page.tsx:330-332`). The refusal therefore protects direct API callers and future clients, not today's UI flow. The API contract was still wrong; the fix is cheap; but the practical user impact today is smaller than `intent.md` §6's score of 4 implied — noted there as a limitation.
+- **Reach of fix-1.** The only in-repo client of `/api/evaluate/scheduled` sends `allowFallback: scheduled || …`, i.e. always `true` for scheduled sessions (`src/app/(public)/interview/page.tsx:330-332`). The refusal therefore protects direct API callers and future clients, not today's UI flow. The API contract was still wrong; the fix is cheap; but the practical user impact today is smaller than `intent.md` §6's score of 4 implied — a limitation now noted in `intent.md` §7.
 
 ## 5. Yardstick results (directive Part 7)
 
@@ -69,4 +69,5 @@ All other *observable* behaviour in reachable states — credential source per p
 ## 8. Review history of this document
 
 - v1 (2026-09-21): drafted from the implementation record and both code reviews.
+- v2 → v3 (third-reviewer cold read, fresh-context Opus, 2026-09-21): mitigation claim corrected — only `scheduled` derives `onUnconfigured` from `allowFallback`; the resolver doc comment fixed to match; the cross-reference to an `intent.md` limitation made true by adding that note. Alternative F kept deliberately: nobody proposed pruning, but the 735-case size is the first thing a reader questions, and the row answers it.
 - v1 → v2 (round 1, Codex `gpt-5.6-sol` CHANGE · Kimi K3 CHANGE): header no longer claims completed rounds; "exactly two behaviours … proven" narrowed to *intended, observable, reachable* with the two non-observable differences and the harness limits listed; alternative G (repository choice) cut as not a design alternative; process claims now cite their council files; Y3 restated with the exact command and base used in `agent-notes.md` (37/40/46) plus the comment-only delta; `a63fab4` and the no-tests claim cite `intent.md` §12; the "scheduled UI sends the default" claim replaced by a verified reading of the client (`interview/page.tsx:330-332`) and its consequence for fix-1's reach added to §4/§6/§7.
