@@ -7,8 +7,8 @@ import {
   saveEvaluation,
 } from "@/lib/demo/ledger";
 import { limitedJson, reply, sameOrigin, visitor } from "@/lib/demo/http";
-import { PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
 import { assessEvidence } from "@/lib/ai/assess";
+import { resolveProvider } from "@/lib/ai/provider-resolution";
 import { configurationSchema } from "@/lib/interview/config";
 import { requestReviewer, consumeReviewer } from "@/lib/access/reviewer";
 export const runtime = "nodejs";
@@ -36,31 +36,35 @@ export async function POST(req: NextRequest) {
       grant = await requestReviewer(req),
       owner = grant ? `reviewer:${grant.id}` : visitor(req).id,
       lease = await ownedLease(owner, body.sessionId);
-    const configuredProviders = PROVIDERS.filter((p) =>
-      process.env[p.env]?.trim()
-    );
-    const selectedProvider = grant
-      ? (
-          configuredProviders.find((p) => p.id === body.provider) ||
-          configuredProviders[0]
-        )?.id || "openai"
-      : body.provider;
+    const resolution = resolveProvider({
+      requested: body.provider,
+      policy: grant
+        ? {
+            credentialSource: "server",
+            allowFallback: true,
+            onUnconfigured: "substitute",
+            onNoneConfigured: "proceed",
+          }
+        : {
+            credentialSource: "server",
+            allowFallback: body.allowFallback,
+            onUnconfigured: "proceed",
+            onNoneConfigured: "proceed",
+          },
+      env: process.env,
+    });
+    if (!resolution.ok) throw new Error("Evaluation unavailable.");
+    const selectedProvider = resolution.provider;
     await claimEvaluation(owner, body.sessionId, selectedProvider);
     if (grant) await consumeReviewer(grant, 3);
-    const provider = PROVIDERS.find((p) => p.id === selectedProvider)!;
-    const fallbackKeys: Partial<Record<AIProvider, string>> = {};
-    if (body.allowFallback || grant)
-      for (const p of PROVIDERS) {
-        if (process.env[p.env]) fallbackKeys[p.id] = process.env[p.env];
-      }
     const result = await assessEvidence(
       selectedProvider,
-      process.env[provider.env],
+      resolution.key,
       body.transcript,
       lease.configuration || configurationSchema.parse({}),
       {
         host: true,
-        fallbackKeys,
+        fallbackKeys: resolution.fallbackKeys ?? {},
         jobContext: {
           role:
             body.role ||
