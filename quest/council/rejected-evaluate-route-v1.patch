@@ -1,0 +1,95 @@
+# Rejected first version of src/app/api/evaluate/route.ts wiring (Codex gpt-5.6-luna, never committed)
+# Source: Codex session rollout ~/.codex/sessions/2026/09/21/rollout-2026-09-21T03-47-12-01a0c092-ab84-7012-8b68-61a4750a5e60.jsonl, record line 180 (FileChange item exec-4f7ea9bb-d4bd-4361-a9cd-fa9f3b59bdce, 2026-09-20T20:55:42.089Z)
+# Extracted verbatim by Claude on 2026-09-21; reviewed and sent back for a duplicated zod schema (see quest/review-example.md).
+
+@@ -1,4 +1,5 @@
+-import { z } from "zod";
+-import { assessEvidence } from "@/lib/ai/assess";
+-import { isProvider, PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
++import { z } from "zod";
++import { assessEvidence } from "@/lib/ai/assess";
++import { isProvider, type AIProvider } from "@/lib/ai/catalog";
++import { resolveProvider } from "@/lib/ai/provider-resolution";
+ import { configurationSchema } from "@/lib/interview/config";
+@@ -42,17 +43,19 @@
+     const hostedAdmin = !key && (await isVerifiedAdminRequest(req));
+-    if (hostedAdmin) {
+-      const configured = PROVIDERS.filter((item) =>
+-        process.env[item.env]?.trim()
+-      );
+-      const selected =
+-        configured.find((item) => item.id === requestedProvider) || configured[0];
+-      if (selected) {
+-        provider = selected.id;
+-        key = process.env[selected.env]?.trim();
+-      }
+-    }
+-    let fallbackKeys: Partial<Record<AIProvider, string>> | undefined;
+-    if (req.headers.get("x-ai-allow-fallback") === "true" || hostedAdmin) {
+-      const browserKeys = z
+-        .object({
++    let fallbackKeys: Partial<Record<AIProvider, string>> | undefined;
++    if (hostedAdmin) {
++      const result = resolveProvider({
++        requested: requestedProvider,
++        policy: {
++          credentialSource: "server",
++          allowFallback: true,
++          onUnconfigured: "substitute",
++          onNoneConfigured: "proceed",
++        },
++        env: process.env,
++      });
++      if (!result.ok) throw new Error("Evaluation unavailable.");
++      provider = result.provider;
++      key = result.key;
++      const browserKeys = z
++        .object({
+           openai: z.string().max(500).optional(),
+@@ -60,15 +63,33 @@
+           deepseek: z.string().max(500).optional(),
+-        })
+-        .parse(JSON.parse(req.headers.get("x-ai-fallback-keys") || "{}"));
+-      const serverKeys = hostedAdmin
+-        ? Object.fromEntries(
+-            PROVIDERS.filter((item) => process.env[item.env]?.trim()).map(
+-              (item) => [item.id, process.env[item.env]!.trim()]
+-            )
+-          )
+-        : {};
+-      fallbackKeys = { ...serverKeys, ...browserKeys } as Partial<
+-        Record<AIProvider, string>
+-      >;
+-    }
++        })
++        .parse(JSON.parse(req.headers.get("x-ai-fallback-keys") || "{}"));
++      fallbackKeys = { ...result.fallbackKeys, ...browserKeys } as Partial<
++        Record<AIProvider, string>
++      >;
++    } else {
++      let callerFallbackKeys: Partial<Record<AIProvider, string>> | undefined;
++      if (req.headers.get("x-ai-allow-fallback") === "true") {
++        callerFallbackKeys = z
++          .object({
++            openai: z.string().max(500).optional(),
++            gemini: z.string().max(500).optional(),
++            deepseek: z.string().max(500).optional(),
++          })
++          .parse(JSON.parse(req.headers.get("x-ai-fallback-keys") || "{}"));
++      }
++      const result = resolveProvider({
++        requested: requestedProvider,
++        policy: {
++          credentialSource: "caller",
++          callerKey: key,
++          allowFallback: req.headers.get("x-ai-allow-fallback") === "true",
++          callerFallbackKeys,
++        },
++        env: process.env,
++      });
++      if (!result.ok) throw new Error("Evaluation unavailable.");
++      provider = result.provider;
++      key = result.key;
++      fallbackKeys = result.fallbackKeys;
++    }
+     const result = await assessEvidence(
