@@ -67,9 +67,9 @@ Tally by tag was computed from the `--json` output: `{('preserved','passed'): 70
 
 The six attempt cases and four accounting-order cases are `preserved`-tagged and pass at H, so the sequences Codex listed in attempt 1 ("Attempts and accounting", below) are now **measured**, not scripted: evaluate caller → `gemini, deepseek` (2); evaluate hostedAdmin → `gemini, deepseek` (2); evaluate no key/not admin → `deepseek` (1); scheduled → `deepseek, openai, gemini` (3); demo grant → `openai` (1); demo no grant → `openai` (1). Demo accounting order on every path: `ownedLease → claimEvaluation → consumeReviewer (grant only) → assessEvidence → saveEvaluation`. The same cases must pass unchanged after wiring.
 
-## Open for human review (Part 7 gate)
+## Part 7 gate — contract table approved
 
-The contract table in `src/lib/ai/__tests__/provider-resolution.test.ts` (214 rows over the five policy literals) and the harness case list (735) are the policy. Approve or dispute before any route edit.
+**2026-09-21, Iqbal:** approved the contract table (`provider-resolution.test.ts`, 214 rows) and the harness case list (735) as the policy, as-is. Route wiring (Part 4.2) dispatched to Codex `gpt-5.6-luna --effort xhigh`; `gpt-6-astra` and Kimi K3 review the diff afterwards.
 
 ---
 
