@@ -164,3 +164,28 @@ Not run after the stop: `npm test`, full repository lint, `--runInBand` reproduc
 ## Complete failing case names (attempt 1)
 
 Superseded — see the corrected list above. The 733 names from attempt 1 were the 703 `preserved` cases (harness bug) plus the 32 fix cases listed above.
+
+## Route wiring (Part 4.2)
+
+Reviewer-committed route commits:
+- `0d88121` - scheduled route, fix-1 refusal when fallback is disabled.
+- `a800008` - demo route, fix-2 trimmed server credentials.
+- `1a1a920` - evaluate route, preserved caller/admin resolution policies.
+
+Reviewer-run final checks:
+- Whole-repo Jest: `27 suites / 1140 tests`, all passing, 12.6 s.
+- ESLint on the three routes: clean.
+- Provider-choice grep: no hits for `configured[0]` or `configured.find`.
+- `git diff -w --stat e25d63e`: scheduled `21+ / 16-` (37), demo `22+ / 18-` (40), evaluate `21+ / 25-` (46).
+
+Assumptions and verification:
+- The route policies use `process.env` as the resolver input and copy the Part 4.2 literals exactly.
+- `evaluate` treats hosted-admin access as effective fallback permission, parses browser fallback keys lazily, and overlays them on server keys.
+- `demo` resolves immediately after the lease and before `claimEvaluation`, preserving accounting order.
+- I found no inaccurate or unclear Part 2 policy while wiring. The impossible `ok: false` branches in evaluate/demo remain narrowed into the existing catch path.
+- I did not verify production provider calls, Firebase persistence/authentication, or live demo storage; the deterministic harness and static checks were the verification scope.
+- The final whole-repo Jest, ESLint, grep, and diff-stat checks above were run by the reviewer; I independently reran the 735-case harness and TypeScript checks after the final route edits.
+
+Review interventions:
+- The first evaluate edit duplicated the fallback-key Zod schema in two branches; review sent it back, and it was replaced with one lazy parse and one resolver call.
+- The reviewer then renamed the resolver result to `resolution`, removed the temporary bare block, and made `fallbackKeys` a `const` for lint.
