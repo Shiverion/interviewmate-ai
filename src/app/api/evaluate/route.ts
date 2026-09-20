@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { assessEvidence } from "@/lib/ai/assess";
-import { isProvider, PROVIDERS, type AIProvider } from "@/lib/ai/catalog";
+import { isProvider, type AIProvider } from "@/lib/ai/catalog";
+import { resolveProvider } from "@/lib/ai/provider-resolution";
 import { configurationSchema } from "@/lib/interview/config";
 import { limitedJson } from "@/lib/demo/http";
 import { isVerifiedAdminRequest } from "@/lib/firebase/server-auth";
@@ -40,37 +41,32 @@ export async function POST(req: Request) {
     // personal interviews, while the verified administrator never needs to
     // copy a provider key into the browser.
     const hostedAdmin = !key && (await isVerifiedAdminRequest(req));
-    if (hostedAdmin) {
-      const configured = PROVIDERS.filter((item) =>
-        process.env[item.env]?.trim()
-      );
-      const selected =
-        configured.find((item) => item.id === requestedProvider) || configured[0];
-      if (selected) {
-        provider = selected.id;
-        key = process.env[selected.env]?.trim();
-      }
-    }
-    let fallbackKeys: Partial<Record<AIProvider, string>> | undefined;
-    if (req.headers.get("x-ai-allow-fallback") === "true" || hostedAdmin) {
-      const browserKeys = z
+    const allowFallback = req.headers.get("x-ai-allow-fallback") === "true" || hostedAdmin;
+    let browserKeys: Partial<Record<AIProvider, string>> | undefined;
+    if (allowFallback) {
+      browserKeys = z
         .object({
           openai: z.string().max(500).optional(),
           gemini: z.string().max(500).optional(),
           deepseek: z.string().max(500).optional(),
         })
         .parse(JSON.parse(req.headers.get("x-ai-fallback-keys") || "{}"));
-      const serverKeys = hostedAdmin
-        ? Object.fromEntries(
-            PROVIDERS.filter((item) => process.env[item.env]?.trim()).map(
-              (item) => [item.id, process.env[item.env]!.trim()]
-            )
-          )
-        : {};
-      fallbackKeys = { ...serverKeys, ...browserKeys } as Partial<
-        Record<AIProvider, string>
-      >;
     }
+    const resolution = resolveProvider({
+      requested: requestedProvider,
+      policy: hostedAdmin
+        ? { credentialSource: "server", allowFallback: true, onUnconfigured: "substitute", onNoneConfigured: "proceed" }
+        : { credentialSource: "caller", callerKey: key, allowFallback, callerFallbackKeys: browserKeys },
+      env: process.env,
+    });
+    if (!resolution.ok) throw new Error("Evaluation unavailable.");
+    provider = resolution.provider;
+    key = resolution.key;
+    const fallbackKeys = hostedAdmin
+      ? ({ ...resolution.fallbackKeys, ...browserKeys } as Partial<
+          Record<AIProvider, string>
+        >)
+      : resolution.fallbackKeys;
     const result = await assessEvidence(
       provider,
       key,
