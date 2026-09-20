@@ -1,5 +1,16 @@
 import { PROVIDERS, type AIProvider } from "./catalog";
 
+/**
+ * Policy inputs are deliberately independent axes:
+ * - `allowFallback` controls only whether `fallbackKeys` is populated.
+ * - `onUnconfigured` controls the *primary* provider when the requested one
+ *   has no server key: "substitute" picks the first configured provider,
+ *   "proceed" keeps the requested provider with an undefined key, "refuse"
+ *   returns ok:false.
+ * `allowFallback: false` with `onUnconfigured: "substitute"` is expressible but
+ * is exactly the scheduled-route bug this module was extracted to fix — routes
+ * should derive `onUnconfigured` from `allowFallback`, as evaluate/scheduled do.
+ */
 export type ResolutionPolicy =
   | {
       credentialSource: "caller";

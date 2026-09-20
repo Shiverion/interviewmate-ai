@@ -36,6 +36,10 @@ export async function POST(req: NextRequest) {
       grant = await requestReviewer(req),
       owner = grant ? `reviewer:${grant.id}` : visitor(req).id,
       lease = await ownedLease(owner, body.sessionId);
+    // With a grant and *no* configured provider the old code fell back to the
+    // literal "openai"; the resolver keeps the requested provider instead. Both
+    // are unreachable: demoAvailability() above already returned 503 unless
+    // OPENAI_API_KEY is set, so at least one provider is always configured here.
     const resolution = resolveProvider({
       requested: body.provider,
       policy: grant
