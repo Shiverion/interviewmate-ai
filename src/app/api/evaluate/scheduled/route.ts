@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 import { assessEvidence } from "@/lib/ai/assess";
-import { PROVIDERS } from "@/lib/ai/catalog";
+import { resolveProvider } from "@/lib/ai/provider-resolution";
 import { configurationSchema } from "@/lib/interview/config";
 import { limitedJson, sameOrigin } from "@/lib/demo/http";
 import {
@@ -35,14 +35,24 @@ export async function POST(req: NextRequest) {
     const session = await requireScheduledSession(req, body.sessionId, {
       allowCompleted: true,
     });
-    const configured = PROVIDERS.filter((provider) =>
-      process.env[provider.env]?.trim()
-    );
-    const selected =
-      configured.find((provider) => provider.id === body.provider) || configured[0];
-    if (!selected)
+    const resolution = resolveProvider({
+      requested: body.provider,
+      policy: {
+        credentialSource: "server",
+        allowFallback: body.allowFallback,
+        onUnconfigured: body.allowFallback ? "substitute" : "refuse",
+        onNoneConfigured: "refuse",
+      },
+      env: process.env,
+    });
+    if (!resolution.ok)
       return Response.json(
-        { error: "No hosted evaluation provider is configured." },
+        {
+          error:
+            resolution.reason === "no_provider_configured"
+              ? "No hosted evaluation provider is configured."
+              : "Requested evaluation provider is not configured and fallback is disabled.",
+        },
         { status: 503 }
       );
     const configuration = configurationSchema.parse(session.data.configuration || {});
@@ -58,19 +68,14 @@ export async function POST(req: NextRequest) {
       session.data.cv_parsing && typeof session.data.cv_parsing === "object"
         ? String(session.data.cv_parsing.text || "").slice(0, 24000)
         : undefined;
-    const fallbackKeys = body.allowFallback
-      ? Object.fromEntries(
-          configured.map((provider) => [provider.id, process.env[provider.env]!.trim()])
-        )
-      : undefined;
     const result = await assessEvidence(
-      selected.id,
-      process.env[selected.env]!.trim(),
+      resolution.provider,
+      resolution.key,
       body.transcript,
       configuration,
       {
         host: true,
-        fallbackKeys,
+        fallbackKeys: resolution.fallbackKeys,
         jobContext: { role, cvText: cv },
       }
     );
