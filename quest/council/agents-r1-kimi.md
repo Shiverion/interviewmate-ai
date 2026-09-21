@@ -1,0 +1,15 @@
+**Kimi K3 review — agents.md v1 (bundle-only; unverifiable flagged as unverifiable, not wrong)**
+
+**Fact-check.** §2 roster matches the README (astra: intent/directive/code; sol from `decision-record.md` on; Kimi throughout; Opus from `handoff.md` plus one retro pass). One tension: the effort log says astra's largest run "ended in a correct stop, not a result", yet §2 credits astra with commit H — unverifiable from the bundle. §3 matches directive Parts 3/6 and the handoff brief, except the stop condition "a policy literal that cannot reproduce today's behaviour" appears nowhere in the excerpted directive — unverifiable. §5: the intent, directive v1/v2, production-diff, review-example, decision-record, and handoff rows all match the README. Slippage in three places: "`demo` always passes `{}`" over-specifies the README's "always passes an object"; the "four closed docs" row adds "one overstated mitigation claim" beyond the README's "status/tense drift and dangling references" (unverifiable); "701 false failures" is a precise number the evidence doesn't reproduce. §4's "at most three rounds" sits awkwardly with the directive needing a v3.1 after round-3 CHANGEs. §7 counts: see change 3.
+
+**Honesty.** The two-reviewer period, the junction incident, and wrong reviewers are all disclosed (§5–§7) — that is the document's strength. But §1's "three independent models reviewed every document and the diff" is contradicted by §6 and the README: everything before `handoff.md` shipped on two independent reviewers plus one retro Opus pass. Similarly "cheaper models wrote the code" over-generalizes — commit H (module + tests + harness) was astra, before the tiering rule existed. First-sentence overclaims are exactly what costs credibility with a rubric judge.
+
+**Usefulness.** §3–§4 + §8 are nearly sufficient to rerun the method; missing are the review-brief template itself and the rule that the baseline sha must be recorded in the directive.
+
+**Cuts.** §5's closing "three properties" paragraph editorializes what the table already shows; §7's Jest/Windows trivia could move to the effort log — both minor.
+
+CHANGE:
+1. Rewrite §1 to match §6 and the README — before `handoff.md`, documents and the diff shipped on two independent reviewers plus a single retro Opus pass, and commit H predates model tiering — so qualify both "three independent models reviewed every document" and "cheaper models wrote the code".
+2. Fix the three "Part 7" references (§2 orchestrator row, §4 code loop, §5 evaluate row): the directive excerpt and commit `e25d63e` show Part 7 is the human's contract-table approval gate, not an orchestrator per-diff checklist — cite the correct checklist section or drop the label.
+3. Reconcile §7's counts with the sources it cites: `effort-log.md` records "1 run, 3 m 44 s" for the fresh-Opus reviewer against §7's "4 fresh-Opus runs", and the council archive lists 12 Kimi critique files against §7's "11 Kimi runs" — state what each number counts or correct it.
+

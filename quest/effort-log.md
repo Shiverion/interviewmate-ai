@@ -8,10 +8,10 @@
 |---|---|---|
 | Elapsed | 2026-09-20 ~13:00 → 2026-09-21 ~05:00 local (two sittings, one overnight gap) | measured from commit timestamps and session |
 | **Human attention (Iqbal)** | **3–4 h** so far, plus the pending items below | self-reported estimate |
-| Codex agent runtime | 19 jobs, ≈41 min total (largest 14 m 56 s: baseline harness) | measured from the plugin job store |
-| Kimi K3 runs | 11 (each a single-file read + answer; 3 RPM API cap) | counted |
+| Codex agent runtime | 23 jobs, ≈43.5 min total (largest 14 m 56 s: baseline harness) — recounted 2026-09-21 at `agents.md` v2; final count at submission | measured from the plugin job store |
+| Kimi K3 invocations | 19: 17 returned a review, 2 died on the 3 RPM cap (15 output files present; 1 in the first scratchpad; 3 in a since-deleted worktree, from the session record) | counted from output files + session record |
 | Claude (Opus 5) session | orchestration, drafting, diagnosis, all commits; one session | not separately timed |
-| Fresh-context Opus reviewer | 1 run, 3 m 44 s | measured |
+| Fresh-context Opus reviewer | 5 runs to date (retro pass 3 m 44 s; `handoff.md` ×3; `agents.md` r1); final count at submission | counted from subagent launches |
 
 No claim is made about how long this would take another engineer or a team; see `handoff.md` §4 for the one timed exercise (n = 1, pending).
 
