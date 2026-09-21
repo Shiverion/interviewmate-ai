@@ -34,7 +34,7 @@ Every item below changed what happened next. None was a rubber stamp; several re
 
 ## What the human has not yet done (pending — required before submission)
 
-- [ ] Read the three route diffs (`git diff -w 50fa2dc..2b1ae0f -- src/app/api/evaluate src/app/api/demo/evaluate`, ≈130 changed lines) and the resolver (89 lines) — so `review-example.md` can state what was personally inspected. *Est. 20–30 min.*
+- [x] Read the three route diffs and the resolver — done 2026-09-21; statement recorded in `review-example.md` "Who decided what".
 - [ ] Perform the timed handoff exercise, once on `50fa2dc` and once on `2b1ae0f` (`handoff.md` §4). *Est. 30–45 min.*
 - [ ] Tick the sign-off in `review-example.md`.
 - [ ] Record the Loom (≤ 5 min; a couple of takes). *Est. 45–60 min.*
