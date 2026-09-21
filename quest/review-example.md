@@ -1,6 +1,6 @@
 # Code-review example — AI output corrected or rejected
 
-**Change:** provider-resolution extraction, `quest/trust-and-change` · **Date:** 2026-09-21 · **Draft:** v3.2 (change log at end)
+**Change:** provider-resolution extraction, `quest/trust-and-change` · **Date:** 2026-09-21 · **Draft:** v4 (change log at end)
 **Author:** Muhammad Iqbal Hilmy Izzulhaq. Drafted with Claude (Opus 5) from the implementation record; under council review.
 
 The Quest asks for one example of AI output that was corrected or rejected during implementation, with the risk explained. Two occurred. Both are recorded with a durable source for every quoted line. The first is the primary example (it is *code*, and the smell is the one this change exists to remove). Document-level corrections during the intent/directive rounds are catalogued in `quest/council/README.md`.
@@ -9,12 +9,29 @@ The Quest asks for one example of AI output that was corrected or rejected durin
 
 - **Iqbal (human):** chose the problem; authored and approved the directive including its Part 7 review checklist and rejection rule (`3acb9fe`); approved the contract table before any route edit (`e25d63e`); set the model allocation (implementation on cheaper models at high effort, review on stronger models — an instruction given in the working session, recorded here and in `quest/agent-notes.md`; `agents.md` is planned); and accepts or rejects this record and the branch. **On 2026-09-21 he read the resolver and the three route diffs himself** (`git diff -w 50fa2dc..2b1ae0f -- src/app/api/evaluate src/app/api/demo/evaluate`; `git show 2b1ae0f:src/lib/ai/provider-resolution.ts`) and recorded, in his words: "I read the resolver and all three route diffs. I checked that the provider-selection logic is now centralized, that the scheduled route is the only intentional behavior change when fallback is disabled, and that the demo/evaluate routes preserve their existing behavior. I also verified that substitution and fallback remain separate decisions, and I didn't see any unrelated scope changes in the diff."
 - **Claude (Opus 5):** ran the Part 7 checklist on each agent output and made the two corrections below under those rules. Each was reported to Iqbal in the working session in which it was made; the durable record of each is this file, `quest/agent-notes.md`, and the commit messages. These are review decisions taken under delegated, written rules — not a substitute for human accountability.
-- **Acceptance.** Iqbal's acceptance of these two review decisions is recorded by the sign-off line at the end of this document; until it is signed, they stand as Claude's decisions under Iqbal's rules.
+- **Acceptance.** Iqbal's acceptance of these two review decisions is recorded by the signed line at the end of this document (2026-09-21). Before that signature they stood as Claude's decisions under Iqbal's rules.
 - **Codex `gpt-6-astra`** wrote the resolver and the test harness; **Codex `gpt-5.6-luna`** wrote the three route changes (`provider-resolution.ts` and the tests: commit `d09182e`; routes: commit messages `0d88121`, `a800008`, `1a1a920`; model id also recorded in the Codex session rollout named below).
 
 ---
 
 ## Example 1 (primary) — duplicated schema in `evaluate/route.ts`: sent back
+
+**In thirty seconds:**
+
+```
+AI patch for the third route: harness 735/735, tsc clean
+        ↓
+review found the zod schema duplicated across two branches (63 changed lines)
+        ↓
+rejected despite green tests — the change exists to remove exactly this
+        ↓
+second patch: one schema, one resolver call
+        ↓
+46 changed lines, all checks still pass — committed as 1a1a920
+```
+
+The rest of this section is the evidence for each arrow.
+
 
 **Produced by:** Codex `gpt-5.6-luna` (effort xhigh), wiring the third route after `scheduled` (`0d88121`) and `demo` (`a800008`) were already wired — which is why its harness run could be 735/735.
 **Durable source:** `quest/council/rejected-evaluate-route-v1.patch` — the unified diff extracted verbatim from the Codex session rollout (`~/.codex/sessions/2026/09/21/rollout-2026-09-21T03-47-12-01a0c092-ab84-7012-8b68-61a4750a5e60.jsonl`, FileChange record, 2026-09-20T20:55:42Z). Reproduce: `git show a800008:src/app/api/evaluate/route.ts > before.ts`, apply the patch, then `git diff -w --stat --no-index before.ts after.ts` → **42 insertions, 21 deletions (63 changed lines)**; `grep -c "z.string().max(500).optional()"` → **6** (two copies of the three-field schema).
@@ -76,7 +93,7 @@ The Quest asks for one example of AI output that was corrected or rejected durin
 
 63 changed lines, against the directive's yardstick Y3 limit of 50.
 
-**The risk had it shipped.** No functional regression was detected within the harness's scope. The risk is the one this change exists to remove: a maintainability change that *reintroduces duplicated logic* undermines its own reason to exist. The next person to change the header schema (add a provider, change the length cap) has two places to edit again — the failure mode `intent.md` documents with `a63fab4`, where a fix landed in one copy and missed another. Tests would not catch that drift; both copies would still parse. A reviewer scoring "reduces complexity or risk" would, reasonably, dock it.
+**The risk had it shipped.** No functional regression was detected within the harness's scope. The risk is the one this change exists to remove: a maintainability change that *reintroduces duplicated logic* undermines its own reason to exist. The next person to change the header schema (add a provider, change the length cap) has two places to edit again — the failure mode `intent.md` documents with `a63fab4`, where a fix landed in one copy and missed another. The current tests would not necessarily catch that drift, because two independently edited schemas could both still parse successfully.
 
 **Why the agent did it — an inference, not a fact (kept: it is the part a future directive author can act on).** The directive said "keep the lazy parse of `x-ai-fallback-keys`" and "browser-over-server merge for hostedAdmin". Read narrowly, giving each branch its own copy is the safest way to *guarantee* both. The agent appears to have optimised for provable preservation over structural preservation — a predictable bias of a tightly-scoped directive, and the reason a review step sits after the tests.
 
@@ -122,7 +139,7 @@ The Quest asks for one example of AI output that was corrected or rejected durin
     const body = await response.json();
 ```
 
-Under Jest, `NextRequest`/`Response` bodies are parsed by Node's `undici` in the Node realm, so the parsed objects carry a different `Object.prototype` than object literals in the test file. `toStrictEqual` checks constructors and fails with `Received: serializes to the same string`. Every one of the 701 failures was at a response-*body* assertion; the `observable` assertion that encodes policy had already passed in each.
+The object returned by `response.json()` carried a prototype identity that `toStrictEqual` treated as different from the test-file literal, producing `Received: serializes to the same string`. (The likely mechanism — the body being parsed in a different JavaScript realm from the test — was inferred from that symptom, not inspected directly.) Every one of the 701 failures was at a response-*body* assertion; the `observable` assertion that encodes policy had already passed in each.
 
 **The risk had it shipped.** None to production — test-only. A real one to *verification integrity*: a harness that fails everything cannot distinguish a wrong policy table from a wrong assertion, so the baseline number would have been meaningless and the stop rule would have blocked the change indefinitely — or tempted someone to loosen the assertions.
 
@@ -132,7 +149,7 @@ Under Jest, `NextRequest`/`Response` bodies are parsed by Node's `undici` in the
     const body = JSON.parse(await response.text()); // parse in the test realm: undici-parsed objects fail toStrictEqual (cross-realm prototypes)
 ```
 
-Re-run: 703 `preserved` pass, 0 fail; 7 `fix-1` + 25 `fix-2` fail — exactly the intended baseline. No expectation, tag, or policy row changed.
+Re-run: 703 `preserved` pass, 0 fail; 7 `fix-1` + 25 `fix-2` fail — exactly the intended baseline. No expectation, tag, or policy row changed. That before/after — one parse-boundary change flipping all 703 `preserved` cases to pass while leaving the intended 32 failures intact — is the evidence the correction rests on, independent of the mechanism.
 
 ---
 
@@ -143,7 +160,7 @@ Re-run: 703 `preserved` pass, 0 fail; 7 `fix-1` + 25 `fix-2` fail — exactly th
 
 ## Sign-off
 
-- [ ] Accepted by Muhammad Iqbal Hilmy Izzulhaq on ____-__-__ — the two review decisions above are mine to own; I have read this record and the linked artefacts.
+- [x] Accepted by Muhammad Iqbal Hilmy Izzulhaq on 2026-09-21 — I read this review record, the final resolver, and the three affected route diffs. I accept the two documented review decisions and take responsibility for the final branch.
 
 ## Review history of this document
 
@@ -153,3 +170,4 @@ Re-run: 703 `preserved` pass, 0 fail; 7 `fix-1` + 25 `fix-2` fail — exactly th
 - v3 confirmed (round 3): Codex `gpt-5.6-sol` APPROVE · Kimi K3 APPROVE.
 - v2 → v3 (round 2, Codex `gpt-5.6-sol` CHANGE · Kimi K3 APPROVE on v2): the rejected version's 735/735, `tsc` and 45-line figures now cite luna's verbatim job reports archived in `quest/council/luna-job-reports.md`, with the caveat that they were not independently re-run on the rejected version; the human-decision account is narrowed to what is evidenced (commits `3acb9fe`, `e25d63e`; session-recorded instructions labelled as such) and an explicit sign-off line is added for Iqbal's acceptance.
 - v3.1 → v3.2 (2026-09-21): Iqbal's own reading of the diffs and resolver recorded verbatim in "Who decided what"; the earlier "did not read every diff line" statement replaced accordingly. Sign-off still pending his tick.
+- v3.2 → v4 (2026-09-21, Iqbal's own review of the document): a thirty-second summary added at the top of Example 1; the sentence about how a hiring reviewer would score it removed (an engineering record, not a pitch); "tests would not catch" softened to "would not necessarily catch"; the cross-realm mechanism in Example 2 restated as an inference from the symptom, with the before/after re-run named as the actual evidence; sign-off wording narrowed to what Iqbal actually read, and signed.

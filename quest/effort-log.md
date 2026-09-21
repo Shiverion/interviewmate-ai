@@ -36,7 +36,7 @@ Every item below changed what happened next. None was a rubber stamp; several re
 
 - [x] Read the three route diffs and the resolver — done 2026-09-21; statement recorded in `review-example.md` "Who decided what".
 - [ ] Perform the timed handoff exercise, once on `50fa2dc` and once on `2b1ae0f` (`handoff.md` §4). *Est. 30–45 min.*
-- [ ] Tick the sign-off in `review-example.md`.
+- [x] Sign-off in `review-example.md` — signed 2026-09-21 with narrowed wording, after Iqbal's own review of the document produced four edits (v4).
 - [ ] Record the Loom (≤ 5 min; a couple of takes). *Est. 45–60 min.*
 - [ ] Push the branch; open every link in Appendix B from a logged-out browser. *Est. 10 min.*
 

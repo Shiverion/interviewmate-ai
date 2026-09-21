@@ -422,7 +422,7 @@ function prepare(scenario: Scenario, lines = transcript) {
 
 async function observe(route: Route, request: NextRequest) {
   const response = await routes[route](request);
-  const body = JSON.parse(await response.text()); // parse in the test realm: undici-parsed objects fail toStrictEqual (cross-realm prototypes)
+  const body = JSON.parse(await response.text()); // objects from response.json() fail toStrictEqual against test literals ("serializes to the same string"); parsing here avoids it
   const call = mockAssess.mock.calls[0];
   const observable: Observable =
     response.ok && call
