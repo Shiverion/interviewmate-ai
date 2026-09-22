@@ -8,10 +8,10 @@
 |---|---|---|
 | Elapsed | 2026-09-20 ~13:00 → 2026-09-22 (three sittings; two overnight gaps) | measured from commit timestamps and session |
 | **Human attention (Iqbal)** | **3–4 h** self-reported before the handoff exercise; **+ ≈25 min** for the exercise (7 m 08 s + 16 m 27 s on the stopwatch, plus reporting); Loom pending | self-reported estimate; exercise from stopwatch |
-| Codex agent runtime | 27 jobs, ≈45 min total (largest 14 m 56 s: baseline harness) — recounted 2026-09-22 at Appendix B | measured from the plugin job store |
-| Kimi K3 invocations | 19: 17 returned a review, 2 died on the 3 RPM cap (15 output files present; 1 in the first scratchpad; 3 in a since-deleted worktree, from the session record) | counted from output files + session record |
+| Codex agent runtime | 29 jobs, ≈49 min total (incl. final-panel prompt design and astra review) (largest 14 m 56 s: baseline harness) — recounted 2026-09-22 at Appendix B | measured from the plugin job store |
+| Kimi K3 invocations | 20: 18 returned a review, 2 died on the 3 RPM cap (15 output files present; 1 in the first scratchpad; 3 in a since-deleted worktree, from the session record) | counted from output files + session record |
 | Claude (Opus 5) session | orchestration, drafting, diagnosis, all commits; one session | not separately timed |
-| Fresh-context Opus reviewer | 8 launches: 7 returned a review (retro pass; `handoff.md` ×3; `agents.md` r1, r3; exercise council), 1 died on the author's API session limit (`agents.md` r2) | counted from subagent launches |
+| Fresh-context Opus reviewer | 10 launches: 9 returned a review (… + Appendix B fact-check; final panel) (retro pass; `handoff.md` ×3; `agents.md` r1, r3; exercise council), 1 died on the author's API session limit (`agents.md` r2) | counted from subagent launches |
 | Fresh-agent handoff probes (Sonnet) | 2 runs: 5 m 52 s / 30 tool calls (before), 6 m 17 s / 29 (after) | harness-measured; `handoff.md` §4.5 |
 
 No claim is made about how long this would take another engineer or a team; see `handoff.md` §4.4 for the one timed self-performed exercise (n = 1) and §4.5 for the labelled agent probes.

@@ -2,7 +2,7 @@
 
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Repository:** InterviewMate (`Shiverion/interviewmate-ai`), branch `quest/trust-and-change`, starting revision `50fa2dc` (2026-09-11)
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.2, 2026-09-22 (change log in §11)
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.3, 2026-09-22 (change log in §11)
 
 ---
 
@@ -19,7 +19,7 @@ InterviewMate's *transcript → AI evaluation* flow is served by three sibling A
 | The three evaluation routes and `src/lib/ai/assess.ts` | `quest/directive.md`, decision record, handoff note, review example — **planned** |
 | Earlier-Quest deliverables in `deliverables/` — not reused as evidence here | `src/lib/ai/provider-resolution.ts` + contract tests; thinned routes; before/after measurements; Loom — **planned** |
 
-No instruction or directive in `quest/` was written before the work it describes; each file carries its own draft date. Values marked *measured* have a reproduction command in §12. Anything marked *estimate* or *planned* is not yet a result.
+Every instruction in `quest/` was written **before** the work it governs, and carries its draft date: `intent.md` and `directive.md` were approved and committed (`150baab`, `3acb9fe`, 2026-09-20) before the first code commit (`d09182e`, 2026-09-21); nothing was written after the fact and presented as prior. Values marked *measured* have a reproduction command in §12. Anything marked *estimate* or *planned* is not yet a result.
 
 ## 3. The flow in scope
 
@@ -109,6 +109,7 @@ No production telemetry exists for how often these fire; evidence is code readin
 Drafted with Claude (Opus 5) from my code reading and git history; critiqued in rounds by Codex (gpt-6-astra) and Kimi (K3), archived in `quest/council/`; ships only on unanimous approval. Ranking and scope decisions are mine.
 
 - **v1 → v2** (round 1, both CHANGE): withdrew the reviewer-credit-loss claim (path unreachable); substitution stated for all three routes; separated preserved policy from fixes (§5); corrected affected users; precise trim history and `assess.ts` description; added §12; removed the causal claim that missing tests caused drift; fixed review-history tense.
+- **v3.2 → v3.3** (2026-09-22, final panel): §2's provenance sentence rewritten — the old wording ("no instruction was written before the work it describes") read as the opposite of its intent; it now states the commit order that shows the directive preceded the code.
 - **v3.1 → v3.2** (2026-09-22, results): §9 timing row filled from `handoff.md` §4.4 and the exercise's final task named; no other change.
 - **v3 → v3.1** (third-reviewer cold read, fresh-context Opus, 2026-09-21): §2 statuses marked as frozen with a pointer to actual outcomes; §7 gains the post-implementation limitation on fix-1's reach; unused worst-case plan cut. No measured value changed.
 - **v2 → v3** (round 2, both CHANGE): "silently" replaced by the precise reporting distinction; hosted-admin condition narrowed to *no key supplied + verified admin*; "reported as such" removed (would be a third behaviour change → follow-up); admins no longer listed under trim drift; public-demo visitors added; `assess.ts` summary completed (credential skipping, failure logging, fallback marker); 503 attributed to the route, not `demoAvailability()`; "leading-whitespace"; cuts: hiring history, Paprika detail, §5 meta-intro, redundant §9 sentence.

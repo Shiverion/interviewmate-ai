@@ -3,7 +3,7 @@
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Derived from:** `quest/intent.md` v3 (council-approved 2026-09-20)
 **Repository:** `Shiverion/interviewmate-ai`, branch `quest/trust-and-change`, base `50fa2dc`
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.3, 2026-09-22 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.4, 2026-09-22 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
 
 Two readers: the AI coding agent (Parts 1–6 are its instructions) and the human reviewer (Part 7). Parts 1–7 are frozen at the version the agent receives; any later edit is logged in Appendix A. Appendix B is filled once, after implementation.
 
@@ -11,7 +11,7 @@ Two readers: the AI coding agent (Parts 1–6 are its instructions) and the huma
 
 ## Part 1 — Objective
 
-Move provider/key resolution for the transcript-evaluation flow out of the three route handlers into one pure module driven by explicit policy inputs, so that each route's current policy is preserved, exactly two behaviours change (Part 3), and one route-level harness proves how every route resolves for every reachable input — before and after.
+Move provider/key resolution for the transcript-evaluation flow out of the three route handlers into one pure module driven by explicit policy inputs, so that each route's current policy is preserved, exactly two behaviours change (Part 3), and one route-level harness shows how every route resolves across a finite fixture set covering each reachable policy path (Part 5.2) — before and after.
 
 ## Part 2 — Context the agent needs
 
@@ -142,6 +142,7 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | v1 | 2026-09-20 | Initial draft | — |
+| v3.4 | 2026-09-22 | Part 1: "proves … every reachable input" → "shows … across a finite fixture set covering each reachable policy path"; Appendix B preamble corrected; B.1 Loom row now carries the recording outline | Final panel (astra, Opus, Kimi): coverage overclaim; preamble wrong; Loom had a label, not a plan |
 | v3.3 | 2026-09-22 | Appendix B filled with results; Parts 1–7 unchanged | Implementation, review and handoff complete |
 | v3.2 | 2026-09-21 | 5.3 reproduction command changed from `npx jest` to the `node node_modules/jest/bin/jest.js` invocation that actually ran; no instruction changed | Third-reviewer cold read (fresh-context Opus): a reproduction command that never ran is not a reproduction command |
 | v3.1 | 2026-09-20 | Part 6 aligned with 5.3 (H = module + tests, zero route edits); oracle uses provider ids; no-evidence cases use real `assessEvidence`; malformed-header cases keyed to *effective* fallback permission; Appendix B baseline numbers carry their command and revision | Council round 3 (Codex): two residual inconsistencies |
@@ -150,7 +151,7 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 
 ## Appendix B — Results and handoff
 
-*Filled 2026-09-22 after implementation. Every number below is measured unless labelled otherwise; each has a command or a file where it can be checked. Parts 1–7 above are unchanged since v3.1 (edits logged in Appendix A). Where this appendix says "the author", it means Iqbal; where it says "Claude", the orchestrating session.*
+*Filled 2026-09-22 after implementation. Every number below is measured unless labelled otherwise; each has a command or a file where it can be checked. Parts 1–7 above are the instructions the agents received (v3.1); the two later wording edits — a reproduction command (v3.2) and the Part 1 coverage phrase (v3.4) — are logged in Appendix A and changed no instruction. Where this appendix says "the author", it means Iqbal; where it says "Claude", the orchestrating session.*
 
 ### B.1 Artifacts
 
@@ -168,7 +169,7 @@ All paths are relative to the repository root on branch `quest/trust-and-change`
 | Agent instructions and review method | this file (Parts 1–7); `quest/agents.md`; every review brief in `quest/council/briefs/`; every critique in `quest/council/` |
 | Implementation record | `quest/agent-notes.md` |
 | Effort | `quest/effort-log.md` |
-| Loom | *pending — link added at submission* |
+| Loom | *pending — link added at submission.* Recording outline (≤ 5 min, one take per segment): **0:00–0:50** the problem — three routes, one flow, the June trim fix (`a63fab4`) that missed the September route; ranked by user impact / maintenance / cost; non-goals. **0:50–2:10** the result — screen: `handoff.md` §1.2 policy table, then `git diff -w 50fa2dc..e5bd47b -- src/app/api/evaluate/scheduled/route.ts`; the harness at H (32 failing by tag) and after (0); the Y2 grep. **2:10–3:30** the most important revision — the rejected `evaluate` patch (63 lines, duplicated schema, green tests) next to the accepted one (46); and directive v1's resolver contract that would have smuggled in two undeclared changes, caught by two reviewers. **3:30–4:30** AI use and my decisions — B.4 table on screen; the contract-table gate; model tiering; the three-reviewer rule and why it became three. **4:30–5:00** the handoff and limitations — §4.4: 7 m 08 s → 16 m 27 s, not faster but checkable, and the +42 duplicate that passed every check; fix-1 reaches API callers only; n = 1; no second engineer. |
 
 ### B.2 Reproduction steps
 
@@ -251,9 +252,9 @@ From `quest/effort-log.md`, as of 2026-09-22:
 |---|---|
 | Human attention (Iqbal) | **3–4 h** self-reported before the exercise, plus ≈25 min for the exercise and its review, plus the Loom (pending). Projected total ≈5–6 h, inside the brief's suggested 6–8 h. |
 | Elapsed | 2026-09-20 ~13:00 → 2026-09-22, three sittings |
-| Codex jobs | 27 (≈45 min runtime; largest 14 m 56 s) — job store count at this appendix |
-| Kimi K3 invocations | 19 (17 usable, 2 rate-limit failures) |
-| Fresh-context Opus reviewer launches | 8 (7 reviews, 1 killed by the author's API session limit) |
+| Codex jobs | 29 (≈49 min runtime; largest 14 m 56 s) — job store count at the final panel |
+| Kimi K3 invocations | 20 (18 usable, 2 rate-limit failures) |
+| Fresh-context Opus reviewer launches | 10 (9 reviews, 1 killed by the author's API session limit) |
 | Sonnet handoff probes | 2 (≈12 min) |
 | Claude orchestrating session | one continuous session; not separately timed |
 
