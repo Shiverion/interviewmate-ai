@@ -42,7 +42,7 @@ Every item below changed what happened next. None was a rubber stamp; several re
 - [x] Timed handoff exercise — done 2026-09-22, self-performed, AI-assisted (ChatGPT for tracing/diagnosis): 7 m 08 s before, 16 m 27 s after; recorded in `handoff.md` §4.4. Plus two fresh-agent proxy runs (Sonnet), `handoff.md` §4.5.
 - [x] Sign-off in `review-example.md` — signed 2026-09-21 with narrowed wording, after Iqbal's own review of the document produced four edits (v4).
 - [ ] Record the Loom (≤ 5 min; a couple of takes). *Est. 45–60 min.*
-- [ ] Push the branch; open every link in Appendix B from a logged-out browser. *Est. 10 min.*
+- [x] Branch pushed 2026-09-22 (`b3822c3`); five URLs return HTTP 200 unauthenticated. Iqbal to open them from a logged-out browser as the final check.
 
 Projected human total at submission: **≈5–6 h**, within the brief's 6–8 h suggestion. The AI-agent minutes above are additional and are reported, not folded into the human figure.
 

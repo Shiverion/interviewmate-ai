@@ -3,7 +3,7 @@
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Derived from:** `quest/intent.md` v3 (council-approved 2026-09-20)
 **Repository:** `Shiverion/interviewmate-ai`, branch `quest/trust-and-change`, base `50fa2dc`
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.4, 2026-09-22 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.5, 2026-09-22 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
 
 Two readers: the AI coding agent (Parts 1–6 are its instructions) and the human reviewer (Part 7). Parts 1–7 are frozen at the version the agent receives; any later edit is logged in Appendix A. Appendix B is filled once, after implementation.
 
@@ -142,6 +142,7 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | v1 | 2026-09-20 | Initial draft | — |
+| v3.5 | 2026-09-22 | B.1: branch pushed, link access recorded; B.2 step 1 qualifier removed | Push |
 | v3.4 | 2026-09-22 | Part 1: "proves … every reachable input" → "shows … across a finite fixture set covering each reachable policy path"; Appendix B preamble corrected; B.1 Loom row now carries the recording outline | Final panel (astra, Opus, Kimi): coverage overclaim; preamble wrong; Loom had a label, not a plan |
 | v3.3 | 2026-09-22 | Appendix B filled with results; Parts 1–7 unchanged | Implementation, review and handoff complete |
 | v3.2 | 2026-09-21 | 5.3 reproduction command changed from `npx jest` to the `node node_modules/jest/bin/jest.js` invocation that actually ran; no instruction changed | Third-reviewer cold read (fresh-context Opus): a reproduction command that never ran is not a reproduction command |
@@ -155,7 +156,7 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 
 ### B.1 Artifacts
 
-All paths are relative to the repository root on branch `quest/trust-and-change`. GitHub: `https://github.com/Shiverion/interviewmate-ai/tree/quest/trust-and-change` — *link access to be verified after push, from a logged-out browser; the repository is public.*
+All paths are relative to the repository root on branch `quest/trust-and-change`. GitHub: `https://github.com/Shiverion/interviewmate-ai/tree/quest/trust-and-change` — pushed 2026-09-22 at `b3822c3`; the repository is public. Unauthenticated `curl` returned HTTP 200 for the branch, `quest/intent.md`, `quest/directive.md`, the compare view `…/compare/50fa2dc...quest/trust-and-change`, and a raw file; the author additionally opens each link from a logged-out browser before submitting.
 
 | Artifact | Where |
 |---|---|
@@ -173,7 +174,7 @@ All paths are relative to the repository root on branch `quest/trust-and-change`
 
 ### B.2 Reproduction steps
 
-1. (after the branch is pushed) `git clone https://github.com/Shiverion/interviewmate-ai && cd interviewmate-ai && git checkout quest/trust-and-change && npm ci`
+1. `git clone https://github.com/Shiverion/interviewmate-ai && cd interviewmate-ai && git checkout quest/trust-and-change && npm ci`
 2. Whole suite after: `node node_modules/jest/bin/jest.js --ci` → 27 suites / 1140 tests passing.
 3. Baseline suite before: `git checkout 50fa2dc && node node_modules/jest/bin/jest.js --ci` → 25 suites / 191 tests (machine time varies; one run was 21.05 s).
 4. Baseline harness violations at H: `git checkout d09182e && node node_modules/jest/bin/jest.js src/app/api/__tests__/evaluation-routes.test.ts --json | jq .numFailedTests` → `32` (7 `fix-1` + 25 `fix-2`; 0 `preserved`).
