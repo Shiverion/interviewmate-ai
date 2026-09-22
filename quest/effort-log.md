@@ -11,9 +11,10 @@
 | Codex agent runtime | 23 jobs, ≈43.5 min total (largest 14 m 56 s: baseline harness) — recounted 2026-09-21 at `agents.md` v2; final count at submission | measured from the plugin job store |
 | Kimi K3 invocations | 19: 17 returned a review, 2 died on the 3 RPM cap (15 output files present; 1 in the first scratchpad; 3 in a since-deleted worktree, from the session record) | counted from output files + session record |
 | Claude (Opus 5) session | orchestration, drafting, diagnosis, all commits; one session | not separately timed |
-| Fresh-context Opus reviewer | 5 runs to date (retro pass 3 m 44 s; `handoff.md` ×3; `agents.md` r1); final count at submission | counted from subagent launches |
+| Fresh-context Opus reviewer | 8 launches: 7 returned a review (retro pass; `handoff.md` ×3; `agents.md` r1, r3; exercise council), 1 died on the author's API session limit (`agents.md` r2) | counted from subagent launches |
+| Fresh-agent handoff probes (Sonnet) | 2 runs: 5 m 52 s / 30 tool calls (before), 6 m 17 s / 29 (after) | harness-measured; `handoff.md` §4.5 |
 
-No claim is made about how long this would take another engineer or a team; see `handoff.md` §4 for the one timed exercise (n = 1, pending).
+No claim is made about how long this would take another engineer or a team; see `handoff.md` §4.4 for the one timed self-performed exercise (n = 1) and §4.5 for the labelled agent probes.
 
 ## What the human did (decisions, in order)
 
@@ -31,11 +32,14 @@ Every item below changed what happened next. None was a rubber stamp; several re
 | 8 | Asked where the council method sits in the rubric; decided to hold `agents.md` until diff-review evidence existed | Kept an optional doc honest |
 | 9 | Caught that the panel had only two independent reviewers and added a fresh-context Opus as the third | Cold read found cross-document drift the other two could not see |
 | 10 | Asked for an honest effort accounting rather than an inflated one | This file |
+| 11 | Reviewed `review-example.md` as a reader and made four edits, including softening a technical claim three model reviewers had let stand | `review-example.md` v4 |
+| 12 | Ruled the fresh-agent runs supplementary and the self-run primary; decided against a fresh three-reviewer round for factual fills | `handoff.md` §4.4–4.5; one consistency pass |
+| 13 | Performed the handoff exercise himself, including the copy-paste error and the duplicated-rows finding that changed `handoff.md` §1.4 | `handoff.md` §4.4 |
 
 ## What the human has not yet done (pending — required before submission)
 
 - [x] Read the three route diffs and the resolver — done 2026-09-21; statement recorded in `review-example.md` "Who decided what".
-- [ ] Perform the timed handoff exercise, once on `50fa2dc` and once on `2b1ae0f` (`handoff.md` §4). *Est. 30–45 min.*
+- [x] Timed handoff exercise — done 2026-09-22, self-performed, AI-assisted (ChatGPT for tracing/diagnosis): 7 m 08 s before, 16 m 27 s after; recorded in `handoff.md` §4.4. Plus two fresh-agent proxy runs (Sonnet), `handoff.md` §4.5.
 - [x] Sign-off in `review-example.md` — signed 2026-09-21 with narrowed wording, after Iqbal's own review of the document produced four edits (v4).
 - [ ] Record the Loom (≤ 5 min; a couple of takes). *Est. 45–60 min.*
 - [ ] Push the branch; open every link in Appendix B from a logged-out browser. *Est. 10 min.*

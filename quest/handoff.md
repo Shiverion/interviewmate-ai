@@ -1,6 +1,6 @@
 # Handoff — the transcript-evaluation provider-resolution flow
 
-**Branch:** `quest/trust-and-change` · **Revision:** `2b1ae0f` · **Date:** 2026-09-21 · **Draft:** v3 (change log at end)
+**Branch:** `quest/trust-and-change` · **Revision:** `2b1ae0f` · **Date:** 2026-09-21 · **Draft:** v4 (change log at end)
 **Author:** Muhammad Iqbal Hilmy Izzulhaq. Drafted with Claude (Opus 5); under three-reviewer council review (see end).
 
 This note is for an engineer who has never seen this repository and needs to change how the three evaluation routes pick an AI provider and its credentials — without asking me. It has four parts: (1) enough context to make a change, (2) a concise review checklist for any PR touching this flow, (3) a compact before/after metrics table, (4) a handoff exercise with its record.
@@ -60,7 +60,7 @@ Run: `node node_modules/jest/bin/jest.js src/app/api/__tests__/evaluation-routes
 
 1. Decide the new behaviour in terms of the three axes above. If it cannot be expressed with them, you are changing the resolver's contract, not a policy — stop and write a decision record.
 2. Edit **one literal** at that path's call site.
-3. Update `provider-resolution.test.ts`: each path is one `add("<path>", <policy literal>, <expected>)` call inside the `for (const fixture of fixtures)` loop (lines ~110-165), and **both** the literal and the expected `Resolution` are written by hand — mirror your new literal *and* rewrite the expectation. `evaluate hostedAdmin` and `demo grant` share one `for (const path of [...])` loop because their literals are identical today; if you change only one of them, split that loop first. Then update the expectations for that path's cases in `evaluation-routes.test.ts` (cases are generated per route and tagged; the hosted-admin expected provider is the `hostedAdmin ? fixture.selected[requested] : requested` expression, not the fixture). Do not touch other paths' expectations.
+3. Update `provider-resolution.test.ts`: each path is one `add("<path>", <policy literal>, <expected>)` call inside the `for (const fixture of fixtures)` loop (lines ~110-165), and **both** the literal and the expected `Resolution` are written by hand — edit that one call **in place**: change its literal *and* its expectation. Do not paste a second `add(...)` for the same path; a duplicate passes silently (both blocks test the resolver consistently) and leaves a stale row set behind. Sanity check: the resolver test count must still read `Tests: 214`. `evaluate hostedAdmin` and `demo grant` share one `for (const path of [...])` loop because their literals are identical today; if you change only one of them, split that loop first. Then update the expectations for that path's cases in `evaluation-routes.test.ts` (cases are generated per route and tagged; the hosted-admin expected provider is the `hostedAdmin ? fixture.selected[requested] : requested` expression, not the fixture). Do not touch other paths' expectations.
 4. Run the route harness. **Only cases for the path you changed may flip.** If a `preserved` case for another path fails, you changed more than you meant to.
 5. Run the whole suite, `tsc`, lint.
 6. In the PR, state which path changed, which axis, and paste the harness tally (passed/failed by tag).
@@ -106,11 +106,11 @@ Each row says how it was obtained. Three revisions appear as "before": `50fa2dc`
 |---|---|---|---|
 | Route-harness cases failing (`preserved` / `fix-1` / `fix-2`) | 0 / 7 / 25 at H (`d09182e`, harness on unmodified routes) | 0 / 0 / 0 | `jest … --json`, tally by tag |
 | Env-based provider-choice sites in the three routes | 3, by inspection: `\|\| configured[0]` in `evaluate` and `scheduled`, `?.id \|\| "openai"` in `demo` (the narrower grep used during the work finds only 2) | 0 in the routes by the widened grep in checklist item 2; the one remaining site is `resolveProvider` itself | inspection / grep |
-| Files to edit for a one-path policy change | 1 route; no test named the routes, so nothing catches spill-over | 1 route literal + 2 test files; harness fails if any other path moves | qualitative, from §1.4 and the exercise |
+| Change surface and verification coverage for a one-path policy change | 1 production route; no route-specific contract harness guarded spill-over | 1 production policy literal + explicit resolver-test and route-test expectations; unrelated-path changes are detected by automated checks | qualitative, from §1.4 and §4.4 |
 | Tests naming the three routes | 0 files | 1 harness (735 cases) + 1 resolver test (214) | `intent.md` §12-3 |
 | Whole suite | 25 suites / 191 tests / 21.05 s (one run, `intent.md` §12-4) | 27 / 1140 / 12.6 s (one run; machine-dependent) | `jest --ci` |
 | Provider attempts under scripted primary failure, per path | measured at H — `agent-notes.md`, "Attempts (5.4) and accounting order (5.5)" | identical for all `preserved` paths | harness attempt cases |
-| Time for the handoff exercise (§4) | *pending — n = 1* | *pending — n = 1* | stopwatch, self-performed |
+| Time for the handoff exercise (§4.4) | 7 m 08 s | 16 m 27 s | stopwatch, self-performed by the author, n = 1, AI-assisted; descriptive only — see §4.4 |
 | Diff size per route (`git diff -w --stat`) | — | scheduled 37 · demo 44 · evaluate 46 changed lines | `decision-record.md` §5 Y3 |
 
 *Estimate, not measured:* "add a provider" still requires a catalog entry and an SDK adapter in `evaluation.ts`; the resolver needs no change.
@@ -143,19 +143,35 @@ At `50fa2dc` — the code before any of this work; no resolver, no harness — t
 - After: `C:\Users\miqba\AppData\Local\Temp\im-handoff-after` at `2b1ae0f`
 - Both have `node_modules` junctioned to the main checkout (remove a junction only with `rmdir`, never `Remove-Item`); `node node_modules/jest/bin/jest.js …` runs in place.
 
-### 4.4 Record *(to be completed — nothing below is a result yet)*
+### 4.4 Record — self-performed run (primary evidence)
 
-| | Before (`e25d63e`) | After (`2b1ae0f`) |
+**Exercise mode:** self-performed by the author, AI-assisted — ChatGPT was used in the BEFORE run to clarify how `selectedProvider` flows into `claimEvaluation` and `assessEvidence`, and in the AFTER run to locate and diagnose a syntax error introduced by copy-paste. No agent edited the code. Run on 2026-09-22 in the worktrees of §4.3, BEFORE first; both trees reset afterwards, nothing committed.
+
+| | Before (`50fa2dc`) | After (`2b1ae0f`) |
 |---|---|---|
-| Performed by | *pending* | *pending* |
-| Wall time (stopwatch, one run) | *pending* | *pending* |
-| Files touched | *pending* | *pending* |
-| How "done" was decided | *pending* | *pending* |
-| Surprises / what was missing from §1 | *pending* | *pending* |
+| Performed by | Muhammad Iqbal Hilmy Izzulhaq | Muhammad Iqbal Hilmy Izzulhaq |
+| Wall time (stopwatch, one run) | **7 m 07.69 s** | **16 m 27.34 s** |
+| Files touched | `src/app/api/demo/evaluate/route.ts` | `src/app/api/demo/evaluate/route.ts`; `src/lib/ai/__tests__/provider-resolution.test.ts`; `src/app/api/__tests__/evaluation-routes.test.ts` |
+| How "done" was decided | Traced `selectedProvider` into `claimEvaluation` and `assessEvidence` by reading; confirmed by reasoning that with fallback on, an unconfigured requested provider is replaced by the first configured one, and with fallback off it is unchanged. `tsc` pass; eslint pass; existing suite 191/191 (no test names the route). | Automated: resolver contract test, route harness (735/735), whole suite, `tsc`, eslint — all pass. |
+| Confidence (author's words) | *Moderate.* "The existing suite passed and the behavior was clear after tracing the route, but there was no route-specific contract harness for this behavior." | *High* "after automated contract, route, whole-suite, type, and lint checks." |
+| Surprises / friction | A meaningful part of the time went into understanding how `selectedProvider` propagates; AI assistance was needed to be confident the change had the intended observable effect. | (1) A copy-paste introduced a missing closing brace that had to be debugged. (2) The reported resolver-test count was **256**, not the documented 214 — a difference of exactly 42 = 7 fixtures × 3 providers × 2 fallback values, i.e. one whole path's rows. The worktree was reset before the edit could be inspected; the author's own account, given afterwards and consistent with the +42: the recipe's "mirror your new literal and rewrite the expectation" was read as *add a block* rather than *edit in place* — a second `add("demo no grant", …)` was pasted below the existing one — and the duplicate passed silently. §1.4 step 3 was rewritten in response (see change log). The whole-suite figure reported, 1182, is 1140 + 42, consistent with that reading. |
 
-**Limitation (to be confirmed at completion):** if the exercise is performed only by the author, that is stated here, and the timings are labelled *self-performed, n = 1, not a measure of another engineer's experience*. No second engineer's feedback exists at the time of writing.
+**What the two runs show, and no more.** The post-refactor system cost *more* wall time and touched three files instead of one; in exchange it turned "moderate confidence from reading" into "high confidence from checks", and it is the only one of the two states in which a wrong edit would have been caught automatically (it caught nothing here because the duplicate rows were self-consistent — which is itself the finding above). That is the trade the §3 row "change surface and verification coverage" describes. The times are not evidence that the refactor makes changes faster.
 
-**Ship gate:** this document is not final until §4.4 is filled in. A fully pending record does not meet the Quest's "demonstrate the handoff yourself and label that limitation".
+**Limitation.** Self-performed, n = 1, AI-assisted as stated. The author wrote §1 and had reviewed §4.1's measured footprint before running, so neither run is a cold read; the AFTER run was performed second and benefited from familiarity gained in the BEFORE run. Timings are descriptive only — not evidence of another engineer's experience or of team-wide productivity. No second engineer's feedback exists at the time of writing; the observed feedback recorded here is the author's own.
+
+### 4.5 Supplementary: fresh-agent runs (agent-proxy, not human feedback)
+
+A separately labelled probe of *fresh-context discoverability*, run by the orchestrator while the author did §4.4 and held unseen until the author's records were in. Same model (Claude Sonnet), same effort, same task text (`quest/council/briefs/80-agent-proxy-task-sonnet.md`), no memory of the build, one run per revision, worktrees reset afterwards. The task text names neither files, tests nor `handoff.md`. Because the AFTER tree contains `quest/handoff.md`, the comparison measures the whole post-refactor system — code, tests and documentation — not code structure alone. **This row does not satisfy the Quest's handoff requirement and is not a measure of a human engineer.**
+
+| | Before (`50fa2dc`) | After (`bd5f1c8`; `src/` identical to `2b1ae0f` except one harness comment) |
+|---|---|---|
+| Wall time (harness-measured) · tool calls (harness-counted) | 5 m 52 s · 30 (the agent self-reported "15–20 min", "~20 calls") | 6 m 17 s · 29 (self-reported "15–20 min", "~14 calls") |
+| Files changed (verified by `git diff`) | 1: the route (3 lines added) | 2: the route literal (1 line); the harness generator line and the hand-written attempts row |
+| How it showed (a) and (b) | Wrote a temporary route-level Jest test with mocked ledger/reviewer/assess, ran it, then **reverted the fix and re-ran to prove the test fails on the old code**, then restored and deleted the test | Ran the existing harness case that is exactly scenario (a) by name; (b) via the untouched `preserved` rows; observed 5 failures with the route edit alone, updated exactly those expectations; final 949/949, tags 704 / 7 / 24 |
+| What it did not do | — | Did not update the resolver contract test — and nothing failed, because those rows are hand-mirrored. The stale mirror is the same class of gap the author's run exposed from the other direction (a duplicated block also passes). Its report does not mention `handoff.md`; it found the pattern from the resolver's doc comment and the `scheduled` route. |
+
+What this adds: in both states a capable fresh agent completed the task in a few minutes; the after-state made verification a matter of running existing cases rather than building a harness. What it does not add: any claim about humans, or about time.
 
 ---
 
@@ -163,4 +179,5 @@ At `50fa2dc` — the code before any of this work; no resolver, no harness — t
 
 - v1 (2026-09-21): drafted. Three independent reviewers (fresh-context Opus, Codex `gpt-5.6-sol`, Kimi K3), up to three rounds; ships on unanimous approval.
 - v2 → v3 (round 2: Opus APPROVE · Kimi APPROVE · Codex `gpt-5.6-sol` CHANGE): §4.1 no longer claims a removed provider attempt — the SDK attempt sequence is unchanged; the observable effects are the `assessEvidence` tuple and the `claimEvaluation` provider id (Codex, Opus); the six flipped resolver rows enumerated and the post-edit tag re-count (704/7/24) explained (Kimi, Opus); checklist item 2 retitled to what its grep proves, with the literal check made a reading step (Codex); §3 parenthetical clarified (Kimi).
+- v3 → v4 (2026-09-22, results): §4.4 filled from the author's self-performed run (primary evidence); §4.5 added for the fresh-agent probe (supplementary, labelled); §3 timing row filled; §3 "files to edit" row renamed to "change surface and verification coverage" (council recommendation, 2–1); §4.4 table header corrected from `e25d63e` to `50fa2dc`; §1.4 step 3 rewritten from observed feedback — the author's run showed the old wording could be read as "add a block", which passes silently. Per the author's instruction, no new three-reviewer round for these factual fills; one consistency pass instead.
 - v1 → v2 (round 1, all three CHANGE): exercise replaced — v1's change (`evaluate` hosted-admin → `proceed`) would have been rescued by fallback, so its stated outcome was wrong (Codex, Kimi); new exercise on `demo` no-grant with an unambiguous observable, flip counts **measured** (5 harness cases, 6 resolver rows); "before" moved from `e25d63e` (which already contained the harness — Opus) to `50fa2dc`; identical done-criteria for both timings; §1.5 bullet 1 corrected (it was itself false); resolver-test structure (hand-written literal + expectation; shared hostedAdmin/grant loop) explained in §1.4; catalog env names and order, `requested` validation, `assess.ts` and key-store line cites added; checklist gained the full verification commands, a widened grep that would have caught `demo`'s old `|| "openai"`, the `substituted` item, and the ≤ 50 figure labelled a convention; metrics rows re-labelled by method and the "3 sites" row corrected to inspection; ship gate on §4.4 stated.

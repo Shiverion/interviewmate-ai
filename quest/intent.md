@@ -2,7 +2,7 @@
 
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Repository:** InterviewMate (`Shiverion/interviewmate-ai`), branch `quest/trust-and-change`, starting revision `50fa2dc` (2026-09-11)
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.1, 2026-09-21 (change log in §11)
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.2, 2026-09-22 (change log in §11)
 
 ---
 
@@ -93,7 +93,7 @@ No production telemetry exists for how often these fire; evidence is code readin
 | Contract violations: a table of (caller type × requested provider × fallback flag × configured providers) → expected `{provider, key, fallbackOrder}` or refusal, run against each route's resolution with synthetic env fixtures | **Planned** — expected > 0 given A-a and A-c; recorded in `directive.md` appendix | 0 | measured (planned) |
 | Provider attempts per route under a scripted primary-provider failure, with synthetic fixtures; plus an ordering assertion that accounting calls are unchanged | **Planned** | Matches §5; no attempt with an empty credential | measured (planned) |
 | Resolution decision sites in scope | 3 | 1 module + 3 call sites with explicit policy inputs | measured (count) |
-| Time for one bounded policy change (handoff: change hosted-provider preference while preserving explicit selection) | **Planned** — timed once on baseline | Timed once after; n = 1, labelled | measured (planned) |
+| Time for one bounded policy change (handoff exercise; the task was finalised in `handoff.md` §4.1 as a `demo` no-grant policy change, not the hosted-admin change first named here) | 7 m 08 s at `50fa2dc` | 16 m 27 s at `2b1ae0f` — longer, with higher confidence and automated spill-over detection; see `handoff.md` §4.4 | measured; self-performed by the author, n = 1, AI-assisted, descriptive only |
 | Tests naming the resolution logic | 0 files | Contract test + one test per fix in §5 | measured |
 | `npm test` wall time | 21.05 s, 25 suites, 191 tests (§12-4) | Reported, not a target | measured |
 
@@ -109,6 +109,7 @@ No production telemetry exists for how often these fire; evidence is code readin
 Drafted with Claude (Opus 5) from my code reading and git history; critiqued in rounds by Codex (gpt-6-astra) and Kimi (K3), archived in `quest/council/`; ships only on unanimous approval. Ranking and scope decisions are mine.
 
 - **v1 → v2** (round 1, both CHANGE): withdrew the reviewer-credit-loss claim (path unreachable); substitution stated for all three routes; separated preserved policy from fixes (§5); corrected affected users; precise trim history and `assess.ts` description; added §12; removed the causal claim that missing tests caused drift; fixed review-history tense.
+- **v3.1 → v3.2** (2026-09-22, results): §9 timing row filled from `handoff.md` §4.4 and the exercise's final task named; no other change.
 - **v3 → v3.1** (third-reviewer cold read, fresh-context Opus, 2026-09-21): §2 statuses marked as frozen with a pointer to actual outcomes; §7 gains the post-implementation limitation on fix-1's reach; unused worst-case plan cut. No measured value changed.
 - **v2 → v3** (round 2, both CHANGE): "silently" replaced by the precise reporting distinction; hosted-admin condition narrowed to *no key supplied + verified admin*; "reported as such" removed (would be a third behaviour change → follow-up); admins no longer listed under trim drift; public-demo visitors added; `assess.ts` summary completed (credential skipping, failure logging, fallback marker); 503 attributed to the route, not `demoAvailability()`; "leading-whitespace"; cuts: hiring history, Paprika detail, §5 meta-intro, redundant §9 sentence.
 
