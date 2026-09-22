@@ -1,6 +1,6 @@
 # Decision record — extract provider/key resolution from the evaluation routes
 
-**Status:** implemented on `quest/trust-and-change` (`50fa2dc` → `e5bd47b`) · **Date:** 2026-09-21 · **Draft:** v3 (change log §8)
+**Status:** implemented on `quest/trust-and-change` (`50fa2dc` → `e5bd47b`) · **Date:** 2026-09-21 · **Draft:** v3.1 (change log §8)
 **Inputs:** `quest/intent.md` v3, `quest/directive.md` v3.1, code reviews in `quest/council/code-review-{codex,kimi}.md`, `quest/agent-notes.md`
 **Author:** Muhammad Iqbal Hilmy Izzulhaq. Drafted with Claude (Opus 5) from the implementation record; under council review (§8).
 
@@ -64,10 +64,12 @@ All other *observable* behaviour in reachable states — credential source per p
 4. Trim caller-supplied keys in `evaluate` — a declared behaviour change, separate PR.
 5. Charge-before-attempt ordering in `demo` (`intent.md` §4 A-d) — product decision.
 6. A policy-dependent return type so paths that cannot refuse do not need the `throw` narrowing.
+8. **Hand-mirrored contract rows are silent when stale or duplicated** (found by the handoff exercise, `handoff.md` §4.4–4.5): the resolver test writes each path's policy literal and expectation by hand, so a route literal can change without its rows changing, and a pasted duplicate passes. Options: derive the resolver-test rows from the routes' actual literals (export them), or assert the row count per path.
 7. Decide whether the scheduled UI should ever send `allowFallback: false`; today the API supports it and the UI does not use it.
 
 ## 8. Review history of this document
 
 - v1 (2026-09-21): drafted from the implementation record and both code reviews.
+- v3 → v3.1 (2026-09-22, results): follow-up 8 added from the handoff exercise's finding; no other change.
 - v2 → v3 (third-reviewer cold read, fresh-context Opus, 2026-09-21): mitigation claim corrected — only `scheduled` derives `onUnconfigured` from `allowFallback`; the resolver doc comment fixed to match; the cross-reference to an `intent.md` limitation made true by adding that note. Alternative F kept deliberately: nobody proposed pruning, but the 735-case size is the first thing a reader questions, and the row answers it.
 - v1 → v2 (round 1, Codex `gpt-5.6-sol` CHANGE · Kimi K3 CHANGE): header no longer claims completed rounds; "exactly two behaviours … proven" narrowed to *intended, observable, reachable* with the two non-observable differences and the harness limits listed; alternative G (repository choice) cut as not a design alternative; process claims now cite their council files; Y3 restated with the exact command and base used in `agent-notes.md` (37/40/46) plus the comment-only delta; `a63fab4` and the no-tests claim cite `intent.md` §12; the "scheduled UI sends the default" claim replaced by a verified reading of the client (`interview/page.tsx:330-332`) and its consequence for fix-1's reach added to §4/§6/§7.
