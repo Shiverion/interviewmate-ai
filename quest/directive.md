@@ -3,7 +3,7 @@
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Derived from:** `quest/intent.md` v3 (council-approved 2026-09-20)
 **Repository:** `Shiverion/interviewmate-ai`, branch `quest/trust-and-change`, base `50fa2dc`
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.2, 2026-09-21 — *initial directive, issued before implementation. Appendix B is an empty template until results exist.*
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.3, 2026-09-22 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
 
 Two readers: the AI coding agent (Parts 1–6 are its instructions) and the human reviewer (Part 7). Parts 1–7 are frozen at the version the agent receives; any later edit is logged in Appendix A. Appendix B is filled once, after implementation.
 
@@ -142,40 +142,119 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | v1 | 2026-09-20 | Initial draft | — |
+| v3.3 | 2026-09-22 | Appendix B filled with results; Parts 1–7 unchanged | Implementation, review and handoff complete |
 | v3.2 | 2026-09-21 | 5.3 reproduction command changed from `npx jest` to the `node node_modules/jest/bin/jest.js` invocation that actually ran; no instruction changed | Third-reviewer cold read (fresh-context Opus): a reproduction command that never ran is not a reproduction command |
 | v3.1 | 2026-09-20 | Part 6 aligned with 5.3 (H = module + tests, zero route edits); oracle uses provider ids; no-evidence cases use real `assessEvidence`; malformed-header cases keyed to *effective* fallback permission; Appendix B baseline numbers carry their command and revision | Council round 3 (Codex): two residual inconsistencies |
 | v3 | 2026-09-20 | `demo` keeps passing an object for `fallbackKeys` (`?? {}`); whitespace-only/empty env values pinned as unconfigured under fix-2; attempt oracle corrected to `assess.ts:30-42` semantics; commit H = module + tests, zero route edits; permitted edit regions widened to imports and `assessEvidence` arguments; harness mocks completed (`visitor`, `session.ref.update`, availability gate reproduction, `sameOrigin`); cases added (whitespace-only, empty, malformed header on/off, `x-openai-key`, no-evidence, error bodies); table citations corrected | Council round 2 (Codex, Kimi): v2's contract would have failed a `preserved` demo case at H; oracle and mock list were incomplete |
 | v2 | 2026-09-20 | Contract gained `onUnconfigured`/`onNoneConfigured` and an optional key; removed the `missing_caller_key` refusal; change #1 stated as `scheduled`-only, `demo` no-grant path preserved as *proceed*; baseline capture replaced by a real-handler harness committed first (H); added attempt-count and accounting-order tests; `quest/agent-notes.md` carved out; approval gate added to Part 6; Y2/Y3/Y5 made reproducible | Council round 1 (Codex, Kimi): v1's resolver would have introduced new refusals on `evaluate` and a substitution on `demo` no-grant — both outside intent §5's two changes; v1's baseline method was not reproducible |
 
-## Appendix B — Results and handoff *(template; empty until implementation is complete — nothing below is a result yet)*
+## Appendix B — Results and handoff
+
+*Filled 2026-09-22 after implementation. Every number below is measured unless labelled otherwise; each has a command or a file where it can be checked. Parts 1–7 above are unchanged since v3.1 (edits logged in Appendix A). Where this appendix says "the author", it means Iqbal; where it says "Claude", the orchestrating session.*
 
 ### B.1 Artifacts
-- Repository and branch: `https://github.com/Shiverion/interviewmate-ai/tree/quest/trust-and-change` — *access to be verified before submission*
-- Focused diff: `git diff 50fa2dc..<final-sha> -- src/lib/ai/provider-resolution.ts src/app/api/evaluate src/app/api/demo/evaluate` — *sha pending*
-- Tests: `src/lib/ai/__tests__/provider-resolution.test.ts`, `src/app/api/__tests__/evaluation-routes.test.ts` — *pending*
-- Decision record `quest/decision-record.md`; review example `quest/review-example.md`; handoff note and checklist `quest/handoff.md`; agent notes `quest/agent-notes.md` — *pending*
-- Loom — *pending*
+
+All paths are relative to the repository root on branch `quest/trust-and-change`. GitHub: `https://github.com/Shiverion/interviewmate-ai/tree/quest/trust-and-change` — *link access to be verified after push, from a logged-out browser; the repository is public.*
+
+| Artifact | Where |
+|---|---|
+| Runnable repository | the branch; `npm ci && node node_modules/jest/bin/jest.js --ci` |
+| Focused production diff | `git diff -w 50fa2dc..e5bd47b -- src/lib/ai/provider-resolution.ts src/app/api/evaluate src/app/api/demo/evaluate` (6 files; routes 37 / 44 / 46 changed lines; resolver 89 lines new) |
+| Automated checks | `src/lib/ai/__tests__/provider-resolution.test.ts` (214 cases), `src/app/api/__tests__/evaluation-routes.test.ts` (735 cases); results in B.3 and `quest/agent-notes.md` |
+| Code-review example | `quest/review-example.md` (two corrections; rejected patch in `quest/council/rejected-evaluate-route-v1.patch`) |
+| Decision record | `quest/decision-record.md` |
+| Quality metrics and handoff note | `quest/handoff.md` (§3 metrics; §1–§2 context and checklist; §4.4 the performed exercise) |
+| Problem selection | `quest/intent.md` |
+| Agent instructions and review method | this file (Parts 1–7); `quest/agents.md`; every review brief in `quest/council/briefs/`; every critique in `quest/council/` |
+| Implementation record | `quest/agent-notes.md` |
+| Effort | `quest/effort-log.md` |
+| Loom | *pending — link added at submission* |
 
 ### B.2 Reproduction steps
-1. `git clone … && git checkout <final-sha> && npm ci && npm test`
-2. Baseline suite: `git checkout 50fa2dc && node node_modules/jest/bin/jest.js --ci` → expect 25 suites / 191 tests (time is machine-dependent; 21.05 s was one run)
-3. Baseline violations: `git checkout <H> && node node_modules/jest/bin/jest.js src/app/api/__tests__/evaluation-routes.test.ts --json | jq .numFailedTests`
-4. After: same command at `<final-sha>` → expect 0
+
+1. `git clone https://github.com/Shiverion/interviewmate-ai && cd interviewmate-ai && git checkout quest/trust-and-change && npm ci`
+2. Whole suite after: `node node_modules/jest/bin/jest.js --ci` → 27 suites / 1140 tests passing.
+3. Baseline suite before: `git checkout 50fa2dc && node node_modules/jest/bin/jest.js --ci` → 25 suites / 191 tests (machine time varies; one run was 21.05 s).
+4. Baseline harness violations at H: `git checkout d09182e && node node_modules/jest/bin/jest.js src/app/api/__tests__/evaluation-routes.test.ts --json | jq .numFailedTests` → `32` (7 `fix-1` + 25 `fix-2`; 0 `preserved`).
+5. After: same command at `e5bd47b` or later → `0`.
+6. Decision sites: `grep -rnE 'configured\[0\]|configured\.find|\?\.id \|\| "openai"|process\.env\[' src/app/api/evaluate src/app/api/demo/evaluate` → no output after; 13 lines at `50fa2dc` (`git grep` with the same pattern and revision).
+7. The handoff exercise: `quest/handoff.md` §4.1–4.3; worktree setup is described there.
+
+(`npx` did not resolve on the author's Windows shell; the `node node_modules/…` forms are what was actually run.)
 
 ### B.3 Checks and actual results
 
 | Check | Baseline | After | Kind |
 |---|---|---|---|
-| Route-harness cases failing (`fix-1` + `fix-2` expected at H; `preserved` expected 0) | *pending @ H* | *pending @ final* | measured |
-| Provider attempts under scripted primary failure, per path (5.4) | *pending* | *pending* | measured |
-| `demo` accounting call order (5.5) | *pending* | *pending* | measured |
-| Env-based provider choice sites in the three routes (Y2 grep) | *pending @ 50fa2dc* | *pending* | measured |
-| Tests naming the resolution logic | 0 files | *pending* | measured |
-| `npm test` suites / tests / time | 25 / 191 / 21.05 s (`npx jest --ci` at `50fa2dc`, single run 2026-09-20, Node v24.11.1 — `intent.md` §12-4) | *pending* | measured |
-| Time for one bounded policy change (handoff exercise) | *pending, n = 1* | *pending, n = 1* | measured, single run |
+| Route-harness cases failing (`preserved` / `fix-1` / `fix-2`) | 0 / 7 / 25 at H (`d09182e`), harness on unmodified routes | 0 / 0 / 0 at `e5bd47b` | measured |
+| Route harness total | 735 cases (703 `preserved`, 7 `fix-1`, 25 `fix-2`) | same, all passing | measured |
+| Resolver contract test | — (module did not exist) | 214 / 214 | measured |
+| Provider attempts under scripted primary failure, per path | measured at H: evaluate caller `gemini, deepseek`; hosted-admin `gemini, deepseek`; evaluate no-key `deepseek`; scheduled `deepseek, openai, gemini`; demo grant `openai`; demo no-grant `openai` | identical on every `preserved` path | measured (`agent-notes.md`) |
+| `demo` accounting call order | `ownedLease → claimEvaluation → consumeReviewer? → assessEvidence → saveEvaluation` | identical | measured (harness) |
+| Env-based provider-choice sites in the three routes | 3 (by inspection: two `\|\| configured[0]`, one `?.id \|\| "openai"`) | 0 in the routes; 1 in `resolveProvider` | measured (grep / inspection) |
+| Test files naming the three routes | 0 | 2 | measured |
+| Whole suite | 25 / 191 / 21.05 s | 27 / 1140 / 12.6–24.4 s across runs | measured, times single-run |
+| `tsc --noEmit`, eslint on changed files | — | clean | measured |
+| Per-route changed lines (`git diff -w --stat`) | — | scheduled 37 · demo 44 (40 + a 4-line comment) · evaluate 46; yardstick Y3 ≤ 50 | measured |
+| Handoff exercise, wall time, self-performed, n = 1 | 7 m 08 s at `50fa2dc` | 16 m 27 s at `2b1ae0f` | measured, descriptive only (`handoff.md` §4.4) |
+| Handoff exercise, fresh-agent probe (Sonnet), n = 1 each | 5 m 52 s, 30 tool calls | 6 m 17 s, 29 tool calls | measured, agent-proxy, not human feedback (`handoff.md` §4.5) |
 
-### B.4 AI contribution and human decisions — *pending*
-### B.5 Corrected or rejected AI output — *pending (verbatim excerpt, what was wrong, risk, replacement)*
-### B.6 Handoff exercise — *pending (task, who performed it, time, gaps found; if only me, stated as a limitation)*
-### B.7 Limitations — *pending (at minimum: single-run timings; no production telemetry; reviewer routes not migrated)*
-### B.8 Actual effort — *pending (hours by activity vs 6–8 h budget)*
+Yardsticks Y1–Y7 (Part 7): all pass — evidence per item in `decision-record.md` §5. Y7 ("every number in Appendix B has a command") is satisfied by this appendix's B.2 and the cited files.
+
+**Reach of fix-1 (a limitation on user impact, found after implementation):** the only in-repo client of `/api/evaluate/scheduled` always sends `allowFallback: true` (`src/app/(public)/interview/page.tsx:330-332`), so the new refusal protects direct API callers, not today's UI. `intent.md` §6's user-impact score of 4 for this problem was given before this was known.
+
+### B.4 AI contribution and human decisions
+
+| Who | Did | Record |
+|---|---|---|
+| Iqbal (human) | Chose the problem and repository; set the rules (three review rounds, unanimity, model tiering, three independent reviewers); approved the contract table before any route edit (`e25d63e`); read the resolver and the three route diffs; reviewed `review-example.md` as a reader and made four edits; performed the handoff exercise (`handoff.md` §4.4), whose findings changed `handoff.md` §1.4 and added `decision-record.md` follow-up 8; corrected the orchestrator's overclaim that the refactored system would "catch" a wrong edit; signed the review example | `effort-log.md` decisions 1–13; `review-example.md` "Who decided what"; `handoff.md` §4.4 |
+| Claude Opus 5 (orchestrating session) | Drafted every document; built every review bundle; ran the Part 7 per-commit checklist on each implementer diff; diagnosed the harness realm failure and made the one-line correction; sent back the duplicated-schema route edit; made every commit | `quest/agent-notes.md`; commit messages |
+| Codex `gpt-6-astra` | Reviewed `intent.md`, `directive.md` and the production diff; implemented commit H (resolver, contract tests, harness) — stopped correctly under the stop rule when 701 `preserved` cases failed | `d09182e`; `quest/council/*-codex.md` (early rounds); `agent-notes.md` attempt 1 |
+| Codex `gpt-5.6-luna` (xhigh) | Implemented the three route commits; first `evaluate` version sent back | `0d88121`, `a800008`, `1a1a920`; `quest/council/luna-job-reports.md` |
+| Codex `gpt-5.6-sol` (xhigh) | Reviewer from `decision-record.md` on, after astra's quota ran out | `quest/council/dr-re-*`, `handoff-*`, `agents-*` |
+| Kimi K3 | Reviewer throughout | `quest/council/*-kimi.md` |
+| Fresh-context Claude Opus 5 (separate subagents) | Third independent reviewer from `handoff.md` on; one retro cold read of the four earlier documents | `quest/council/retro-coldread-opus.md`, `*-opus.md` |
+| Claude Sonnet (two fresh subagents) | The agent-proxy handoff probes | `handoff.md` §4.5; `quest/council/briefs/80-*` |
+| ChatGPT (separate sessions, Iqbal's) | Second opinions on `review-example.md` and on the exercise design; help tracing the provider flow and diagnosing a syntax error during the self-performed exercise | `review-example.md` v4 change log; `handoff.md` §4.4 "Exercise mode"; `quest/council/exercise-council.md` |
+
+The drafting session's approval never counted as a review. Panel size: two independent reviewers for the first four documents and the code review; three from `handoff.md` on, plus one retro pass over the earlier four (`quest/council/README.md`).
+
+### B.5 Corrected or rejected AI output
+
+Two during implementation, both with durable sources — `quest/review-example.md`:
+
+1. **Rejected:** luna's first `evaluate` route edit duplicated the fallback-key zod schema across two branches (63 changed lines; passed every test). Sent back with a target shape; the accepted version has one schema and one resolver call (46 lines). Patch: `quest/council/rejected-evaluate-route-v1.patch` (extracted verbatim from the Codex session rollout). Risk: reintroducing the exact drift pattern the change exists to remove.
+2. **Corrected:** astra's harness compared `response.json()` bodies with `toStrictEqual`; 701 `preserved` cases failed with `serializes to the same string`. The agent stopped under the directive's rule; Claude changed one line to parse the body in the test file. Risk: a meaningless baseline number, or pressure to loosen assertions.
+
+Document-level corrections — including two cases where a reviewer was wrong and one where the orchestrator overclaimed — are catalogued in `quest/council/README.md` and `quest/agents.md` §5.
+
+### B.6 Handoff exercise
+
+Task, expected footprint and worktrees: `handoff.md` §4.1–4.3. Performed by the author on 2026-09-22, self-performed, AI-assisted (ChatGPT for tracing and diagnosis), BEFORE then AFTER: 7 m 08 s → 16 m 27 s; 1 file → 3 files; confidence moderate → high at completion → partially falsified post-review when a +42 resolver-test count revealed a duplicated hand-mirrored block that every check had passed (`handoff.md` §4.4). That finding rewrote `handoff.md` §1.4 step 3 and became `decision-record.md` follow-up 8. A supplementary fresh-agent probe (`handoff.md` §4.5) found the complementary gap: an untouched, now-stale contract block also passes. **No second engineer performed the exercise; the observed feedback is the author's own — a limitation, stated.**
+
+### B.7 Limitations
+
+- Single-run timings (n = 1) everywhere; the handoff timings are descriptive only and the AFTER run was performed second by the person who wrote the handoff.
+- No production telemetry; user impact is argued from code and git history. fix-1's refusal is reachable today only by direct API callers (B.3).
+- The harness mocks `assessEvidence`, auth, session and ledger; real provider calls, Firestore and the demo ledger's storage backends are not exercised.
+- The resolver's contract rows are hand-mirrored from the routes; stale or duplicated rows do not fail the suite (found twice, B.6; follow-up 8).
+- `reviewer/invitations` and `reviewer/sessions` still parse the same headers inline (follow-up 2).
+- Two non-observable implementation differences exist behind unreachable states (`decision-record.md` §4).
+- Reviewer independence is by session, not by vendor: the third reviewer shares the author's model family.
+- The one measured "another engineer" is an AI agent, labelled as such; no human other than the author has attempted the change.
+
+### B.8 Actual effort
+
+From `quest/effort-log.md`, as of 2026-09-22:
+
+| | |
+|---|---|
+| Human attention (Iqbal) | **3–4 h** self-reported before the exercise, plus ≈25 min for the exercise and its review, plus the Loom (pending). Projected total ≈5–6 h, inside the brief's suggested 6–8 h. |
+| Elapsed | 2026-09-20 ~13:00 → 2026-09-22, three sittings |
+| Codex jobs | 27 (≈45 min runtime; largest 14 m 56 s) — job store count at this appendix |
+| Kimi K3 invocations | 19 (17 usable, 2 rate-limit failures) |
+| Fresh-context Opus reviewer launches | 8 (7 reviews, 1 killed by the author's API session limit) |
+| Sonnet handoff probes | 2 (≈12 min) |
+| Claude orchestrating session | one continuous session; not separately timed |
+
+The human hours went into the decisions that shaped the outcome (`effort-log.md`, decisions 1–13) rather than into typing; the brief's request to distinguish the candidate's work from AI output is answered by that table and by B.4. No claim is made about how long this would take another engineer or a team.

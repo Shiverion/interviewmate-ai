@@ -10,7 +10,7 @@ You are an independent reviewer with no involvement in drafting. Four documents 
 - Scoring: problem selection & scope 20; engineering & review quality 30; verification & maintainability 25; human & AI workflow 15; communication & handoff 10. 75%-anchor = solid result with limited gaps; 100% = complete, well-verified, clear judgment and handoff. Do not fabricate; label synthetic/estimates; distinguish your work from AI output.
 
 ## Files to read (read-only; do not edit anything)
-Repo root: C:/Users/miqba/projects/Virtual AI Interviewer Assistant (branch quest/trust-and-change at d06789a)
+Repo root: <repo root> (branch quest/trust-and-change at d06789a)
 1. quest/intent.md
 2. quest/directive.md
 3. quest/decision-record.md

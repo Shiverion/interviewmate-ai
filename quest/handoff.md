@@ -139,8 +139,10 @@ At `50fa2dc` — the code before any of this work; no resolver, no harness — t
 
 ### 4.3 Worktrees prepared for the timing
 
-- Before: `C:\Users\miqba\AppData\Local\Temp\im-handoff-before` at `50fa2dc` (no resolver, no harness — verified)
-- After: `C:\Users\miqba\AppData\Local\Temp\im-handoff-after` at `2b1ae0f`
+On the author's machine (`%TEMP%` = the Windows user temp folder). Another engineer recreates them with `git worktree add --detach <dir> 50fa2dc` and `… 2b1ae0f`, then links or installs `node_modules`.
+
+- Before: `%TEMP%\im-handoff-before` at `50fa2dc` (no resolver, no harness — verified)
+- After: `%TEMP%\im-handoff-after` at `2b1ae0f`
 - Both have `node_modules` junctioned to the main checkout (remove a junction only with `rmdir`, never `Remove-Item`); `node node_modules/jest/bin/jest.js …` runs in place.
 
 ### 4.4 Record — self-performed run (primary evidence)
