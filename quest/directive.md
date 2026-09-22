@@ -159,7 +159,7 @@ All paths are relative to the repository root on branch `quest/trust-and-change`
 | Artifact | Where |
 |---|---|
 | Runnable repository | the branch; `npm ci && node node_modules/jest/bin/jest.js --ci` |
-| Focused production diff | `git diff -w 50fa2dc..e5bd47b -- src/lib/ai/provider-resolution.ts src/app/api/evaluate src/app/api/demo/evaluate` (6 files; routes 37 / 44 / 46 changed lines; resolver 89 lines new) |
+| Focused production diff | `git diff -w 50fa2dc..e5bd47b -- src/` (6 files: the resolver, its test, the harness, the three routes; routes 37 / 44 / 46 changed lines; resolver 89 lines new). Production files only: `… -- src/lib/ai/provider-resolution.ts src/app/api/evaluate src/app/api/demo/evaluate` (4 files) |
 | Automated checks | `src/lib/ai/__tests__/provider-resolution.test.ts` (214 cases), `src/app/api/__tests__/evaluation-routes.test.ts` (735 cases); results in B.3 and `quest/agent-notes.md` |
 | Code-review example | `quest/review-example.md` (two corrections; rejected patch in `quest/council/rejected-evaluate-route-v1.patch`) |
 | Decision record | `quest/decision-record.md` |
@@ -172,7 +172,7 @@ All paths are relative to the repository root on branch `quest/trust-and-change`
 
 ### B.2 Reproduction steps
 
-1. `git clone https://github.com/Shiverion/interviewmate-ai && cd interviewmate-ai && git checkout quest/trust-and-change && npm ci`
+1. (after the branch is pushed) `git clone https://github.com/Shiverion/interviewmate-ai && cd interviewmate-ai && git checkout quest/trust-and-change && npm ci`
 2. Whole suite after: `node node_modules/jest/bin/jest.js --ci` → 27 suites / 1140 tests passing.
 3. Baseline suite before: `git checkout 50fa2dc && node node_modules/jest/bin/jest.js --ci` → 25 suites / 191 tests (machine time varies; one run was 21.05 s).
 4. Baseline harness violations at H: `git checkout d09182e && node node_modules/jest/bin/jest.js src/app/api/__tests__/evaluation-routes.test.ts --json | jq .numFailedTests` → `32` (7 `fix-1` + 25 `fix-2`; 0 `preserved`).
@@ -193,7 +193,7 @@ All paths are relative to the repository root on branch `quest/trust-and-change`
 | `demo` accounting call order | `ownedLease → claimEvaluation → consumeReviewer? → assessEvidence → saveEvaluation` | identical | measured (harness) |
 | Env-based provider-choice sites in the three routes | 3 (by inspection: two `\|\| configured[0]`, one `?.id \|\| "openai"`) | 0 in the routes; 1 in `resolveProvider` | measured (grep / inspection) |
 | Test files naming the three routes | 0 | 2 | measured |
-| Whole suite | 25 / 191 / 21.05 s | 27 / 1140 / 12.6–24.4 s across runs | measured, times single-run |
+| Whole suite | 25 / 191 / 21.05 s | 27 / 1140 / 12.6 s (one recorded run; machine-dependent) | measured, times single-run |
 | `tsc --noEmit`, eslint on changed files | — | clean | measured |
 | Per-route changed lines (`git diff -w --stat`) | — | scheduled 37 · demo 44 (40 + a 4-line comment) · evaluate 46; yardstick Y3 ≤ 50 | measured |
 | Handoff exercise, wall time, self-performed, n = 1 | 7 m 08 s at `50fa2dc` | 16 m 27 s at `2b1ae0f` | measured, descriptive only (`handoff.md` §4.4) |

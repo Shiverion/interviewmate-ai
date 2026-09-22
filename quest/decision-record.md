@@ -64,8 +64,8 @@ All other *observable* behaviour in reachable states — credential source per p
 4. Trim caller-supplied keys in `evaluate` — a declared behaviour change, separate PR.
 5. Charge-before-attempt ordering in `demo` (`intent.md` §4 A-d) — product decision.
 6. A policy-dependent return type so paths that cannot refuse do not need the `throw` narrowing.
-8. **Hand-mirrored contract rows are silent when stale or duplicated** (found by the handoff exercise, `handoff.md` §4.4–4.5): the resolver test writes each path's policy literal and expectation by hand, so a route literal can change without its rows changing, and a pasted duplicate passes. Options: derive the resolver-test rows from the routes' actual literals (export them), or assert the row count per path.
 7. Decide whether the scheduled UI should ever send `allowFallback: false`; today the API supports it and the UI does not use it.
+8. **Hand-mirrored contract rows are silent when stale or duplicated** (found by the handoff exercise, `handoff.md` §4.4–4.5): the resolver test writes each path's policy literal and expectation by hand, so a route literal can change without its rows changing, and a pasted duplicate passes. Options: derive the resolver-test rows from the routes' actual literals (export them), or assert the row count per path.
 
 ## 8. Review history of this document
 

@@ -80,7 +80,7 @@ Two rows record a reviewer being wrong, one records this document being wrong ab
 
 | | Count | How counted |
 |---|---|---|
-| Codex jobs | 23, ≈43.5 min total runtime (largest 14 m 56 s, commit H) | plugin job store, `status --all`, at v2 |
+| Codex jobs | 27, ≈45 min total runtime (largest 14 m 56 s, commit H) | plugin job store, `status --all`, recounted at Appendix B (23 at v2) |
 | Kimi K3 invocations | 19: 17 that returned a review, 2 that died on the 3 RPM limit | output files in the working folder (15 present) + 1 in the first scratchpad + 3 in a since-deleted worktree, from the session record |
 | Fresh-context Opus reviewer launches | 8: 7 returned a review (retro pass; `handoff.md` ×3; `agents.md` r1, r3; the exercise council), 1 died on the author's API session limit (`agents.md` r2) | subagent launches, counted like the Kimi row; reconciled with `effort-log.md` |
 | Human attention | 3–4 h so far, self-reported; pending items estimated in `effort-log.md` | — |

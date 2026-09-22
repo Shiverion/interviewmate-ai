@@ -6,9 +6,9 @@
 
 | | Value | Kind |
 |---|---|---|
-| Elapsed | 2026-09-20 ~13:00 → 2026-09-21 ~05:00 local (two sittings, one overnight gap) | measured from commit timestamps and session |
-| **Human attention (Iqbal)** | **3–4 h** so far, plus the pending items below | self-reported estimate |
-| Codex agent runtime | 23 jobs, ≈43.5 min total (largest 14 m 56 s: baseline harness) — recounted 2026-09-21 at `agents.md` v2; final count at submission | measured from the plugin job store |
+| Elapsed | 2026-09-20 ~13:00 → 2026-09-22 (three sittings; two overnight gaps) | measured from commit timestamps and session |
+| **Human attention (Iqbal)** | **3–4 h** self-reported before the handoff exercise; **+ ≈25 min** for the exercise (7 m 08 s + 16 m 27 s on the stopwatch, plus reporting); Loom pending | self-reported estimate; exercise from stopwatch |
+| Codex agent runtime | 27 jobs, ≈45 min total (largest 14 m 56 s: baseline harness) — recounted 2026-09-22 at Appendix B | measured from the plugin job store |
 | Kimi K3 invocations | 19: 17 returned a review, 2 died on the 3 RPM cap (15 output files present; 1 in the first scratchpad; 3 in a since-deleted worktree, from the session record) | counted from output files + session record |
 | Claude (Opus 5) session | orchestration, drafting, diagnosis, all commits; one session | not separately timed |
 | Fresh-context Opus reviewer | 8 launches: 7 returned a review (retro pass; `handoff.md` ×3; `agents.md` r1, r3; exercise council), 1 died on the author's API session limit (`agents.md` r2) | counted from subagent launches |
