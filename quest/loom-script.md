@@ -1,62 +1,135 @@
-# Loom script — ≤ 5 minutes
+# Loom script — recording version, ≤ 5 minutes
 
-**Draft 1, 2026-09-22.** Spoken lines in plain text; what is on screen in *[brackets]*. Timings are targets; at a normal speaking pace this runs about 4:40, leaving buffer. Read it once aloud with a stopwatch before recording. Numbers are the committed ones — if you change a number, change it in the document first.
+**Draft 2, 2026-09-23.** Iqbal's interactive rewrite, trimmed for length and corrected for attribution. Target **4:35–4:45**, which leaves buffer under the five-minute cap.
 
-Rule for the recording: say what you did, what the AI did, and what you did not verify — in that order, every time it comes up. Nothing on screen that isn't in the repository.
+**Style:** use the document on screen as your cue. Do not read these sentences exactly — point, scroll, explain. The words below are the floor, not a teleprompter.
+
+**Pace check.** ~690 spoken words: 4:19 at 160 wpm, 4:36 at 150, 4:56 at 140 — before pauses. You have eight tab switches; budget ~15 s for them. **If you speak slowly, or the first take passes 4:30 at the "What AI did" segment, drop the second paragraph of 2:10–2:50** (everything between "And it was sent back." and "So tests were necessary evidence") — the thirty-second diagram on screen carries that segment without it.
+
+**Two rules, because the documents are scrupulous about them and a reviewer will cross-check:**
+1. Never claim an execution step you did not perform. The harness was written and run by an agent; the patch rejection was made under *your* checklist and you accepted it in writing. Both phrasings below are already correct — keep them.
+2. Never say "proves", "guarantees" or "catches every". Say "shows", "checks", "for the fixture set I tested".
+
+---
+
+## 0:00 – 0:45 — Why I chose this problem
+
+*[Screen: `quest/intent.md` §1, then scroll to §6 Prioritization and point at row A]*
+
+Hi, I'm Iqbal. This is InterviewMate, a Next.js app I originally built with AI assistance for a previous Quest with your team.
+
+For this Quest I focused on the transcript-to-AI-evaluation flow.
+
+*[Cursor over the three-route description in §1.]*
+
+Three API routes make basically the same decision: which AI provider, which key, and whether fallback is allowed. Each route implemented that decision separately, and over time they drifted. One example — a key-handling fix from June reached an existing route, while the demo route added later repeated the older behaviour.
+
+*[Scroll to §6, point at row A.]*
+
+I ranked the problems I found on user impact, maintenance effort and operating cost. I chose this one because it had all three things I wanted: a real behaviour problem, a structural cause, and evidence that the same class of issue had already recurred.
+
+## 0:45 – 1:15 — What the refactor actually changed
+
+*[Screen: `quest/handoff.md` §1.2, five-policy table centred.]*
+
+After the refactor the shared mechanism lives in one pure resolver. But I deliberately did not make every route behave the same.
+
+*[Cursor down the five policy rows.]*
+
+The policy stays explicit at each call site — five policy paths. There are only two intended behaviour changes. On the scheduled route, if fallback is explicitly off and the requested provider isn't configured, it now refuses instead of silently switching providers. And the demo route now trims server-side keys like the other two.
+
+For the fixture set I tested, the remaining behaviour is preserved.
+
+## 1:15 – 1:35 — Show the actual code
+
+*[Screen: command **S2**, or the GitHub commit view. Point at the policy literal, especially `onUnconfigured`.]*
+
+This is what it looks like in the route. The important thing isn't the line count — it's that the policy decision is visible here now, instead of hidden inside another copy of environment lookup and provider selection.
+
+*[Pause ~2 s so the reviewer can read it.]*
+
+## 1:35 – 2:10 — How I checked behaviour preservation
+
+*[Screen: `quest/directive.md` Appendix B.3. Point at the first two rows.]*
+
+Verification is where most of the work went. Before any route was wired, the harness was committed and run against the old implementation. Seven hundred thirty-five route cases. Seven hundred and three — the behaviour that should stay the same — already passed. Exactly thirty-two failed: seven for the scheduled fix, twenty-five for the demo fix.
+
+*[Move to the After column.]*
+
+After the refactor, all of them pass. The resolver adds two hundred fourteen contract cases, and the full suite is now eleven hundred forty tests.
+
+## 2:10 – 2:50 — The AI patch that was rejected with green tests
+
+*[Screen: `quest/review-example.md`, Example 1, "In thirty seconds" block. Follow the arrows with the cursor.]*
+
+An AI-generated patch for the third route passed all seven hundred thirty-five route tests, and TypeScript was clean. And it was sent back.
+
+It duplicated the header-parsing schema across two branches — structurally recreating the exact problem this refactor removes. Sixty-three changed lines. The revised version: one schema, one resolver call, forty-six lines, tests still passing.
+
+So tests were necessary evidence. They weren't the whole review.
+
+## 2:50 – 3:25 — What AI did, and what I was responsible for
+
+*[Screen: `quest/directive.md` Appendix B.4. Point first at the Iqbal row.]*
+
+AI did a lot of the execution: one model orchestrated and drafted, others implemented bounded changes, independent sessions reviewed.
+
+These were the decisions I kept.
+
+I chose the repository and the problem. I approved the behaviour contract before any route was edited. That rejection you just saw was made under a review checklist I wrote — and I own the call: I read the resolver and all three production route diffs myself, then signed off on the record. And I performed the handoff exercise personally.
+
+I used AI heavily. I didn't delegate what behaviour was intended, or what evidence was enough to accept the change.
+
+## 3:25 – 4:25 — The handoff result
+
+*[Screen: `quest/handoff.md` §4.4, BEFORE/AFTER table centred.]*
+
+This is the part I'd want you to push on.
+
+I ran the same policy change before and after the refactor.
+
+*[Point at Wall time.]*
+
+Before: about seven minutes. After: about sixteen and a half. So the refactor did not make this task faster.
+
+*[Point at Files touched.]*
+
+One file before; the policy plus its resolver and route expectations after — more surface, more verification.
+
+*[Point at Confidence.]*
+
+At first I was confident: contract tests, route harness, full suite, types and lint all green. Then that got challenged.
+
+*[Point at Surprises / friction.]*
+
+During the AFTER run I accidentally added a second generated demo-no-grant test block instead of editing the existing one. Every check still passed. But the resolver count read two hundred fifty-six instead of two hundred fourteen — exactly forty-two extra cases. That anomaly is what exposed it.
+
+I kept this run rather than rerunning for a cleaner number. It changed the handoff instructions; row-count assertions are a documented follow-up.
+
+## 4:25 – 4:40 — Close on the limitation
+
+*[Stay on §4.4, on "What the two runs show, and no more."]*
+
+So the outcome isn't that change got faster, or that the system is error-proof. It made the provider policy explicit and behavioural changes more mechanically checkable — and the handoff exercise showed exactly where that verification is still weak.
+
+One self-performed run. And the scheduled fix currently protects direct API callers rather than today's UI flow.
+
+That's the result I'd ship with. Thank you.
 
 ---
 
-## 0:00 – 0:50 — The problem, and why it ranked first
+## What changed from Iqbal's draft 1, and why
 
-*[Screen: `quest/intent.md` §1, then scroll to the §4 table row A]*
+| Change | Reason |
+|---|---|
+| ~120 words cut | Draft 1 was 865 spoken words = 5:24 at 160 wpm, 5:46 at 150, before pauses and eight tab switches. The cap is a hard five minutes. |
+| "I ran the new harness against the old implementation" → "the harness was committed and run against the old implementation" | `directive.md` B.4 credits the harness to Codex `gpt-6-astra`. |
+| "I decided when an AI-generated patch should be rejected" → "made under a review checklist I wrote — and I own the call" | `review-example.md` "Who decided what": Claude made the call under Iqbal's Part 7 rules; Iqbal's signature is the acceptance. The corrected phrasing is also the stronger claim for a lead role. |
+| "And I still sent it back" → "And it was sent back" | Same reason; the ownership sentence lands in the next segment. |
+| Segment boundaries retimed to end at 4:40 | Draft 1's segments summed to exactly 5:00 — no buffer. |
+| "So this gave me much stronger mechanical checks… green tests still aren't enough" cut | The next segment makes the point better. |
 
-Hi, I'm Iqbal. This is InterviewMate, a Next.js app I built with AI assistance for a previous Quest with your team. I picked it deliberately: it's the kind of code the Quest is about — shipped fast, AI-assisted, and now needing to be trusted and changed.
-
-The flow is transcript-to-AI-evaluation. Three API routes each re-implemented "which provider, which key, which fallbacks." They had drifted. The clearest evidence is in git: a June fix that trimmed API keys landed in one route and missed the demo route created in September. Thirteen of the repo's commits touch these three files; five are fixes.
-
-I compared three problems — this duplication, the fallback-chain semantics, and repeated per-request work — and scored them on user impact, maintenance effort and operating cost. The duplication won because it was the only one with a user-facing symptom, a structural cause, *and* a dated recurrence. Everything else — auth, the reviewer routes, the fallback semantics — I declared out of scope.
-
-## 0:50 – 2:10 — The result
-
-*[Screen: `quest/handoff.md` §1.2 — the five-literal policy table]*
-
-The change moves the mechanism into one pure module and leaves the policy as five literals, one per path, at the call sites. Exactly two behaviours change: the scheduled route now refuses instead of silently substituting a provider when the caller turned fallback off; and the demo route trims server keys like the other two already did. Everything else is preserved — and that word "preserved" is where the work was.
-
-*[Screen: terminal — run command **S2** from "Commands to have ready" below; 28 lines, fits one screen, no scrolling]*
-
-Here's the scheduled route: thirty-seven changed lines. The literal says what the policy is.
-
-*[Screen: `quest/agent-notes.md`, "Baseline at H" table]*
-
-Before any route was touched, the test harness was committed against the unmodified routes: seven hundred thirty-five cases, tagged. Seven hundred and three "preserved" cases passed on the old code; exactly the thirty-two cases tagged as the two fixes failed. After wiring: zero failing, and the whole suite went from one ninety-one to eleven forty tests. The grep for env-based provider selection in the routes goes from thirteen lines to zero.
-
-## 2:10 – 3:30 — The most important revision
-
-*[Screen: `quest/review-example.md`, the "In thirty seconds" block]*
-
-The AI patch for the third route passed every test — seven thirty-five out of seven thirty-five — and I sent it back. It had written the header-parsing schema twice, once per branch. Sixty-three changed lines. Green tests, and still the wrong change, because it reintroduced exactly the drift pattern the whole effort exists to remove. The second version: one schema, one resolver call, forty-six lines. The rejected patch is in the repo, extracted verbatim from the agent's session log.
-
-*[Screen: `quest/council/directive-r1-codex.md`, first paragraph]*
-
-The revision that mattered most, though, happened before any code. My first directive — the instructions for the coding agent — described a "behaviour-preserving" refactor whose contract would have added two *undeclared* behaviour changes: a new refusal on one route, a new substitution on another. Two independent reviewer models caught it, from different angles, before an agent wrote a line. That is why the directive says "exactly two changes" and lists them.
-
-## 3:30 – 4:30 — How I worked with AI, and what I decided
-
-*[Screen: `quest/directive.md` Appendix B.4 — the who-did-what table]*
-
-Honest accounting: one orchestrating model drafted every document and made every commit. Cheaper models wrote the code under the directive, which had file boundaries and stop rules — the first implementation run actually *stopped* correctly when seven hundred preserved cases failed on a harness bug. Every document and the production diff were reviewed by independent model sessions that hadn't seen the drafting — two reviewers at first, three later, after I noticed the panel only had two.
-
-My decisions are listed — thirteen of them. Choosing this repo. Approving the contract table before any route edit. Deciding cheaper models implement and stronger ones review. Adding the third reviewer. And I read the resolver and the three route diffs myself before signing the review record.
-
-## 4:30 – 5:00 — The handoff, and the limits
-
-*[Screen: `quest/handoff.md` §4.4 table]*
-
-I performed the handoff exercise myself, timed: seven minutes on the old code, sixteen and a half on the new. The refactor did not make the change faster. It made behavioural changes checkable — and then my own run found the one place it still isn't: I duplicated a hand-mirrored test block by mistake, and every check stayed green. That's recorded, and it's follow-up number eight.
-
-Limits: the scheduled fix reaches direct API callers only — the shipped UI never turns fallback off. Every timing is n equals one. No second engineer has tried this yet; the agent runs are labelled as agents. Everything else is in the appendix. Thank you.
-
----
+Everything else is Iqbal's draft 1 wording. Every number was checked against the committed documents.
 
 ## Commands to have ready
 
