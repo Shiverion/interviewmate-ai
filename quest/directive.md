@@ -157,7 +157,7 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 
 ### B.1 Artifacts
 
-All paths are relative to the repository root on branch `quest/trust-and-change`. GitHub: `https://github.com/Shiverion/interviewmate-ai/tree/quest/trust-and-change` — pushed 2026-09-22 at `b3822c3`; the repository is public. Unauthenticated `curl` returned HTTP 200 for the branch, `quest/intent.md`, `quest/directive.md`, the compare view `…/compare/50fa2dc...quest/trust-and-change`, and a raw file; the author additionally opens each link from a logged-out browser before submitting.
+All paths are relative to the repository root on branch `quest/trust-and-change`. GitHub: `https://github.com/Shiverion/interviewmate-ai/tree/quest/trust-and-change` — first pushed 2026-09-22 at `b3822c3` and kept current since (the Loom link and this note are later commits); the repository is public. Unauthenticated `curl` returned HTTP 200 for the branch, `quest/intent.md`, `quest/directive.md`, the compare view `…/compare/50fa2dc...quest/trust-and-change`, and a raw file; the author additionally opens each link from a logged-out browser before submitting.
 
 | Artifact | Where |
 |---|---|
