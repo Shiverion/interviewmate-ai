@@ -35,7 +35,7 @@ Every item below changed what happened next. None was a rubber stamp; several re
 | 11 | Reviewed `review-example.md` as a reader and made four edits, including softening a technical claim three model reviewers had let stand | `review-example.md` v4 |
 | 12 | Ruled the fresh-agent runs supplementary and the self-run primary; decided against a fresh three-reviewer round for factual fills | `handoff.md` §4.4–4.5; one consistency pass |
 | 13 | Performed the handoff exercise himself, including the copy-paste error and the duplicated-rows finding that changed `handoff.md` §1.4 | `handoff.md` §4.4 |
-| 14 | Rewrote the Loom script into an interactive, pointing version and accepted two attribution corrections so the spoken words match the documents | `quest/loom-script.md` draft 2 |
+| 14 | Rewrote the Loom script into an interactive, pointing version and accepted two attribution corrections so the spoken words matched the documents | the recorded Loom; script not kept in the repo (working material, not evidence) |
 
 ## Human items required before submission — all complete
 
