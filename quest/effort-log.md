@@ -1,13 +1,13 @@
 # Effort log
 
-**Quest budget:** suggested 6–8 h focused effort, including documentation and Loom. The brief asks for *actual* effort and for the candidate's work to be distinguished from AI output. This log does both. It is kept current until submission; entries marked *pending* are not yet done.
+**Quest budget:** suggested 6–8 h focused effort, including documentation and Loom. The brief asks for *actual* effort and for the candidate's work to be distinguished from AI output. This log does both. It was kept current through submission; nothing is outstanding.
 
 ## Summary
 
 | | Value | Kind |
 |---|---|---|
-| Elapsed | 2026-09-20 ~13:00 → 2026-09-22 (three sittings; two overnight gaps) | measured from commit timestamps and session |
-| **Human attention (Iqbal)** | **3–4 h** self-reported before the handoff exercise; **+ ≈25 min** for the exercise (7 m 08 s + 16 m 27 s on the stopwatch, plus reporting); Loom pending | self-reported estimate; exercise from stopwatch |
+| Elapsed | 2026-09-20 ~13:00 → 2026-09-23 (four sittings; three overnight gaps) | measured from commit timestamps and session |
+| **Human attention (Iqbal)** | **6 h** total at submission, including ≈25 min of handoff exercise (7 m 08 s + 16 m 27 s on the stopwatch, plus reporting) and the Loom script and recording | self-reported total; the exercise portion from stopwatch |
 | Codex agent runtime | 29 jobs, ≈49 min total (incl. final-panel prompt design and astra review) (largest 14 m 56 s: baseline harness) — recounted 2026-09-22 at Appendix B | measured from the plugin job store |
 | Kimi K3 invocations | 20: 18 returned a review, 2 died on the 3 RPM cap (15 output files present; 1 in the first scratchpad; 3 in a since-deleted worktree, from the session record) | counted from output files + session record |
 | Claude (Opus 5) session | orchestration, drafting, diagnosis, all commits; one session | not separately timed |
@@ -35,16 +35,17 @@ Every item below changed what happened next. None was a rubber stamp; several re
 | 11 | Reviewed `review-example.md` as a reader and made four edits, including softening a technical claim three model reviewers had let stand | `review-example.md` v4 |
 | 12 | Ruled the fresh-agent runs supplementary and the self-run primary; decided against a fresh three-reviewer round for factual fills | `handoff.md` §4.4–4.5; one consistency pass |
 | 13 | Performed the handoff exercise himself, including the copy-paste error and the duplicated-rows finding that changed `handoff.md` §1.4 | `handoff.md` §4.4 |
+| 14 | Rewrote the Loom script into an interactive, pointing version and accepted two attribution corrections so the spoken words match the documents | `quest/loom-script.md` draft 2 |
 
-## What the human has not yet done (pending — required before submission)
+## Human items required before submission — all complete
 
 - [x] Read the three route diffs and the resolver — done 2026-09-21; statement recorded in `review-example.md` "Who decided what".
 - [x] Timed handoff exercise — done 2026-09-22, self-performed, AI-assisted (ChatGPT for tracing/diagnosis): 7 m 08 s before, 16 m 27 s after; recorded in `handoff.md` §4.4. Plus two fresh-agent proxy runs (Sonnet), `handoff.md` §4.5.
 - [x] Sign-off in `review-example.md` — signed 2026-09-21 with narrowed wording, after Iqbal's own review of the document produced four edits (v4).
-- [ ] Record the Loom (≤ 5 min; a couple of takes). *Est. 45–60 min.*
+- [x] Loom recorded 2026-09-23: https://www.loom.com/share/ef993e4a2f6f4261a9e2af2946f12523 — linked from `directive.md` B.1.
 - [x] Branch pushed 2026-09-22 (`b3822c3`); five URLs return HTTP 200 unauthenticated. Iqbal to open them from a logged-out browser as the final check.
 
-Projected human total at submission: **≈5–6 h**, within the brief's 6–8 h suggestion. The AI-agent minutes above are additional and are reported, not folded into the human figure.
+Final human total at submission: **6 h**, within the brief's 6–8 h suggestion. The AI-agent minutes above are additional and are reported, not folded into the human figure.
 
 ## What the AI did (by model)
 

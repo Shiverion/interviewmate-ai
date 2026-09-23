@@ -3,7 +3,7 @@
 **Quest:** Make AI-Assisted Code Easier to Trust and Change
 **Derived from:** `quest/intent.md` v3 (council-approved 2026-09-20)
 **Repository:** `Shiverion/interviewmate-ai`, branch `quest/trust-and-change`, base `50fa2dc`
-**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.5, 2026-09-22 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
+**Author:** Muhammad Iqbal Hilmy Izzulhaq · **Draft:** v3.6, 2026-09-23 — *Parts 1–7: the directive as issued before implementation (frozen at v3.1; later edits logged in Appendix A). Appendix B: results and handoff, filled after implementation.*
 
 Two readers: the AI coding agent (Parts 1–6 are its instructions) and the human reviewer (Part 7). Parts 1–7 are frozen at the version the agent receives; any later edit is logged in Appendix A. Appendix B is filled once, after implementation.
 
@@ -142,6 +142,7 @@ In `demo`, call `resolveProvider` exactly where `selectedProvider` is computed t
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | v1 | 2026-09-20 | Initial draft | — |
+| v3.6 | 2026-09-23 | B.1: Loom recorded and linked; B.8: final human effort 6 h | Submission |
 | v3.5 | 2026-09-22 | B.1: branch pushed, link access recorded; B.2 step 1 qualifier removed | Push |
 | v3.4 | 2026-09-22 | Part 1: "proves … every reachable input" → "shows … across a finite fixture set covering each reachable policy path"; Appendix B preamble corrected; B.1 Loom row now carries the recording outline | Final panel (astra, Opus, Kimi): coverage overclaim; preamble wrong; Loom had a label, not a plan |
 | v3.3 | 2026-09-22 | Appendix B filled with results; Parts 1–7 unchanged | Implementation, review and handoff complete |
@@ -170,7 +171,7 @@ All paths are relative to the repository root on branch `quest/trust-and-change`
 | Agent instructions and review method | this file (Parts 1–7); `quest/agents.md`; every review brief in `quest/council/briefs/`; every critique in `quest/council/` |
 | Implementation record | `quest/agent-notes.md` |
 | Effort | `quest/effort-log.md` |
-| Loom | *pending — link added at submission.* Recording outline (≤ 5 min, one take per segment): **0:00–0:50** the problem — three routes, one flow, the June trim fix (`a63fab4`) that missed the September route; ranked by user impact / maintenance / cost; non-goals. **0:50–2:10** the result — screen: `handoff.md` §1.2 policy table, then `git diff -w 50fa2dc..e5bd47b -- src/app/api/evaluate/scheduled/route.ts`; the harness at H (32 failing by tag) and after (0); the Y2 grep. **2:10–3:30** the most important revision — the rejected `evaluate` patch (63 lines, duplicated schema, green tests) next to the accepted one (46); and directive v1's resolver contract that would have smuggled in two undeclared changes, caught by two reviewers. **3:30–4:30** AI use and my decisions — B.4 table on screen; the contract-table gate; model tiering; the three-reviewer rule and why it became three. **4:30–5:00** the handoff and limitations — §4.4: 7 m 08 s → 16 m 27 s, not faster but checkable, and the +42 duplicate that passed every check; fix-1 reaches API callers only; n = 1; no second engineer. |
+| Loom (required deliverable) | https://www.loom.com/share/ef993e4a2f6f4261a9e2af2946f12523 — recorded 2026-09-23, ≤ 5 min. Script and screen cues: `quest/loom-script.md`. In order: why this problem ranked first; the five-literal policy table and the two intended changes; the route diff; the baseline-at-H and after results; the AI patch rejected with green tests; who decided what; the handoff exercise including the duplicated-rows finding; the limitations. |
 
 ### B.2 Reproduction steps
 
@@ -251,7 +252,7 @@ From `quest/effort-log.md`, as of 2026-09-22:
 
 | | |
 |---|---|
-| Human attention (Iqbal) | **3–4 h** self-reported before the exercise, plus ≈25 min for the exercise and its review, plus the Loom (pending). Projected total ≈5–6 h, inside the brief's suggested 6–8 h. |
+| Human attention (Iqbal) | **6 h** total, self-reported at submission — problem choice and ranking, the directive and its gates, reviewing documents and diffs, the handoff exercise (≈25 min of it on the stopwatch), the Loom script and recording. Inside the brief's suggested 6–8 h. |
 | Elapsed | 2026-09-20 ~13:00 → 2026-09-22, three sittings |
 | Codex jobs | 29 (≈49 min runtime; largest 14 m 56 s) — job store count at the final panel |
 | Kimi K3 invocations | 20 (18 usable, 2 rate-limit failures) |
