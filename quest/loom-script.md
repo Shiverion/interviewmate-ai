@@ -22,7 +22,7 @@ I compared three problems — this duplication, the fallback-chain semantics, an
 
 The change moves the mechanism into one pure module and leaves the policy as five literals, one per path, at the call sites. Exactly two behaviours change: the scheduled route now refuses instead of silently substituting a provider when the caller turned fallback off; and the demo route trims server keys like the other two already did. Everything else is preserved — and that word "preserved" is where the work was.
 
-*[Screen: terminal — `git diff -w 50fa2dc..e5bd47b -- src/app/api/evaluate/scheduled/route.ts`]*
+*[Screen: terminal — run command **S2** from "Commands to have ready" below; 28 lines, fits one screen, no scrolling]*
 
 Here's the scheduled route: thirty-seven changed lines. The literal says what the policy is.
 
@@ -58,10 +58,44 @@ Limits: the scheduled fix reaches direct API callers only — the shipped UI nev
 
 ---
 
+## Commands to have ready
+
+Run each once *before* recording so the output is already on screen; during the take you switch tabs rather than type. All are read-only. Run them from the repository root.
+
+**S2 — the scheduled-route change (segment 0:50–2:10).** The narrowed hunk: the old `PROVIDERS.filter` + `find(...) || configured[0]` disappears, a policy literal takes its place, and the new 503 appears. 28 lines, one screen.
+
+```bash
+git diff -w -U1 50fa2dc..e5bd47b -- src/app/api/evaluate/scheduled/route.ts | sed -n '/^@@ -37/,/^@@ -60/p' | sed '$d'
+```
+
+*Alternative if you prefer syntax colour, or if the terminal reads badly on video:* open `https://github.com/Shiverion/interviewmate-ai/commit/0d88121` — the same change in GitHub's rendering, with the commit message stating what it preserves. Either is fine; do not show both.
+
+*Whole-file diff, only if asked afterwards:* `git diff -w 50fa2dc..e5bd47b -- src/app/api/evaluate/scheduled/route.ts` — 68 lines, needs scrolling, avoid on camera.
+
+**S3 — the baseline table (same segment, second half).** Open `quest/agent-notes.md`, scroll to "Baseline at H"; point at the 703 / 7 / 25 row. No command.
+
+**S5 — the Y2 grep, optional, ~8 s.** Baseline count, then today:
+
+```bash
+git grep -cE "configured\[0\]|configured\.find" 50fa2dc -- src/app/api/evaluate src/app/api/demo/evaluate
+```
+
+```bash
+grep -rnE "configured\[0\]|configured\.find" src/app/api/evaluate src/app/api/demo/evaluate
+```
+
+The first prints per-file counts at the baseline; the second prints nothing today. If the quoting fights PowerShell, skip it — the numbers are in Appendix B.3.
+
+**Terminal setup:** font 16–18 pt, roughly 100 columns × 40 rows, clear the screen before each command, and stop the pager waiting for a keypress:
+
+```bash
+$env:GIT_PAGER = "cat"
+```
+
 ## Recording notes
 
 - **Total:** ~4:40 at 150 wpm. If over, cut the second paragraph of 2:10–3:30 (the directive v1 story) down to its last sentence — the rejected patch alone carries the segment.
-- **Screens to have open in tabs, in order:** `intent.md` §1/§4 → `handoff.md` §1.2 → terminal with the scheduled diff pre-run → `agent-notes.md` baseline table → `review-example.md` top → `council/directive-r1-codex.md` → `directive.md` B.4 → `handoff.md` §4.4.
+- **Screens to have open in tabs, in order:** `intent.md` §1/§4 → `handoff.md` §1.2 → terminal with **S2** already run → `agent-notes.md` baseline table (S3) → `review-example.md` top → `council/directive-r1-codex.md` → `directive.md` B.4 → `handoff.md` §4.4. Eight tabs; rehearse the switching once.
 - **Do not say** "proves," "guarantees," or "catches every." Say "shows," "checks," "for the asserted cases."
 - **Do say** the three "I" sentences in segment 4 exactly — they are the accountable-judgment evidence.
 - After recording: paste the Loom link into `directive.md` B.1 (the Loom row) and `effort-log.md`; tell me your final human hours; one last commit and push; then submit the Loom link, `intent.md`, `directive.md`.
