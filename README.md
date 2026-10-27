@@ -32,24 +32,66 @@ The inherited Next.js application is the baseline. This revision replaces unexpl
 
 ### High-Level Architecture
 
-```text
- Browser (Next.js App Router, zustand)
-   │ 1. POST SDP offer + config ──► /api/realtime  (same-origin check, zod, size limits)
-   │                                  ├─ x-openai-key present → user's key
-   │                                  └─ absent → hosted demo (allowance ledger in Firestore)
-   │ 2. SDP answer ◄──────────────────┘
-   │ 3. WebRTC audio ◄════════════════► OpenAI Realtime  (or Gemini Live via /api/realtime/gemini)
-   │
-   │ integrity hooks (tab focus, session control) ──► session record
-   │
-   ├─ /api/evaluate ──► AI SDK (OpenAI / Google) ──► zod evaluation schema (rubric + citations)
-   ├─ /api/parse-resume · /api/ats-score · /api/github-enrich   (bulk CV pipeline)
-   └─ /api/reviewer/* · /api/review-brief                        (human review)
-                │
-                ▼
- Firebase: Auth · Firestore (users, interview_sessions, interview_templates,
-            pipeline_candidates, candidate_reports, app_config) · Storage (CVs, artefacts)
+```mermaid
+sequenceDiagram
+    participant B as Browser<br/>Next.js App Router, zustand
+    participant R as /api/realtime
+    participant L as Firestore<br/>allowance ledger
+    participant P as OpenAI Realtime<br/>or Gemini Live
+
+    B->>R: 1. POST SDP offer + config
+    Note over R: same-origin check, zod, size limits
+    alt x-openai-key header present
+        Note over R: use the user's key
+    else key absent
+        R->>L: hosted demo, check allowance
+    end
+    R-->>B: 2. SDP answer
+    B->>P: 3. WebRTC audio, peer-to-peer in both directions
+    Note over B,P: audio never passes through the app server<br/>Gemini Live uses /api/realtime/gemini
 ```
+
+```mermaid
+flowchart TD
+    B["Browser<br/>Next.js App Router, zustand"]
+    Hooks["Integrity hooks<br/>tab focus, session control"]
+    Session["Session record"]
+
+    subgraph routes["Next.js API routes"]
+        Eval["/api/evaluate"]
+        Pipe["/api/parse-resume<br/>/api/ats-score<br/>/api/github-enrich<br/>bulk CV pipeline"]
+        Rev["/api/reviewer/*<br/>/api/review-brief<br/>human review"]
+    end
+
+    SDK(["AI SDK<br/>OpenAI / Google"])
+    Schema["zod evaluation schema<br/>rubric + citations"]
+
+    subgraph firebase["Firebase"]
+        Auth(["Auth"])
+        FS[("Firestore<br/>users, interview_sessions,<br/>interview_templates, pipeline_candidates,<br/>candidate_reports, app_config")]
+        ST[("Storage<br/>CVs, artefacts")]
+    end
+
+    B --> Hooks --> Session
+    B --> Eval
+    B --> Pipe
+    B --> Rev
+    Eval --> SDK --> Schema
+    Schema --> FS
+    Session --> FS
+    Pipe --> FS
+    Pipe --> ST
+    Rev --> FS
+
+    classDef store fill:#e8f1fb,stroke:#3b82c4,color:#0b2540
+    classDef ext fill:#f3effa,stroke:#7c5cbf,color:#24123f
+    classDef guard fill:#fdf1e6,stroke:#c77a2a,color:#3d2206
+    class FS,ST store
+    class SDK ext
+    class Auth,Schema guard
+```
+
+Access to every collection is governed by the Firestore rules in the next table; anything not listed is denied by default.
 
 ### Data Model and Access
 
