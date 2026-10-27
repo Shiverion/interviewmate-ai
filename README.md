@@ -14,6 +14,78 @@ The inherited Next.js application is the baseline. This revision replaces unexpl
 - [CV pipeline validation checklist](docs/hr-product-sprint/evaluation/cv-pipeline-validation.md).
 - [Five-minute demo script](deliverables/demo-script.md).
 
+## System Design
+
+### Requirements
+
+**Functional**
+- Conduct structured or adaptive **real-time voice interviews** from a role description, CV, and projects.
+- Score answers on a **cited 0–4 evidence rubric**, with explicit missing-evidence states and human review.
+- A recruiter pipeline: bulk CV parsing, ATS scoring, GitHub enrichment, candidate dashboard, scheduled interviews.
+- Reviewer access by private invitation; a rate-limited hosted demo for signed-in visitors.
+
+**Non-functional**
+- **Low conversational latency**: audio streams peer-to-peer to the model, not through the app server.
+- **Accountability**: every score links to transcript evidence; no unexplained percentages.
+- **Cost control**: bring-your-own-key by default; host-paid demo usage is metered in a Firestore ledger.
+- **Serverless**: Vercel with no writable filesystem; secrets are server-side only.
+
+### High-Level Architecture
+
+```text
+ Browser (Next.js App Router, zustand)
+   │ 1. POST SDP offer + config ──► /api/realtime  (same-origin check, zod, size limits)
+   │                                  ├─ x-openai-key present → user's key
+   │                                  └─ absent → hosted demo (allowance ledger in Firestore)
+   │ 2. SDP answer ◄──────────────────┘
+   │ 3. WebRTC audio ◄════════════════► OpenAI Realtime  (or Gemini Live via /api/realtime/gemini)
+   │
+   │ integrity hooks (tab focus, session control) ──► session record
+   │
+   ├─ /api/evaluate ──► AI SDK (OpenAI / Google) ──► zod evaluation schema (rubric + citations)
+   ├─ /api/parse-resume · /api/ats-score · /api/github-enrich   (bulk CV pipeline)
+   └─ /api/reviewer/* · /api/review-brief                        (human review)
+                │
+                ▼
+ Firebase: Auth · Firestore (users, interview_sessions, interview_templates,
+            pipeline_candidates, candidate_reports, app_config) · Storage (CVs, artefacts)
+```
+
+### Data Model and Access
+
+| Collection | Contents | Access (Firestore rules) |
+| --- | --- | --- |
+| `users/{uid}` | Profile, role | Owner |
+| `interview_sessions/{id}` | Transcript, integrity events, evaluation | Owner, admin, invited reviewer within the review window |
+| `interview_templates/{id}` | Question banks and competencies | Owner |
+| `pipeline_candidates/{id}`, `candidate_reports/{id}` | Bulk CV pipeline outputs | Recruiter owner |
+| `app_config/{id}` | Admin pointer, demo settings | Admin only |
+| everything else | n/a | Denied by default |
+
+Rules are tested with `@firebase/rules-unit-testing` (`scripts/test-access-rules.mjs`). Reviewer access expires at a fixed cutoff enforced in both the app and the rules.
+
+### Evaluation Design
+
+- Structured output validated by a zod schema: per-competency 0–4 scores, cited transcript excerpts, and an explicit "insufficient evidence" state.
+- A weighted overall score (communication 15%, reasoning 20%, relevance 15%, technical depth 20%, production experience 15%, skill match 10%, confidence 5%) is computed in code from the rubric, not by the model.
+- A human reviewer confirms or overrides each competency before a report is final.
+
+### Trade-offs
+
+| Decision | Benefit | Cost |
+| --- | --- | --- |
+| WebRTC direct to the model provider | Lowest latency; no audio through Vercel | Transcript capture depends on client events |
+| BYOK with a metered hosted fallback | Near-zero host cost | Keys stored client-side (base64 obfuscation only, demo-grade) |
+| Two realtime providers | Provider choice and failover | Two session adapters to maintain |
+| Firestore and Storage with rules | No custom backend for data access | Complex rules; must be tested on every change |
+
+### What to Revisit as It Grows
+
+- Replace client-stored keys with server-side encrypted key storage (KMS) per workspace.
+- Move bulk CV processing to a queue (Cloud Tasks or Pub/Sub) with retries instead of request-bound routes.
+- Add calibration studies (inter-rater agreement between rubric and human reviewers) before any hiring-validity claim.
+- Add per-tenant data isolation and retention policies before multi-company use.
+
 ## Run locally
 
 Use Node 24 (Node 20.9 or newer also works locally). Run `npm install`, then `npm run dev`; open http://localhost:3000. Add personal provider keys in Settings, or configure host credentials for Demo/Reviewer Mode as described in the runbook. Signing in does not force API-key setup.
